@@ -1,4 +1,5 @@
 import prisma from '@/config/database.ts';
+import { LeadScoringService } from '../leadScoring/leadScoring.service.ts';
 
 export class LeadService {
   static async listLeads(tenantId: string, filters: any) {
@@ -94,7 +95,8 @@ export class LeadService {
   }
 
   static async createLead(tenantId: string, userId: string, data: any) {
-    const score = this.calculateScore(data, false);
+    const rules = await LeadScoringService.getRules(tenantId);
+    const score = LeadScoringService.calculateScore(data, rules);
     return await prisma.lead.create({
       data: {
         ...data,
@@ -174,7 +176,8 @@ export class LeadService {
     }
 
     const hasComm = await prisma.communication.count({ where: { leadId: id } }) > 0;
-    const score = this.calculateScore({ ...oldLead, ...data }, hasComm);
+    const rules = await LeadScoringService.getRules(tenantId);
+    const score = LeadScoringService.calculateScore({ ...oldLead, ...data, communicationCount: hasComm ? 1 : 0 }, rules);
 
     return await prisma.lead.update({
       where: { id },
@@ -252,25 +255,6 @@ export class LeadService {
     ];
 
     return timeline.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }
-
-  private static calculateScore(data: any, hasCommunication: boolean) {
-    let score = 0;
-    if (data.email || (data.contact?.email)) score += 15;
-    if (data.phone || (data.contact?.phone)) score += 10;
-    if (data.companyId) score += 10;
-
-    if (data.priority === 'high') score += 20;
-    else if (data.priority === 'medium') score += 10;
-
-    if (data.expectedCloseAt) score += 10;
-
-    if (['referral', 'inbound'].includes(data.source)) score += 15;
-    else if (data.source === 'cold_outreach') score += 5;
-
-    if (hasCommunication) score += 10;
-
-    return Math.min(score, 100);
   }
 
   private static checkStale(lastActivityAt: Date, thresholdDays: number) {

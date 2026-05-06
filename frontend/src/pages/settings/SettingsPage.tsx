@@ -1,15 +1,17 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Building2, GitBranch, Users, Shield, Bell, Plug, CreditCard } from 'lucide-react';
+import { Building2, GitBranch, Users, Shield, Bell, Plug, CreditCard, Target } from 'lucide-react';
 import { TenantSettings } from './TenantSettings.tsx';
 import { PipelineStagesSettings } from './PipelineStagesSettings.tsx';
 import { TeamSettings } from './TeamSettings.tsx';
 import { RolesSettings } from './RolesSettings.tsx';
+import { LeadScoringSettings } from './LeadScoringSettings.tsx';
 
-type SettingsTab = 'organization' | 'pipeline' | 'team' | 'roles' | 'notifications' | 'integrations' | 'billing';
+type SettingsTab = 'organization' | 'pipeline' | 'leadScoring' | 'team' | 'roles' | 'notifications' | 'integrations' | 'billing';
 
 const NAV_ITEMS: { id: SettingsTab; label: string; icon: React.ComponentType<{ className?: string }>; placeholder?: boolean }[] = [
   { id: 'organization', label: 'Organization', icon: Building2 },
   { id: 'pipeline', label: 'Pipeline Stages', icon: GitBranch },
+  { id: 'leadScoring', label: 'Lead Scoring', icon: Target },
   { id: 'team', label: 'Team Members', icon: Users },
   { id: 'roles', label: 'Roles & Permissions', icon: Shield },
   { id: 'notifications', label: 'Notifications', icon: Bell, placeholder: true },
@@ -75,6 +77,11 @@ export default function SettingsPage() {
           {tab === 'pipeline' && <PipelineStagesSettings />}
           {tab === 'team' && <TeamSettings />}
           {tab === 'roles' && <RolesSettings />}
+          {tab === 'leadScoring' && (
+            <div className="p-8">
+              <LeadScoringSettings />
+            </div>
+          )}
           {tab === 'notifications' && <PlaceholderTab title="Notification Preferences" icon={Bell} />}
           {tab === 'integrations' && <PlaceholderTab title="Integrations & Apps" icon={Plug} />}
           {tab === 'billing' && <PlaceholderTab title="Billing & Plans" icon={CreditCard} />}
