@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { X, Calendar, Clock, Link as LinkIcon, Search, FileText } from 'lucide-react';
+import { X, Calendar, Clock, Link as LinkIcon, Search, FileText, Layout } from 'lucide-react';
+import { EmailTemplatePicker } from '@/components/emailTemplates/EmailTemplatePicker.tsx';
+import * as emailTemplatesApi from '@/api/emailTemplates.api.ts';
 import { format } from 'date-fns';
 import * as commsApi from '@/api/communications.api.ts';
 import * as leadsApi from '@/api/leads.api.ts';
@@ -50,6 +52,7 @@ export function LogCommunicationModal({ onClose, prefill }: LogCommunicationModa
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchDD, setShowSearchDD] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   useEffect(() => {
@@ -140,6 +143,28 @@ export function LogCommunicationModal({ onClose, prefill }: LogCommunicationModa
     };
 
     createMutation.mutate(payload);
+  };
+
+  const handleTemplateSelect = async (template: any) => {
+    try {
+      const res = await emailTemplatesApi.previewTemplate(template.id, {
+        leadId: form.leadId || undefined,
+        dealId: form.dealId || undefined,
+        contactId: form.contactId || undefined
+      });
+      
+      if (res.success) {
+        setForm(f => ({
+          ...f,
+          subject: res.data.subject,
+          body: res.data.body
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to preview template:', err);
+    } finally {
+      setShowTemplatePicker(false);
+    }
   };
 
   const showSubject = ['email', 'meeting'].includes(form.type);
@@ -309,7 +334,13 @@ export function LogCommunicationModal({ onClose, prefill }: LogCommunicationModa
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center justify-between">
               <span>Body / Notes</span>
-              <span className="text-[10px] text-slate-400 font-normal normal-case">Markdown supported</span>
+              <button 
+                type="button" 
+                onClick={() => setShowTemplatePicker(true)}
+                className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest transition-colors"
+              >
+                <Layout className="h-3 w-3" /> Use Blueprint
+              </button>
             </label>
             <textarea
               required
@@ -329,6 +360,14 @@ export function LogCommunicationModal({ onClose, prefill }: LogCommunicationModa
           </div>
         </form>
       </div>
+
+      {showTemplatePicker && (
+        <EmailTemplatePicker 
+          onClose={() => setShowTemplatePicker(false)}
+          onSelect={handleTemplateSelect}
+          type={form.type === 'email' ? 'lead_outreach' : undefined}
+        />
+      )}
     </div>
   );
 }

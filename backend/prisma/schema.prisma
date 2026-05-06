@@ -190,6 +190,7 @@ model Tenant {
   proposals       Proposal[]
   activities      ActivityLog[]
   stageMigrations StageMigration[]
+  emailTemplates  EmailTemplate[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -239,6 +240,7 @@ model User {
   activities      ActivityLog[]
   createdContacts Contact[]
   createdCompanies Company[]
+  emailTemplates   EmailTemplate[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -847,4 +849,30 @@ model ActivityLog {
   @@index([tenantId, userId])
   @@index([tenantId, createdAt])
   @@map("activity_logs")
+}
+// =============================================================================
+// EMAIL TEMPLATES
+// =============================================================================
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  subject     String
+  body        String   @db.Text
+  type        String   // "lead_outreach", "follow_up", "proposal", "custom"
+  isActive    Boolean  @default(true)
+  usageCount  Int      @default(0)
+  createdById String
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([tenantId])
+  @@index([type])
+  @@map("email_templates")
 }

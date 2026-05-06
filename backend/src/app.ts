@@ -24,6 +24,7 @@ import activityRoutes from '@/modules/activities/activity.routes.ts';
 import { proposalRoutes, publicProposalRoutes } from '@/modules/proposals/proposal.routes.ts';
 import analyticsRoutes from '@/modules/analytics/analytics.routes.ts';
 import leadScoringRoutes from '@/modules/leadScoring/leadScoring.routes.ts';
+import emailTemplateRoutes from '@/modules/emailTemplates/emailTemplate.routes.ts';
 
 const app = express();
 
@@ -75,6 +76,7 @@ app.use('/api/proposals', proposalRoutes);
 app.use('/api/public/proposals', publicProposalRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/lead-scoring', leadScoringRoutes);
+app.use('/api/email-templates', emailTemplateRoutes);
 
 // Error Handling
 app.use(notFound);
