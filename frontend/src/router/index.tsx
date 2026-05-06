@@ -14,6 +14,9 @@ const TasksPage = lazy(() => import('@/pages/tasks/TasksPage.tsx'));
 const CommunicationsPage = lazy(() => import('@/pages/communications/CommunicationsPage.tsx'));
 const ProductsPage = lazy(() => import('@/pages/products/ProductsPage.tsx'));
 const ProposalsPage = lazy(() => import('@/pages/proposals/ProposalsPage.tsx'));
+const ProposalBuilder = lazy(() => import('@/pages/proposals/ProposalBuilder.tsx'));
+const ProposalDetail = lazy(() => import('@/pages/proposals/ProposalDetail.tsx'));
+const PublicProposalView = lazy(() => import('@/pages/proposals/PublicProposalView.tsx'));
 const SettingsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.SettingsPage })));
 
 export const AppRouter = () => {
@@ -34,10 +37,14 @@ export const AppRouter = () => {
              <Route path="/communications" element={<CommunicationsPage />} />
              <Route path="/products" element={<ProductsPage />} />
              <Route path="/proposals" element={<ProposalsPage />} />
+             <Route path="/proposals/new" element={<ProposalBuilder />} />
+             <Route path="/proposals/:id" element={<ProposalDetail />} />
+             <Route path="/proposals/:id/edit" element={<ProposalBuilder />} />
              <Route path="/settings" element={<SettingsPage />} />
              <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Route>
+        <Route path="/p/:publicToken" element={<PublicProposalView />} />
       </Routes>
     </Suspense>
   );
