@@ -6,13 +6,13 @@ import { env } from '@/config/env.ts';
 export class AuthController {
   static registerTenant = async (req: Request, res: Response) => {
     const result = await AuthService.registerTenant(req.body);
-    this.setRefreshCookie(res, result.tokens.refreshToken);
+    if (result.refreshToken) this.setRefreshCookie(res, result.refreshToken);
     return success(res, result, 'Tenant registered successfully', 201);
   };
 
   static login = async (req: Request, res: Response) => {
     const result = await AuthService.login(req.body);
-    this.setRefreshCookie(res, result.tokens.refreshToken);
+    if (result.refreshToken) this.setRefreshCookie(res, result.refreshToken);
     return success(res, result, 'Logged in successfully');
   };
 

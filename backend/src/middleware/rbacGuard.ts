@@ -18,6 +18,13 @@ const rbacGuard = (resource: string, action: string) => {
 
     // Fetch permissions if not already attached (or use a cache)
     if (!req.permissions) {
+      // Debug: Log the user object to see what we have
+      console.log('RBAC Guard - User object:', JSON.stringify(user, null, 2));
+      
+      if (!user.id) {
+        return error(res, 'Invalid token - missing user ID', 401, 'INVALID_TOKEN');
+      }
+      
       const userWithRoles = await prisma.user.findUnique({
         where: { id: user.id },
         include: {

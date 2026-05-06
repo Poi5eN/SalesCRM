@@ -83,7 +83,7 @@ export class AuthService {
         data: { refreshToken: refreshTokenHash }
       });
 
-      return { user: this.omitPassword(user), accessToken: tokens.accessToken, tenant };
+      return { user: this.omitPassword(user), accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, tenant };
     });
   }
 
@@ -133,7 +133,7 @@ export class AuthService {
 
     const tenant = await prisma.tenant.findUnique({ where: { id: user.tenantId } });
 
-    return { user: this.omitPassword(user), accessToken: tokens.accessToken, tenant };
+    return { user: this.omitPassword(user), accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, tenant };
   }
 
   static async refresh(refreshToken: string) {
@@ -143,7 +143,7 @@ export class AuthService {
     const jwt = await import('jsonwebtoken');
     try {
       const decoded = jwt.default.verify(refreshToken, env.JWT_REFRESH_SECRET) as any;
-      const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+      const user = await prisma.user.findUnique({ where: { id: decoded.id } });
 
       if (!user || !user.refreshToken || !(await bcrypt.compare(refreshToken, user.refreshToken))) {
         throw { status: 401, message: 'Invalid refresh token', code: 'INVALID_REFRESH_TOKEN' };
@@ -263,7 +263,7 @@ export class AuthService {
 
   private static issueTokens(user: any) {
     const payload = { 
-      userId: user.id, 
+      id: user.id, 
       tenantId: user.tenantId, 
       email: user.email, 
       role: user.role 
