@@ -14,6 +14,9 @@ import stageRoutes from '@/modules/pipeline-stages/stage.routes.ts';
 import companyRoutes from '@/modules/companies/company.routes.ts';
 import contactRoutes from '@/modules/contacts/contact.routes.ts';
 import leadRoutes from '@/modules/leads/lead.routes.ts';
+import dealRoutes from '@/modules/deals/deal.routes.ts';
+import taskRoutes from '@/modules/tasks/task.routes.ts';
+import communicationRoutes from '@/modules/communications/communication.routes.ts';
 
 const app = express();
 
@@ -45,6 +48,9 @@ app.use('/api/pipeline-stages', stageRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/leads', leadRoutes);
+app.use('/api/deals', dealRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/communications', communicationRoutes);
 
 // Error Handling
 app.use(notFound);

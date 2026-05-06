@@ -6,6 +6,25 @@ const port = env.PORT || 4000;
 
 const server = app.listen(port, () => {
   console.log(`🚀 Server running in ${env.NODE_ENV} mode on port ${port}`);
+
+  // Hourly Task Overdue Job
+  setInterval(async () => {
+    try {
+      const now = new Date();
+      const result = await prisma.task.updateMany({
+        where: {
+          dueAt: { lt: now },
+          status: { notIn: ['completed', 'cancelled', 'overdue'] }
+        },
+        data: { status: 'overdue' }
+      });
+      if (result.count > 0) {
+        console.log(`[OverdueJob] Updated ${result.count} tasks to overdue.`);
+      }
+    } catch (err) {
+      console.error('[OverdueJob] Failed to update tasks:', err);
+    }
+  }, 60 * 60 * 1000); // 1 hour
 });
 
 // Graceful Shutdown

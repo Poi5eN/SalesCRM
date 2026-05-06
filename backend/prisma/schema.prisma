@@ -676,6 +676,7 @@ model Communication {
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
 
   @@index([tenantId])
   @@index([tenantId, leadId])
