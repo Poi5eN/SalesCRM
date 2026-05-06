@@ -6,9 +6,10 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, AlertCircle, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as tasksApi from '@/api/tasks.api.ts';
 import { TaskForm } from '@/pages/tasks/TaskForm.tsx';
+import { LogCommunicationModal } from '@/pages/communications/LogCommunicationModal.tsx';
 
 
 function cn(...inputs: ClassValue[]) {
@@ -20,7 +21,7 @@ interface AppShellProps {
 }
 
 export const AppShell = ({ children }: AppShellProps) => {
-  const { sidebarOpen, taskFormOpen, taskFormPrefill, openTaskForm, closeTaskForm } = useUIStore();
+  const { sidebarOpen, taskFormOpen, taskFormPrefill, openTaskForm, closeTaskForm, commModalOpen, commModalPrefill, openCommModal, closeCommModal } = useUIStore();
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const { data: overdueData } = useQuery({
@@ -31,6 +32,17 @@ export const AppShell = ({ children }: AppShellProps) => {
 
   const overdueCount = overdueData?.data?.length || 0;
   const showBanner = overdueCount > 0 && !bannerDismissed;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        openCommModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [openCommModal]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -78,6 +90,13 @@ export const AppShell = ({ children }: AppShellProps) => {
         <TaskForm 
           prefill={taskFormPrefill}
           onClose={closeTaskForm} 
+        />
+      )}
+
+      {commModalOpen && (
+        <LogCommunicationModal
+          prefill={commModalPrefill}
+          onClose={closeCommModal}
         />
       )}
     </div>

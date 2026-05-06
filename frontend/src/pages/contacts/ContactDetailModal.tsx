@@ -10,6 +10,7 @@ import * as dealsApi from '@/api/deals.api.ts';
 import * as commsApi from '@/api/communications.api.ts';
 import { Button } from '@/components/ui/Button.tsx';
 import { formatCurrency } from '@/utils/format.ts';
+import { useUIStore } from '@/store/ui.store.ts';
 
 interface ContactDetailModalProps {
   contact: Contact;
@@ -23,6 +24,7 @@ type Tab = 'overview' | 'leads' | 'deals' | 'timeline' | 'communications';
 
 export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpenDeal }: ContactDetailModalProps) {
   const [tab, setTab] = useState<Tab>('overview');
+  const { openCommModal } = useUIStore();
 
   const { data: contactData } = useQuery({
     queryKey: ['contact', contact.id],
@@ -71,7 +73,7 @@ export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpe
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative z-10 w-full max-w-[700px] h-full bg-white shadow-2xl flex flex-col" style={{ animation: 'slideInRight 0.25s ease-out' }}>
-        
+
         {/* Header */}
         <div className="border-b border-slate-200 p-6 flex-shrink-0 bg-slate-50">
           <div className="flex items-start justify-between gap-4">
@@ -103,7 +105,7 @@ export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpe
               </button>
             </div>
           </div>
-          
+
           <div className="flex flex-wrap gap-2 mt-4">
             {currentContact.tags?.map(tag => (
               <span key={tag} className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-600">
@@ -119,9 +121,8 @@ export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpe
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`mr-6 py-3.5 text-sm font-medium border-b-2 transition-colors ${
-                tab === t.id ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+              className={`mr-6 py-3.5 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
             >
               {t.label}
             </button>
@@ -139,7 +140,7 @@ export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpe
                   ['WhatsApp', currentContact.whatsapp],
                   ['Department', currentContact.department],
                   ['Company', currentContact.company?.name],
-                  ['LinkedIn', currentContact.linkedInUrl && <a href={currentContact.linkedInUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline flex items-center gap-1"><LinkIcon className="h-3 w-3" /> Profile</a>],
+                  ['LinkedIn', currentContact.linkedinUrl && <a href={currentContact.linkedinUrl} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline flex items-center gap-1"><LinkIcon className="h-3 w-3" /> Profile</a>],
                   ['Added', format(new Date(currentContact.createdAt), 'dd MMM yyyy, HH:mm')],
                 ] as [string, any][]).map(([label, value]) => (
                   <div key={label} className="flex items-center px-4 py-3 text-sm">
@@ -157,8 +158,8 @@ export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpe
                 <EmptyState icon={<LinkIcon className="h-10 w-10 text-slate-200" />} title="No linked leads" />
               ) : (
                 leads.map(lead => (
-                  <div 
-                    key={lead.id} 
+                  <div
+                    key={lead.id}
                     onClick={() => onOpenLead?.(lead)}
                     className="border border-slate-200 rounded-xl p-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
                   >
@@ -183,8 +184,8 @@ export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpe
                 <EmptyState icon={<Briefcase className="h-10 w-10 text-slate-200" />} title="No linked deals" />
               ) : (
                 deals.map(deal => (
-                  <div 
-                    key={deal.id} 
+                  <div
+                    key={deal.id}
                     onClick={() => onOpenDeal?.(deal)}
                     className="border border-slate-200 rounded-xl p-4 flex justify-between items-center bg-slate-50 hover:bg-slate-100 cursor-pointer transition-colors"
                   >
@@ -194,11 +195,10 @@ export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpe
                         Value: <span className="font-bold text-slate-800">{formatCurrency(deal.value, deal.currency)}</span> • Stage: <span className="font-medium text-slate-700">{deal.stage?.name ?? '—'}</span>
                       </p>
                     </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${
-                      deal.status === 'won' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                      deal.status === 'lost' ? 'bg-red-50 text-red-700 border-red-200' :
-                      'bg-white text-slate-600 border-slate-200'
-                    }`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${deal.status === 'won' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                        deal.status === 'lost' ? 'bg-red-50 text-red-700 border-red-200' :
+                          'bg-white text-slate-600 border-slate-200'
+                      }`}>
                       {deal.status}
                     </span>
                   </div>
@@ -235,6 +235,12 @@ export function ContactDetailModal({ contact, onClose, onEdit, onOpenLead, onOpe
 
           {tab === 'communications' && (
             <div className="space-y-3">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-bold text-slate-800">Communications</h3>
+                <Button size="sm" variant="outline" onClick={() => openCommModal({ contactId: contact.id })}>
+                  Log Communication
+                </Button>
+              </div>
               {comms.length === 0 ? (
                 <EmptyState icon={<Clock className="h-10 w-10 text-slate-200" />} title="No communications logged" />
               ) : (

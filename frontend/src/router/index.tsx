@@ -11,7 +11,7 @@ const DealsPage = lazy(() => import('@/pages/deals/DealsPage.tsx'));
 const ContactsPage = lazy(() => import('@/pages/contacts/ContactsPage.tsx'));
 const CompaniesPage = lazy(() => import('@/pages/companies/CompaniesPage.tsx'));
 const TasksPage = lazy(() => import('@/pages/tasks/TasksPage.tsx'));
-const CommunicationsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.CommunicationsPage })));
+const CommunicationsPage = lazy(() => import('@/pages/communications/CommunicationsPage.tsx'));
 const ProductsPage = lazy(() => import('@/pages/products/ProductsPage.tsx'));
 const ProposalsPage = lazy(() => import('@/pages/proposals/ProposalsPage.tsx'));
 const SettingsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.SettingsPage })));

@@ -12,6 +12,7 @@ import * as pipelineApi from '@/api/pipeline.api.ts';
 import * as productsApi from '@/api/products.api.ts';
 import * as proposalsApi from '@/api/proposals.api.ts';
 import { Button } from '@/components/ui/Button.tsx';
+import { useUIStore } from '@/store/ui.store.ts';
 import { formatCurrency } from '@/utils/format.ts';
 import { getProbabilityColor, getStatusBadgeStyles } from './dealUtils.ts';
 
@@ -27,7 +28,7 @@ export function DealDetailModal({ deal, onClose, onEdit }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
   const [stageMenuOpen, setStageMenuOpen] = useState(false);
   const [addTaskOpen, setAddTaskOpen] = useState(false);
-  const [logCommOpen, setLogCommOpen] = useState(false);
+  const { openCommModal } = useUIStore();
   const qc = useQueryClient();
 
   const { data: dealData } = useQuery({
@@ -205,8 +206,8 @@ export function DealDetailModal({ deal, onClose, onEdit }: Props) {
                 </Button>
                 <Button 
                   variant="outline"
-                  onClick={() => updateMutation.mutate({ status: 'on_hold' })}
-                  className={currentDeal.status === 'on_hold' ? 'ring-2 ring-amber-500 bg-amber-50 text-amber-700 border-amber-200' : ''}
+                  onClick={() => updateMutation.mutate({ status: 'onHold' })}
+                  className={currentDeal.status === 'onHold' ? 'ring-2 ring-amber-500 bg-amber-50 text-amber-700 border-amber-200' : ''}
                 >
                   On Hold
                 </Button>
@@ -334,12 +335,11 @@ export function DealDetailModal({ deal, onClose, onEdit }: Props) {
             <div className="p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-slate-700">Communications</h4>
-                <Button size="sm" variant="outline" onClick={() => setLogCommOpen(v => !v)}>
+                <Button size="sm" variant="outline" onClick={() => openCommModal({ dealId: deal.id })}>
                   <Plus className="h-3 w-3 mr-1" /> Log
                 </Button>
               </div>
-              {logCommOpen && <QuickLogComm dealId={deal.id} onClose={() => setLogCommOpen(false)} />}
-              {comms.length === 0 && !logCommOpen ? (
+              {comms.length === 0 ? (
                 <EmptyState icon={<MessageSquare className="h-10 w-10 text-slate-200" />} title="No communications logged" />
               ) : (
                 <div className="space-y-3">
@@ -579,44 +579,6 @@ function QuickAddTask({ dealId, onClose }: { dealId: string; onClose: () => void
       <div className="flex gap-2 justify-end">
         <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
         <Button size="sm" isLoading={mutation.isPending} onClick={() => title && mutation.mutate({ title, type, dealId, dueAt: dueAt || undefined, priority: 'medium' })}>Add Task</Button>
-      </div>
-    </div>
-  );
-}
-
-function QuickLogComm({ dealId, onClose }: { dealId: string; onClose: () => void }) {
-  const [form, setForm] = useState({ type: 'note', direction: 'outbound', subject: '', body: '', outcome: '' });
-  const qc = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: (data: any) => communicationsApi.createCommunication(data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['communications', 'deal', dealId] });
-      onClose();
-    },
-  });
-
-  return (
-    <div className="border border-slate-200 bg-white rounded-xl p-4 space-y-3">
-      <div className="flex gap-2">
-        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50">
-          <option value="note">Note</option>
-          <option value="email">Email</option>
-          <option value="call">Call</option>
-          <option value="meeting">Meeting</option>
-        </select>
-        <select value={form.direction} onChange={e => setForm(f => ({ ...f, direction: e.target.value }))} className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50">
-          <option value="outbound">Outbound</option>
-          <option value="inbound">Inbound</option>
-          <option value="internal">Internal</option>
-        </select>
-      </div>
-      <input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} placeholder="Subject (optional)" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
-      <textarea rows={3} value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} placeholder="Notes / body..." className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 resize-none" />
-      <input value={form.outcome} onChange={e => setForm(f => ({ ...f, outcome: e.target.value }))} placeholder="Outcome (e.g. interested, callback)" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
-      <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
-        <Button size="sm" isLoading={mutation.isPending} onClick={() => mutation.mutate({ ...form, dealId })}>Log</Button>
       </div>
     </div>
   );

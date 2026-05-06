@@ -13,6 +13,7 @@ import * as pipelineApi from '@/api/pipeline.api.ts';
 import { Button } from '@/components/ui/Button.tsx';
 import { getScoreColor, getPriorityStyles } from './leadUtils.ts';
 import { formatCurrency } from '@/utils/format.ts';
+import { useUIStore } from '@/store/ui.store.ts';
 
 interface Props {
   lead: Lead;
@@ -27,7 +28,7 @@ export function LeadDetailModal({ lead, onClose, onEdit, onConvert }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
   const [stageMenuOpen, setStageMenuOpen] = useState(false);
   const [addTaskOpen, setAddTaskOpen] = useState(false);
-  const [logCommOpen, setLogCommOpen] = useState(false);
+  const { openCommModal } = useUIStore();
   const qc = useQueryClient();
 
   const { data: leadData } = useQuery({
@@ -173,9 +174,8 @@ export function LeadDetailModal({ lead, onClose, onEdit, onConvert }: Props) {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`mr-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-                tab === t.id ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+              className={`mr-6 py-3 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
             >
               {t.label}
             </button>
@@ -290,12 +290,11 @@ export function LeadDetailModal({ lead, onClose, onEdit, onConvert }: Props) {
             <div className="p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-slate-700">Communications</h4>
-                <Button size="sm" variant="outline" onClick={() => setLogCommOpen(v => !v)}>
+                <Button size="sm" variant="outline" onClick={() => openCommModal({ leadId: lead.id })}>
                   <Plus className="h-3 w-3 mr-1" /> Log
                 </Button>
               </div>
-              {logCommOpen && <QuickLogComm leadId={lead.id} onClose={() => setLogCommOpen(false)} />}
-              {comms.length === 0 && !logCommOpen ? (
+              {comms.length === 0 ? (
                 <EmptyState icon={<MessageSquare className="h-10 w-10 text-slate-200" />} title="No communications logged" />
               ) : (
                 <div className="space-y-3">
@@ -393,41 +392,3 @@ function QuickAddTask({ leadId, onClose }: { leadId: string; onClose: () => void
   );
 }
 
-function QuickLogComm({ leadId, onClose }: { leadId: string; onClose: () => void }) {
-  const [form, setForm] = useState({ type: 'note', direction: 'outbound', subject: '', body: '', outcome: '' });
-  const qc = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: (data: any) => communicationsApi.createCommunication(data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['communications', 'lead', leadId] });
-      onClose();
-    },
-  });
-
-  return (
-    <div className="border border-slate-200 bg-white rounded-xl p-4 space-y-3">
-      <div className="flex gap-2">
-        <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50">
-          <option value="note">Note</option>
-          <option value="email">Email</option>
-          <option value="call">Call</option>
-          <option value="meeting">Meeting</option>
-          <option value="whatsapp">WhatsApp</option>
-        </select>
-        <select value={form.direction} onChange={e => setForm(f => ({ ...f, direction: e.target.value }))} className="flex-1 px-2 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50">
-          <option value="outbound">Outbound</option>
-          <option value="inbound">Inbound</option>
-          <option value="internal">Internal</option>
-        </select>
-      </div>
-      <input value={form.subject} onChange={e => setForm(f => ({ ...f, subject: e.target.value }))} placeholder="Subject (optional)" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
-      <textarea rows={3} value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} placeholder="Notes / body..." className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 resize-none" />
-      <input value={form.outcome} onChange={e => setForm(f => ({ ...f, outcome: e.target.value }))} placeholder="Outcome (e.g. interested, callback)" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50" />
-      <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="outline" onClick={onClose}>Cancel</Button>
-        <Button size="sm" isLoading={mutation.isPending} onClick={() => mutation.mutate({ ...form, leadId })}>Log</Button>
-      </div>
-    </div>
-  );
-}

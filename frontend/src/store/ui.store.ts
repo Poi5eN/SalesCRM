@@ -21,6 +21,10 @@ interface UIState {
   taskFormPrefill: any;
   openTaskForm: (prefill?: any) => void;
   closeTaskForm: () => void;
+  commModalOpen: boolean;
+  commModalPrefill: any;
+  openCommModal: (prefill?: any) => void;
+  closeCommModal: () => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -45,4 +49,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   taskFormPrefill: null,
   openTaskForm: (prefill = null) => set({ taskFormOpen: true, taskFormPrefill: prefill }),
   closeTaskForm: () => set({ taskFormOpen: false, taskFormPrefill: null }),
+  commModalOpen: false,
+  commModalPrefill: null,
+  openCommModal: (prefill = null) => set({ commModalOpen: true, commModalPrefill: prefill }),
+  closeCommModal: () => set({ commModalOpen: false, commModalPrefill: null }),
 }));
