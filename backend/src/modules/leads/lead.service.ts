@@ -16,7 +16,7 @@ export class LeadService {
       ...(assignedToId ? { assignedToId } : {}),
       ...(priority ? { priority } : {}),
       ...(source ? { source } : {}),
-      ...(isConverted !== undefined ? { isConverted } : {}),
+      ...(isConverted !== undefined ? { isConverted: isConverted === 'true' } : {}),
       ...(tag ? { tags: { has: tag } } : {}),
       ...(search ? { title: { contains: search, mode: 'insensitive' } } : {}),
       ...(createdAtFrom || createdAtTo ? {
