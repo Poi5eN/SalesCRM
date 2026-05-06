@@ -17,7 +17,7 @@ const ProposalsPage = lazy(() => import('@/pages/proposals/ProposalsPage.tsx'));
 const ProposalBuilder = lazy(() => import('@/pages/proposals/ProposalBuilder.tsx'));
 const ProposalDetail = lazy(() => import('@/pages/proposals/ProposalDetail.tsx'));
 const PublicProposalView = lazy(() => import('@/pages/proposals/PublicProposalView.tsx'));
-const SettingsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.SettingsPage })));
+const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage.tsx'));
 
 export const AppRouter = () => {
   return (
