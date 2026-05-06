@@ -22,6 +22,7 @@ import communicationRoutes from '@/modules/communications/communication.routes.t
 import productRoutes from '@/modules/products/product.routes.ts';
 import activityRoutes from '@/modules/activities/activity.routes.ts';
 import { proposalRoutes, publicProposalRoutes } from '@/modules/proposals/proposal.routes.ts';
+import analyticsRoutes from '@/modules/analytics/analytics.routes.ts';
 
 const app = express();
 
@@ -71,6 +72,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/public/proposals', publicProposalRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Error Handling
 app.use(notFound);

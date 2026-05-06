@@ -18,6 +18,7 @@ const ProposalBuilder = lazy(() => import('@/pages/proposals/ProposalBuilder.tsx
 const ProposalDetail = lazy(() => import('@/pages/proposals/ProposalDetail.tsx'));
 const PublicProposalView = lazy(() => import('@/pages/proposals/PublicProposalView.tsx'));
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage.tsx'));
+const ReportsPage = lazy(() => import('@/pages/reports/ReportsPage.tsx'));
 
 export const AppRouter = () => {
   return (
@@ -41,6 +42,7 @@ export const AppRouter = () => {
              <Route path="/proposals/:id" element={<ProposalDetail />} />
              <Route path="/proposals/:id/edit" element={<ProposalBuilder />} />
              <Route path="/settings" element={<SettingsPage />} />
+             <Route path="/reports" element={<ReportsPage />} />
              <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Route>
