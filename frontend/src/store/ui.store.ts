@@ -52,6 +52,10 @@ interface UIState {
   setCommandPaletteOpen: (open: boolean) => void;
   recentItems: { id: string; type: 'lead' | 'deal'; title: string }[];
   addRecentItem: (item: { id: string; type: 'lead' | 'deal'; title: string }) => void;
+
+  // Badge Counts
+  badgeCounts: { leads: number; deals: number; tasks: number };
+  setBadgeCounts: (counts: { leads?: number; deals?: number; tasks?: number }) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -108,6 +112,11 @@ export const useUIStore = create<UIState>()(
           return { recentItems: [item, ...filtered].slice(0, 5) };
         });
       },
+
+      badgeCounts: { leads: 0, deals: 0, tasks: 0 },
+      setBadgeCounts: (counts) => set((state) => ({ 
+        badgeCounts: { ...state.badgeCounts, ...counts } 
+      })),
     }),
     {
       name: 'ui-storage',

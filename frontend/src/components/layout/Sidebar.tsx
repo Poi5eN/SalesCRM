@@ -8,8 +8,7 @@ import {
 import { useAuthStore } from '@/store/auth.store.ts';
 import { useUIStore } from '@/store/ui.store.ts';
 import * as leadsApi from '@/api/leads.api.ts';
-import * as dealsApi from '@/api/deals.api.ts';
-import * as tasksApi from '@/api/tasks.api.ts';
+import { queryKeys } from '@/lib/queryKeys.ts';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -27,18 +26,8 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const location = useLocation();
   const { user, tenant, clearAuth } = useAuthStore();
-  const { sidebarCollapsed, toggleSidebar, setCommandPaletteOpen } = useUIStore();
+  const { sidebarCollapsed, toggleSidebar, setCommandPaletteOpen, badgeCounts } = useUIStore();
 
-  // Fetch counts
-  const { data: leadsData } = useQuery({ queryKey: ['leads-count'], queryFn: () => leadsApi.getLeads({ limit: 1 }) });
-  const { data: dealsData } = useQuery({ queryKey: ['deals-count'], queryFn: () => dealsApi.getDeals({ limit: 1 }) });
-  const { data: overdueTasksData } = useQuery({ queryKey: ['tasks-overdue-count'], queryFn: () => tasksApi.getTasks({ status: 'todo', limit: 1 }) }); // Simplified overdue check
-
-  const counts: Record<string, number> = {
-    leads: leadsData?.data?.meta?.total || 0,
-    deals: dealsData?.data?.meta?.total || 0,
-    overdueTasks: overdueTasksData?.data?.meta?.total || 0,
-  };
 
   const getIsActive = (path: string) => location.pathname === path;
 
@@ -82,7 +71,7 @@ export function Sidebar() {
         {NAV_ITEMS.map((item) => {
           const isActive = getIsActive(item.path);
           const Icon = item.icon;
-          const count = item.countKey ? counts[item.countKey] : null;
+          const count = item.countKey ? (badgeCounts as any)[item.countKey] : null;
 
           return (
             <Link

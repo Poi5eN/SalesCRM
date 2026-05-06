@@ -125,7 +125,7 @@ const DashboardPage = () => {
 
   const upcomingTasks = useQuery({
     queryKey: ['tasks', 'upcoming'],
-    queryFn: () => tasksApi.getTasks({ limit: 10, status: 'todo' }),
+    queryFn: () => tasksApi.getTasks({ limit: 10, status: 'pending' }),
     refetchInterval: REFETCH_INTERVAL,
   });
 

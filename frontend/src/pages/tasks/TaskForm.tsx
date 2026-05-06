@@ -8,7 +8,7 @@ import * as dealsApi from '@/api/deals.api.ts';
 import * as contactsApi from '@/api/contacts.api.ts';
 import { useAuth } from '@/hooks/useAuth.ts';
 import { Button } from '@/components/ui/Button.tsx';
-import type { Task, Lead, Deal, Contact, TaskPriority } from '@/types/api.types.ts';
+import type { Task, Lead, Deal, Contact, TaskPriority, TaskType } from '@/types/api.types.ts';
 import { useDebounce } from '@/hooks/useDebounce.ts';
 
 interface TaskFormProps {
@@ -30,7 +30,7 @@ export function TaskForm({ task, onClose, onSuccess, prefill }: TaskFormProps) {
 
   const [form, setForm] = useState({
     title: task?.title ?? '',
-    type: task?.type ?? 'todo',
+    type: task?.type ?? 'followUp',
     priority: task?.priority ?? 'medium',
     dueDate: task?.dueAt ? format(new Date(task.dueAt), 'yyyy-MM-dd') : (prefill?.dueAt ? format(new Date(prefill.dueAt), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')),
     dueTime: task?.dueAt ? format(new Date(task.dueAt), 'HH:mm') : '09:00',
@@ -140,13 +140,15 @@ export function TaskForm({ task, onClose, onSuccess, prefill }: TaskFormProps) {
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Type</label>
               <select
                 value={form.type}
-                onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, type: e.target.value as TaskType }))}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
               >
-                <option value="todo">To-Do</option>
+                <option value="followUp">Follow-up</option>
                 <option value="call">Call</option>
                 <option value="email">Email</option>
                 <option value="meeting">Meeting</option>
+                <option value="deadline">Deadline</option>
+                <option value="other">Other</option>
               </select>
             </div>
             <div>
@@ -196,8 +198,8 @@ export function TaskForm({ task, onClose, onSuccess, prefill }: TaskFormProps) {
             <div className="flex items-center gap-2 mb-2">
               <LinkIcon className="h-4 w-4 text-slate-500" />
               <span className="text-sm font-semibold text-slate-700">Link to</span>
-              <select 
-                value={linkType} 
+              <select
+                value={linkType}
                 onChange={e => { setLinkType(e.target.value as any); setSearchQuery(''); }}
                 className="bg-transparent text-sm font-medium focus:outline-none ml-auto text-indigo-600"
               >
@@ -207,7 +209,7 @@ export function TaskForm({ task, onClose, onSuccess, prefill }: TaskFormProps) {
                 <option value="contact">Contact</option>
               </select>
             </div>
-            
+
             {linkType !== 'none' && (
               <div className="relative" ref={searchRef}>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -221,8 +223,8 @@ export function TaskForm({ task, onClose, onSuccess, prefill }: TaskFormProps) {
                 {showSearchDD && (searchResults?.length ?? 0) > 0 && (
                   <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {searchResults?.map((item: any) => (
-                      <button 
-                        key={item.id} type="button" 
+                      <button
+                        key={item.id} type="button"
                         onClick={() => {
                           setForm(f => ({ ...f, [`${linkType}Id`]: item.id }));
                           setSearchQuery(item.title || `${item.firstName} ${item.lastName}`);

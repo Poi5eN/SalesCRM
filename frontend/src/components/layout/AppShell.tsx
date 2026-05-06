@@ -11,6 +11,9 @@ import { TaskForm } from '@/pages/tasks/TaskForm.tsx';
 import { LogCommunicationModal } from '@/pages/communications/LogCommunicationModal.tsx';
 import { ToastContainer } from '@/components/ui/Toast.tsx';
 import { CommandPalette } from '@/components/ui/CommandPalette.tsx';
+import { queryKeys } from '@/lib/queryKeys.ts';
+import * as leadsApi from '@/api/leads.api.ts';
+import * as dealsApi from '@/api/deals.api.ts';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -31,7 +34,8 @@ export const AppShell = ({ children }: AppShellProps) => {
     commModalPrefill, 
     openCommModal, 
     closeCommModal,
-    theme
+    theme,
+    setBadgeCounts
   } = useUIStore();
   
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -41,13 +45,38 @@ export const AppShell = ({ children }: AppShellProps) => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  // Global Badge Count Polling
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const [leads, deals, overdue] = await Promise.all([
+          leadsApi.getLeads({ limit: 1 }),
+          dealsApi.getDeals({ status: 'open', limit: 1 }),
+          tasksApi.getOverdueTasks(),
+        ]);
+        
+        setBadgeCounts({
+          leads: leads.data?.meta?.total || 0,
+          deals: deals.data?.meta?.total || 0,
+          tasks: overdue.data?.length || 0,
+        });
+      } catch (error) {
+        console.error('Failed to fetch global counts', error);
+      }
+    };
+
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 120000); // 2 minutes
+    return () => clearInterval(interval);
+  }, [setBadgeCounts]);
+
   const { data: overdueData } = useQuery({
-    queryKey: ['tasks', 'overdue'],
-    queryFn: () => tasksApi.getTasks({ status: 'todo', limit: 5 }), // Simplified overdue check for banner
+    queryKey: queryKeys.tasks.overdue,
+    queryFn: () => tasksApi.getOverdueTasks(),
     staleTime: 60000,
   });
 
-  const overdueCount = overdueData?.data?.meta?.total || 0;
+  const overdueCount = overdueData?.data?.length || 0;
   const showBanner = overdueCount > 0 && !bannerDismissed;
 
   useEffect(() => {
