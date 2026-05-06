@@ -189,6 +189,7 @@ export interface Deal {
   lostReason?: string;
   tags: string[];
   customFields?: any;
+  lastActivityAt: string;
   stage?: PipelineStage;
   contact?: Contact;
   company?: Company;
