@@ -17,6 +17,10 @@ interface UIState {
   setActiveModule: (module: string) => void;
   confirm: (options: Omit<ConfirmOptions, 'resolve'>) => Promise<boolean>;
   closeConfirm: (value: boolean) => void;
+  taskFormOpen: boolean;
+  taskFormPrefill: any;
+  openTaskForm: (prefill?: any) => void;
+  closeTaskForm: () => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -37,4 +41,8 @@ export const useUIStore = create<UIState>((set, get) => ({
       set({ confirmOptions: null });
     }
   },
+  taskFormOpen: false,
+  taskFormPrefill: null,
+  openTaskForm: (prefill = null) => set({ taskFormOpen: true, taskFormPrefill: prefill }),
+  closeTaskForm: () => set({ taskFormOpen: false, taskFormPrefill: null }),
 }));

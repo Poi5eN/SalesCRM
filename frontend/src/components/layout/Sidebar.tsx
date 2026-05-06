@@ -14,6 +14,8 @@ function cn(...inputs: ClassValue[]) {
 }
 
 import { useAuth } from '@/hooks/useAuth.ts';
+import { useQuery } from '@tanstack/react-query';
+import * as tasksApi from '@/api/tasks.api.ts';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', id: 'dashboard' },
@@ -31,6 +33,14 @@ const navItems = [
 export const Sidebar = () => {
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const { user, tenant } = useAuth();
+
+  const { data: overdueData } = useQuery({
+    queryKey: ['tasks', 'overdue'],
+    queryFn: () => tasksApi.getOverdueTasks(),
+    staleTime: 60000,
+  });
+
+  const overdueCount = overdueData?.data?.length || 0;
 
   return (
     <aside
@@ -70,12 +80,27 @@ export const Sidebar = () => {
               "h-5 w-5 flex-shrink-0 transition-colors",
               sidebarOpen ? "mr-3" : "mx-auto"
             )} />
-            {sidebarOpen && <span className="truncate">{item.label}</span>}
-            {!sidebarOpen && (
-              <div className="absolute left-full ml-6 rounded-md px-2 py-1 bg-slate-800 text-xs text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
-                {item.label}
+            {sidebarOpen && (
+              <div className="flex-1 flex items-center justify-between min-w-0">
+                <span className="truncate">{item.label}</span>
+                {item.id === 'tasks' && overdueCount > 0 && (
+                  <span className="flex-shrink-0 ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">
+                    {overdueCount}
+                  </span>
+                )}
               </div>
             )}
+            {!sidebarOpen && (
+              <div className="absolute left-full ml-6 rounded-md px-2 py-1 bg-slate-800 text-xs text-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 flex items-center gap-2">
+                {item.label}
+                {item.id === 'tasks' && overdueCount > 0 && (
+                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-500 text-white">
+                    {overdueCount}
+                  </span>
+                )}
+              </div>
+            )}
+
           </NavLink>
         ))}
       </nav>
