@@ -7,6 +7,10 @@ import errorHandler from '@/middleware/errorHandler.ts';
 import notFound from '@/middleware/notFound.ts';
 import { env } from '@/config/env.ts';
 import { success } from '@/utils/response.ts';
+import authRoutes from '@/modules/auth/auth.routes.ts';
+import rbacRoutes from '@/modules/rbac/rbac.routes.ts';
+import tenantRoutes from '@/modules/tenants/tenant.routes.ts';
+import stageRoutes from '@/modules/pipeline-stages/stage.routes.ts';
 
 const app = express();
 
@@ -31,7 +35,10 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-// app.use('/api/v1', routes);
+app.use('/api/auth', authRoutes);
+app.use('/api/rbac', rbacRoutes);
+app.use('/api/tenants', tenantRoutes);
+app.use('/api/pipeline-stages', stageRoutes);
 
 // Error Handling
 app.use(notFound);

@@ -337,6 +337,7 @@ model PipelineStage {
   isDefault   Boolean     @default(false)   // fallback stage for orphaned records
   isArchived  Boolean     @default(false)   // soft-archived after migration, never hard deleted
   isFinal     Boolean     @default(false)   // marks Won/Lost equivalent stages
+  isSystem    Boolean     @default(false)   // system stages cannot be archived
 
   tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   leads       Lead[]
