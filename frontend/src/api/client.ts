@@ -1,12 +1,18 @@
-import axios from 'axios';
-import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/auth.store.ts';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
-const client: AxiosInstance = axios.create({
+const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+const publicApiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -26,7 +32,7 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-client.interceptors.request.use(
+apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = useAuthStore.getState().token;
     if (token) {
@@ -37,7 +43,7 @@ client.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-client.interceptors.response.use(
+apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
@@ -49,7 +55,7 @@ client.interceptors.response.use(
         })
           .then((token) => {
             originalRequest.headers.Authorization = `Bearer ${token}`;
-            return client(originalRequest);
+            return apiClient(originalRequest);
           })
           .catch((err) => Promise.reject(err));
       }
@@ -59,13 +65,13 @@ client.interceptors.response.use(
 
       try {
         const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
-        const { accessToken, user, tenant } = data.data;
+        const { accessToken } = data.data;
 
-        useAuthStore.getState().setAuth(user, accessToken, tenant);
+        useAuthStore.getState().setToken(accessToken);
         processQueue(null, accessToken);
-        
+
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return client(originalRequest);
+        return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
         useAuthStore.getState().clearAuth();
@@ -80,4 +86,4 @@ client.interceptors.response.use(
   }
 );
 
-export default client;
+export { apiClient as default, publicApiClient };

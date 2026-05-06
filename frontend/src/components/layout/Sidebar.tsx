@@ -13,6 +13,8 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+import { useAuth } from '@/hooks/useAuth.ts';
+
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', id: 'dashboard' },
   { icon: Target, label: 'Leads', path: '/leads', id: 'leads' },
@@ -28,6 +30,7 @@ const navItems = [
 
 export const Sidebar = () => {
   const { sidebarOpen, toggleSidebar } = useUIStore();
+  const { user, tenant } = useAuth();
 
   return (
     <aside
@@ -39,9 +42,9 @@ export const Sidebar = () => {
       <div className="flex h-16 items-center justify-between px-6 border-b border-slate-800">
         <div className={cn("flex items-center space-x-3 transition-opacity", !sidebarOpen && "opacity-0 invisible")}>
           <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
-            G
+            {tenant?.name?.charAt(0) || 'P'}
           </div>
-          <span className="text-xl font-bold text-white tracking-tight">PSG</span>
+          <span className="text-xl font-bold text-white tracking-tight">{tenant?.name || 'PSG'}</span>
         </div>
         <button
           onClick={toggleSidebar}
@@ -80,12 +83,12 @@ export const Sidebar = () => {
       <div className="p-4 border-t border-slate-800">
         <div className={cn("flex items-center transition-all", !sidebarOpen && "justify-center")}>
           <div className="h-9 w-9 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold border border-indigo-500/30">
-            JD
+            {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
           </div>
           {sidebarOpen && (
             <div className="ml-3 truncate">
-              <p className="text-sm font-medium text-white">John Doe</p>
-              <p className="text-xs text-slate-500">Administrator</p>
+              <p className="text-sm font-medium text-white">{user?.firstName} {user?.lastName}</p>
+              <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
             </div>
           )}
         </div>

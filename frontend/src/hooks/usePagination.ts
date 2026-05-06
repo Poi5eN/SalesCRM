@@ -24,8 +24,11 @@ export const usePagination = (initialLimit = 10) => {
     limit,
     sortBy,
     sortOrder,
+    setPage,
+    setLimit,
+    setSortBy,
+    setSortOrder,
     onPageChange,
     onSort,
-    setLimit,
   };
 };

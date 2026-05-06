@@ -7,13 +7,13 @@ import { AppShell } from '@/components/layout/AppShell.tsx';
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage.tsx'));
 const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage.tsx'));
 const LeadsPage = lazy(() => import('@/pages/leads/LeadsPage.tsx'));
-const DealsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.DealsPage })));
-const ContactsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.ContactsPage })));
-const CompaniesPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.CompaniesPage })));
-const TasksPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.TasksPage })));
+const DealsPage = lazy(() => import('@/pages/deals/DealsPage.tsx'));
+const ContactsPage = lazy(() => import('@/pages/contacts/ContactsPage.tsx'));
+const CompaniesPage = lazy(() => import('@/pages/companies/CompaniesPage.tsx'));
+const TasksPage = lazy(() => import('@/pages/tasks/TasksPage.tsx'));
 const CommunicationsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.CommunicationsPage })));
-const ProductsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.ProductsPage })));
-const ProposalsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.ProposalsPage })));
+const ProductsPage = lazy(() => import('@/pages/products/ProductsPage.tsx'));
+const ProposalsPage = lazy(() => import('@/pages/proposals/ProposalsPage.tsx'));
 const SettingsPage = lazy(() => import('@/pages/PlaceholderPages.tsx').then(m => ({ default: m.SettingsPage })));
 
 export const AppRouter = () => {

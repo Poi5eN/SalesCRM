@@ -39,7 +39,7 @@ export const Topbar = () => {
           </div>
           <div className="hidden md:block">
             <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.firstName} {user?.lastName}</p>
-            <p className="text-xs text-slate-500">{user?.role?.name || 'Admin'}</p>
+            <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
           </div>
           <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
         </div>
