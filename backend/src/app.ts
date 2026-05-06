@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import requestLogger from '@/middleware/requestLogger.ts';
 import errorHandler from '@/middleware/errorHandler.ts';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from '@/config/swagger.ts';
 import notFound from '@/middleware/notFound.ts';
 import { env } from '@/config/env.ts';
 import { success } from '@/utils/response.ts';
@@ -41,6 +43,9 @@ app.use(requestLogger);
 app.get('/health', (req, res) => {
   return success(res, { status: 'ok', timestamp: new Date().toISOString() }, 'System is healthy');
 });
+
+// Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/api/auth', authRoutes);
