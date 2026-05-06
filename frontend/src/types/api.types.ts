@@ -89,6 +89,7 @@ export interface Company {
   id: string;
   tenantId: string;
   name: string;
+  domain?: string;
   website?: string;
   industry?: string;
   size?: string;
