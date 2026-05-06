@@ -107,6 +107,22 @@ export class LeadService {
     });
   }
 
+  static async checkDuplicate(tenantId: string, title: string, contactId?: string, companyId?: string) {
+    return await prisma.lead.findMany({
+      where: {
+        tenantId,
+        deletedAt: null,
+        OR: [
+          { title: { contains: title, mode: 'insensitive' } },
+          ...(contactId ? [{ contactId }] : []),
+          ...(companyId ? [{ companyId }] : []),
+        ],
+      },
+      take: 5,
+      select: { id: true, title: true, isConverted: true }
+    });
+  }
+
   static async getLead(tenantId: string, id: string) {
     const lead = await prisma.lead.findFirst({
       where: { id, tenantId, deletedAt: null },

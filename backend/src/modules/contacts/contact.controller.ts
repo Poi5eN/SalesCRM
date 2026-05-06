@@ -8,6 +8,12 @@ export class ContactController {
     return success(res, result, 'Contacts fetched successfully');
   };
 
+  static checkDuplicate = async (req: Request, res: Response) => {
+    const { email, phone } = req.query as { email?: string; phone?: string };
+    const duplicates = await ContactService.checkDuplicate(req.user!.tenantId, email, phone);
+    return res.json({ duplicates });
+  };
+
   static create = async (req: Request, res: Response) => {
     const force = req.query.force === 'true';
     const result = await ContactService.createContact(req.user!.tenantId, req.user!.id, req.body, force);

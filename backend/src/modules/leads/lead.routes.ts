@@ -27,6 +27,7 @@ router.use(authGuard);
  *         description: List of leads
  */
 router.get('/', validate(leadFilterSchema), asyncHandler(LeadController.list));
+router.get('/check-duplicate', asyncHandler(LeadController.checkDuplicate));
 
 /**
  * @swagger

@@ -21,3 +21,6 @@ export const mergeContacts = (targetId: string, sourceId: string): Promise<ApiRe
 
 export const getContactTimeline = (id: string): Promise<ApiResponse<any>> =>
   apiClient.get(`/contacts/${id}/timeline`).then(r => r.data);
+
+export const checkDuplicate = (params: { email?: string; phone?: string }): Promise<ApiResponse<any>> =>
+  apiClient.get('/contacts/check-duplicate', { params }).then(r => r.data);

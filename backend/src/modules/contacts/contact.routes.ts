@@ -14,6 +14,7 @@ const router = Router();
 
 router.use(authGuard);
 
+router.get('/check-duplicate', asyncHandler(ContactController.checkDuplicate));
 router.get('/', validate(contactFilterSchema), asyncHandler(ContactController.list));
 router.post('/', validate(createContactSchema), asyncHandler(ContactController.create));
 

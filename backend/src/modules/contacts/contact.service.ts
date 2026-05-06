@@ -67,6 +67,21 @@ export class ContactService {
     });
   }
 
+  static async checkDuplicate(tenantId: string, email?: string, phone?: string) {
+    if (!email && !phone) return [];
+    return await prisma.contact.findMany({
+      where: {
+        tenantId,
+        deletedAt: null,
+        OR: [
+          ...(email ? [{ email }] : []),
+          ...(phone ? [{ phone }] : []),
+        ],
+      },
+      select: { id: true, firstName: true, lastName: true, email: true, phone: true }
+    });
+  }
+
   static async getContact(tenantId: string, id: string) {
     const contact = await prisma.contact.findFirst({
       where: { id, tenantId, deletedAt: null },

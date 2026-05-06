@@ -24,3 +24,6 @@ export const convertLead = (id: string, data: any): Promise<ApiResponse<any>> =>
 
 export const getLeadTimeline = (id: string): Promise<ApiResponse<any>> =>
   apiClient.get(`/leads/${id}/timeline`).then(r => r.data);
+
+export const checkDuplicate = (params: { title: string; contactId?: string; companyId?: string }): Promise<ApiResponse<any>> =>
+  apiClient.get('/leads/check-duplicate', { params }).then(r => r.data);

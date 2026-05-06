@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Search, User, Loader2 } from 'lucide-react';
+import { X, Search, User, Loader2, AlertTriangle, ArrowRight, Check } from 'lucide-react';
 
 import * as leadsApi from '@/api/leads.api.ts';
 import * as contactsApi from '@/api/contacts.api.ts';
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button.tsx';
 import type { Lead, Contact, PipelineStage } from '@/types/api.types.ts';
 import { PRIORITY_OPTIONS, SOURCE_OPTIONS } from './leadUtils.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
+import { useDebounce } from '@/hooks/useDebounce.ts';
 
 const leadSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -44,6 +45,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
   const [showContactDD, setShowContactDD] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(lead?.contact ?? null);
   const contactRef = useRef<HTMLDivElement>(null);
+  const [confirmNew, setConfirmNew] = useState(false);
 
   const {
     register,
@@ -75,6 +77,23 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
       tags: '',
     },
   });
+
+  const watchedTitle = watch('title');
+  const watchedContactId = watch('contactId');
+  const watchedCompanyId = watch('companyId');
+  const debouncedTitle = useDebounce(watchedTitle, 500);
+
+  const { data: duplicatesData } = useQuery({
+    queryKey: ['leads-duplicate-check', debouncedTitle, watchedContactId, watchedCompanyId],
+    queryFn: () => leadsApi.checkDuplicate({ 
+      title: debouncedTitle, 
+      contactId: watchedContactId, 
+      companyId: watchedCompanyId 
+    }),
+    enabled: !lead && debouncedTitle.length >= 3,
+  });
+
+  const duplicates = duplicatesData?.data?.duplicates || [];
 
   const { data: stagesData } = useQuery({
     queryKey: queryKeys.settings.stages,
@@ -114,6 +133,8 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
   });
 
   const onSubmit = (data: LeadFormData) => {
+    if (duplicates.length > 0 && !confirmNew) return;
+
     const payload: any = {
       ...data,
       estimatedValue: data.estimatedValue ? parseFloat(data.estimatedValue) : undefined,
@@ -159,6 +180,37 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
             />
             {errors.title && <p className="text-[10px] font-black text-red-500 ml-1 uppercase">{errors.title.message}</p>}
           </div>
+
+          {/* Duplicate Warning Banner */}
+          {duplicates.length > 0 && (
+            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-[24px] p-6 flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500" />
+              </div>
+              <div className="flex-1 space-y-4">
+                <div>
+                  <h4 className="text-sm font-black text-amber-900 dark:text-amber-400 uppercase tracking-tight">Similar Lead Detected</h4>
+                  <p className="text-[11px] font-bold text-amber-700 dark:text-amber-500/80 mt-1 leading-relaxed">
+                    A similar intelligence record exists: <span className="font-black italic">"{duplicates[0].title}"</span>. 
+                    Avoid pipeline fragmentation.
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setConfirmNew(!confirmNew)}
+                    className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-all ${confirmNew ? 'bg-amber-500 border-amber-500' : 'border-amber-300 dark:border-amber-800'}`}
+                  >
+                    {confirmNew && <Check className="h-3 w-3 text-white stroke-[4px]" />}
+                  </button>
+                  <span className="text-[10px] font-black text-amber-700 dark:text-amber-500 uppercase tracking-widest cursor-pointer select-none" onClick={() => setConfirmNew(!confirmNew)}>
+                    I confirm this is a new opportunity
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-6">
             {/* Stage */}
@@ -303,7 +355,12 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
 
           <div className="flex items-center justify-end space-x-4 pt-4">
             <Button type="button" variant="ghost" onClick={onClose} className="font-black uppercase tracking-widest text-[10px]">Abandon</Button>
-            <Button type="submit" isLoading={isSubmitting} className="px-8 rounded-2xl shadow-lg shadow-indigo-500/20">
+            <Button 
+              type="submit" 
+              isLoading={isSaving} 
+              disabled={duplicates.length > 0 && !confirmNew}
+              className="px-8 rounded-2xl shadow-lg shadow-indigo-500/20"
+            >
               {lead ? 'Commit Changes' : 'Initialize Lead'}
             </Button>
           </div>

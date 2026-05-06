@@ -8,6 +8,12 @@ export class LeadController {
     return success(res, result, 'Leads fetched successfully');
   };
 
+  static checkDuplicate = async (req: Request, res: Response) => {
+    const { title, contactId, companyId } = req.query as { title: string; contactId?: string; companyId?: string };
+    const duplicates = await LeadService.checkDuplicate(req.user!.tenantId, title, contactId, companyId);
+    return res.json({ duplicates });
+  };
+
   static getBoard = async (req: Request, res: Response) => {
     const result = await LeadService.getLeadBoard(req.user!.tenantId);
     return success(res, result, 'Lead board fetched successfully');
