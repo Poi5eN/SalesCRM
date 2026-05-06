@@ -11,6 +11,8 @@ import authRoutes from '@/modules/auth/auth.routes.ts';
 import rbacRoutes from '@/modules/rbac/rbac.routes.ts';
 import tenantRoutes from '@/modules/tenants/tenant.routes.ts';
 import stageRoutes from '@/modules/pipeline-stages/stage.routes.ts';
+import companyRoutes from '@/modules/companies/company.routes.ts';
+import contactRoutes from '@/modules/contacts/contact.routes.ts';
 
 const app = express();
 
@@ -39,6 +41,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/rbac', rbacRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/pipeline-stages', stageRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/contacts', contactRoutes);
 
 // Error Handling
 app.use(notFound);
