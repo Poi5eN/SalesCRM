@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell, FunnelChart, Funnel, LabelList, Area, AreaChart
 } from 'recharts';
-import { 
-  TrendingUp, Users, Target, Briefcase, Download, 
+import {
+  TrendingUp, Users, Target, Briefcase, Download,
   Calendar, Award, ArrowUpRight, ArrowDownRight, Activity
 } from 'lucide-react';
-import { format, startOfYear, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, startOfYear, eachDayOfInterval, isSameDay, subMonths } from 'date-fns';
 
 import * as analyticsApi from '@/api/analytics.api.ts';
 import { useAuth } from '@/hooks/useAuth.ts';
@@ -91,11 +91,10 @@ export default function ReportsPage() {
             <button
               key={p.id}
               onClick={() => setPeriod(p.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                period === p.id 
-                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-md' 
+              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${period === p.id
+                  ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-md'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
+                }`}
             >
               {p.label.split(' ')[1] + ' ' + p.label.split(' ')[2]}
             </button>
@@ -141,9 +140,9 @@ export default function ReportsPage() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={summary?.leads?.bySource}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
-              <XAxis dataKey="source" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />
-              <Tooltip content={<CustomTooltip currency={tenant?.currency} />} cursor={{fill: theme === 'dark' ? '#1e293b' : '#f8fafc', radius: 10}} />
+              <XAxis dataKey="source" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} />
+              <Tooltip content={<CustomTooltip currency={tenant?.currency} />} cursor={{ fill: theme === 'dark' ? '#1e293b' : '#f8fafc', radius: 10 }} />
               <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                 {summary?.leads?.bySource?.map((entry: any, index: number) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -176,16 +175,16 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ChartCard title="Revenue Growth">
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={[{name: 'Week 1', value: 400}, {name: 'Week 2', value: 700}, {name: 'Week 3', value: 1200}, {name: 'Week 4', value: summary?.deals?.totalWonValue}]}>
+            <AreaChart data={[{ name: 'Week 1', value: 400 }, { name: 'Week 2', value: 700 }, { name: 'Week 3', value: 1200 }, { name: 'Week 4', value: summary?.deals?.totalWonValue }]}>
               <defs>
                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} />
               <Tooltip content={<CustomTooltip currency={tenant?.currency} />} />
               <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={4} fillOpacity={1} fill="url(#colorValue)" />
             </AreaChart>
@@ -244,9 +243,9 @@ export default function ReportsPage() {
                 <td className="px-8 py-6 font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(summary?.deals?.forecastWeighted, tenant?.currency)}</td>
                 <td className="px-8 py-6 font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(summary?.deals?.totalWonValue, tenant?.currency)}</td>
                 <td className="px-8 py-6">
-                   <Badge variant={summary?.deals?.totalWonValue >= summary?.deals?.forecastWeighted ? 'success' : 'error'}>
-                     {formatCurrency(Math.max(0, summary?.deals?.forecastWeighted - summary?.deals?.totalWonValue), tenant?.currency)} Left
-                   </Badge>
+                  <Badge variant={summary?.deals?.totalWonValue >= summary?.deals?.forecastWeighted ? 'success' : 'error'}>
+                    {formatCurrency(Math.max(0, summary?.deals?.forecastWeighted - summary?.deals?.totalWonValue), tenant?.currency)} Left
+                  </Badge>
                 </td>
               </tr>
             </tbody>
@@ -282,11 +281,10 @@ export default function ReportsPage() {
                 <tr key={rep.userId} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group">
                   <td className="px-8 py-5">
                     {idx < 3 ? (
-                      <span className={`h-8 w-8 rounded-xl flex items-center justify-center text-sm font-black shadow-lg ${
-                        idx === 0 ? 'bg-amber-100 text-amber-600 shadow-amber-500/20' : 
-                        idx === 1 ? 'bg-slate-100 text-slate-600 shadow-slate-500/20' : 
-                        'bg-orange-100 text-orange-600 shadow-orange-500/20'
-                      }`}>
+                      <span className={`h-8 w-8 rounded-xl flex items-center justify-center text-sm font-black shadow-lg ${idx === 0 ? 'bg-amber-100 text-amber-600 shadow-amber-500/20' :
+                          idx === 1 ? 'bg-slate-100 text-slate-600 shadow-slate-500/20' :
+                            'bg-orange-100 text-orange-600 shadow-orange-500/20'
+                        }`}>
                         {idx + 1}
                       </span>
                     ) : (
@@ -306,10 +304,10 @@ export default function ReportsPage() {
                   <td className="px-8 py-5 text-right font-black text-slate-900 dark:text-white">{formatCurrency(rep.wonValue, tenant?.currency)}</td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex items-center justify-end gap-2">
-                       <div className="w-16 h-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(100, (rep.dealsWon / (rep.dealsWon + 2)) * 100)}%` }} />
-                       </div>
-                       <span className="text-[10px] font-black text-slate-400">{( (rep.dealsWon / (rep.dealsWon + 2 || 1)) * 100 ).toFixed(0)}%</span>
+                      <div className="w-16 h-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(100, (rep.dealsWon / (rep.dealsWon + 2)) * 100)}%` }} />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-400">{((rep.dealsWon / (rep.dealsWon + 2 || 1)) * 100).toFixed(0)}%</span>
                     </div>
                   </td>
                 </tr>
@@ -340,7 +338,7 @@ export default function ReportsPage() {
             <span>More</span>
           </div>
         </div>
-        
+
         <div className="overflow-x-auto scrollbar-none">
           <Heatmap grid={heatmap} />
         </div>
@@ -384,7 +382,7 @@ function Heatmap({ grid }: { grid?: any[] }) {
     const dateStr = date.toISOString().split('T')[0];
     const item = grid?.find(g => g.date === dateStr);
     const count = item?.count || 0;
-    
+
     if (count === 0) return 'bg-slate-100 dark:bg-slate-800';
     if (count <= 2) return 'bg-indigo-100 dark:bg-indigo-900/30';
     if (count <= 5) return 'bg-indigo-400 dark:bg-indigo-600';

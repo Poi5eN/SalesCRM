@@ -238,6 +238,7 @@ const DashboardPage = () => {
           icon={Target}
           iconColor="text-blue-500"
           isLoading={totalLeads.isLoading}
+          description="Newly acquired leads this month"
         />
         <StatCard
           title="Open Deals"
@@ -246,6 +247,7 @@ const DashboardPage = () => {
           icon={Briefcase}
           iconColor="text-indigo-500"
           isLoading={openDeals.isLoading}
+          description="Active opportunities in pipeline"
         />
         <StatCard
           title="Conversion Rate"
@@ -254,6 +256,7 @@ const DashboardPage = () => {
           icon={TrendingUp}
           iconColor="text-emerald-500"
           isLoading={totalLeads.isLoading || convertedLeads.isLoading}
+          description="Lead to customer success rate"
         />
         <StatCard
           title="Total Contacts"
@@ -262,6 +265,7 @@ const DashboardPage = () => {
           icon={Users}
           iconColor="text-orange-500"
           isLoading={totalContacts.isLoading}
+          description="Individual contacts in database"
         />
       </div>
 

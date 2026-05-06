@@ -7,9 +7,10 @@ interface StatCardProps {
   icon: LucideIcon;
   iconColor?: string;
   isLoading?: boolean;
+  description?: string;
 }
 
-export function StatCard({ title, value, change, icon: Icon, iconColor = 'text-indigo-600', isLoading }: StatCardProps) {
+export function StatCard({ title, value, change, icon: Icon, iconColor = 'text-indigo-600', isLoading, description }: StatCardProps) {
   const isPositive = change && change > 0;
 
   return (
@@ -38,6 +39,11 @@ export function StatCard({ title, value, change, icon: Icon, iconColor = 'text-i
         <>
           <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
           <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">{title}</p>
+          {description && (
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-medium line-clamp-1 italic">
+              {description}
+            </p>
+          )}
         </>
       )}
     </div>
