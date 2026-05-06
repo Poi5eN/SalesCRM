@@ -6,6 +6,7 @@ export class DealService {
     const { 
       stageId, status, assignedToId, contactId, companyId, 
       minValue, maxValue, expectedCloseAtFrom, expectedCloseAtTo,
+      createdAtFrom, createdAtTo, isStale,
       page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' 
     } = filters;
     const skip = (page - 1) * limit;
@@ -30,7 +31,21 @@ export class DealService {
           ...(expectedCloseAtTo ? { lte: new Date(expectedCloseAtTo) } : {}),
         }
       } : {}),
+      ...(createdAtFrom || createdAtTo ? {
+        createdAt: {
+          ...(createdAtFrom ? { gte: new Date(createdAtFrom) } : {}),
+          ...(createdAtTo ? { lte: new Date(createdAtTo) } : {}),
+        }
+      } : {}),
     };
+
+    if (isStale === 'true') {
+      const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+      const thresholdDays = (tenant?.settings as any)?.staleDaysThreshold || 14;
+      const threshold = new Date(Date.now() - thresholdDays * 24 * 60 * 60 * 1000);
+      where.lastActivityAt = { lte: threshold };
+      where.status = 'open';
+    }
 
     const [data, total] = await Promise.all([
       prisma.deal.findMany({
@@ -121,6 +136,7 @@ export class DealService {
         tenantId,
         createdById: userId,
         assignedToId: data.assignedToId || userId,
+        lastActivityAt: new Date()
       }
     });
   }
@@ -159,6 +175,7 @@ export class DealService {
         oldValue: { stageId: oldDeal.stageId, stageName: oldDeal.stage.name },
         newValue: { stageId: data.stageId, stageName: newStage?.name }
       });
+      data.lastActivityAt = new Date();
     }
 
     if (data.status && data.status !== oldDeal.status) {
@@ -217,6 +234,11 @@ export class DealService {
   private static logActivity(tenantId: string, userId: string, entityId: string, action: string, metadata: any) {
     prisma.activityLog.create({
       data: { tenantId, userId, entityId, entityType: 'deal', action, metadata }
+    }).catch(console.error);
+
+    prisma.deal.update({
+      where: { id: entityId },
+      data: { lastActivityAt: new Date() }
     }).catch(console.error);
   }
 }

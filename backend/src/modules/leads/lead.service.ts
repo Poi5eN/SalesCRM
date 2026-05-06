@@ -2,7 +2,11 @@ import prisma from '@/config/database.ts';
 
 export class LeadService {
   static async listLeads(tenantId: string, filters: any) {
-    const { stageId, assignedToId, priority, source, isConverted, tag, search, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = filters;
+    const { 
+      stageId, assignedToId, priority, source, isConverted, tag, search, 
+      createdAtFrom, createdAtTo, isStale,
+      page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' 
+    } = filters;
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -15,7 +19,20 @@ export class LeadService {
       ...(isConverted !== undefined ? { isConverted } : {}),
       ...(tag ? { tags: { has: tag } } : {}),
       ...(search ? { title: { contains: search, mode: 'insensitive' } } : {}),
+      ...(createdAtFrom || createdAtTo ? {
+        createdAt: {
+          ...(createdAtFrom ? { gte: new Date(createdAtFrom) } : {}),
+          ...(createdAtTo ? { lte: new Date(createdAtTo) } : {}),
+        }
+      } : {}),
     };
+
+    if (isStale === 'true') {
+      const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+      const thresholdDays = (tenant?.settings as any)?.staleDaysThreshold || 14;
+      const threshold = new Date(Date.now() - thresholdDays * 24 * 60 * 60 * 1000);
+      where.lastActivityAt = { lte: threshold };
+    }
 
     const [data, total] = await Promise.all([
       prisma.lead.findMany({

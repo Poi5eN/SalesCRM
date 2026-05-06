@@ -20,6 +20,7 @@ import dealRoutes from '@/modules/deals/deal.routes.ts';
 import taskRoutes from '@/modules/tasks/task.routes.ts';
 import communicationRoutes from '@/modules/communications/communication.routes.ts';
 import productRoutes from '@/modules/products/product.routes.ts';
+import activityRoutes from '@/modules/activities/activity.routes.ts';
 import { proposalRoutes, publicProposalRoutes } from '@/modules/proposals/proposal.routes.ts';
 
 const app = express();
@@ -67,6 +68,7 @@ app.use('/api/deals', dealRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/communications', communicationRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/activities', activityRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/api/public/proposals', publicProposalRoutes);
 

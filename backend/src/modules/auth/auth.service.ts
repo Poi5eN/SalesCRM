@@ -83,7 +83,7 @@ export class AuthService {
         data: { refreshToken: refreshTokenHash }
       });
 
-      return { user: this.omitPassword(user), tokens };
+      return { user: this.omitPassword(user), accessToken: tokens.accessToken, tenant };
     });
   }
 
@@ -131,7 +131,9 @@ export class AuthService {
       }
     });
 
-    return { user: this.omitPassword(user), tokens };
+    const tenant = await prisma.tenant.findUnique({ where: { id: user.tenantId } });
+
+    return { user: this.omitPassword(user), accessToken: tokens.accessToken, tenant };
   }
 
   static async refresh(refreshToken: string) {

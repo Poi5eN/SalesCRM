@@ -90,18 +90,14 @@ export class TaskService {
         status: { notIn: ['completed', 'cancelled'] },
         deletedAt: null
       },
+      include: {
+        lead: { select: { title: true } },
+        deal: { select: { title: true } },
+      },
       orderBy: { dueAt: 'asc' }
     });
 
-    // Group by day
-    const grouped: any = {};
-    tasks.forEach(task => {
-      const day = new Date(task.dueAt!).toISOString().split('T')[0];
-      if (!grouped[day]) grouped[day] = [];
-      grouped[day].push(task);
-    });
-
-    return grouped;
+    return tasks;
   }
 
   static async getOverdue(tenantId: string, userId: string) {
