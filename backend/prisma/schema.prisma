@@ -497,6 +497,9 @@ model Lead {
   convertedAt     DateTime?
   convertedToDealId String?
 
+  score           Int           @default(0)
+  lastActivityAt  DateTime      @default(now())
+
   // OpenClaw Phase 2 fields
   aiAgentId           String?   // which OpenClaw agent owns this lead
   aiLastAction        String?   // last action taken by agent

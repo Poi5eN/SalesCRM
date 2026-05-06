@@ -13,6 +13,7 @@ import tenantRoutes from '@/modules/tenants/tenant.routes.ts';
 import stageRoutes from '@/modules/pipeline-stages/stage.routes.ts';
 import companyRoutes from '@/modules/companies/company.routes.ts';
 import contactRoutes from '@/modules/contacts/contact.routes.ts';
+import leadRoutes from '@/modules/leads/lead.routes.ts';
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/tenants', tenantRoutes);
 app.use('/api/pipeline-stages', stageRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/leads', leadRoutes);
 
 // Error Handling
 app.use(notFound);
