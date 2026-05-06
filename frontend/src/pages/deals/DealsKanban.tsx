@@ -5,13 +5,14 @@ import {
   type DragEndEvent, type DragStartEvent,
 } from '@dnd-kit/core';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { Plus, GripVertical } from 'lucide-react';
+import { AlertCircle, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { formatDistanceToNow, format } from 'date-fns';
 import type { Deal } from '@/types/api.types.ts';
 import * as dealsApi from '@/api/deals.api.ts';
 import { formatCurrency } from '@/utils/format.ts';
-import { getProbabilityColor } from './dealUtils.ts';
+import { KanbanCard } from '@/components/ui/KanbanCard.tsx';
+import { Badge } from '@/components/ui/Badge.tsx';
 import { Button } from '@/components/ui/Button.tsx';
 
 interface KanbanColumn {
@@ -32,7 +33,7 @@ export function DealsKanban({ columns, onCardClick, onAddDeal, currency = 'USD' 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [localColumns, setLocalColumns] = useState(columns);
   const [closePrompt, setClosePrompt] = useState<{ deal: Deal; targetStage: any; status: 'won' | 'lost' } | null>(null);
-  
+
   const qc = useQueryClient();
 
   const sensors = useSensors(
@@ -46,7 +47,6 @@ export function DealsKanban({ columns, onCardClick, onAddDeal, currency = 'USD' 
   const moveMutation = useMutation({
     mutationFn: ({ dealId, stageId, status, notes, lostReason }: any) =>
       dealsApi.updateDeal(dealId, { stageId, status, notes, lostReason }),
-    onError: () => qc.invalidateQueries({ queryKey: ['deals', 'board'] }),
     onSettled: () => qc.invalidateQueries({ queryKey: ['deals', 'board'] }),
   });
 
@@ -61,11 +61,7 @@ export function DealsKanban({ columns, onCardClick, onAddDeal, currency = 'USD' 
     if (!over) return;
 
     const dealId = active.id as string;
-    const targetStageId = (over.id as string).startsWith('stage-')
-      ? (over.id as string).replace('stage-', '')
-      : findDealStage(over.id as string);
-
-    if (!targetStageId) return;
+    const targetStageId = (over.id as string).replace('stage-', '');
 
     const sourceCol = localColumns.find(c => c.deals.some(d => d.id === dealId));
     const targetCol = localColumns.find(c => c.stage.id === targetStageId);
@@ -93,35 +89,24 @@ export function DealsKanban({ columns, onCardClick, onAddDeal, currency = 'USD' 
       if (!sourceDeal) return prev;
       return prev.map(col => {
         if (col.deals.some(d => d.id === dealId)) {
-          return { ...col, deals: col.deals.filter(d => d.id !== dealId), totalCount: col.totalCount - 1 };
+          return { ...col, deals: col.deals.filter(d => d.id !== dealId), totalCount: col.totalCount - 1, totalValue: col.totalValue - Number(sourceDeal.value || 0) };
         }
         if (col.stage.id === targetStageId) {
-          return { ...col, deals: [...col.deals, { ...sourceDeal, stageId: targetStageId }], totalCount: col.totalCount + 1 };
+          return { ...col, deals: [...col.deals, { ...sourceDeal, stageId: targetStageId }], totalCount: col.totalCount + 1, totalValue: col.totalValue + Number(sourceDeal.value || 0) };
         }
         return col;
       });
     });
   };
 
-  const findDealStage = (dealId: string): string | undefined => {
-    return localColumns.find(c => c.deals.some(d => d.id === dealId))?.stage.id;
-  };
-
-  const activeDeal = findActiveDeal();
-  function findActiveDeal() {
-    if (!activeId) return undefined;
-    for (const col of localColumns) {
-      const deal = col.deals.find(d => d.id === activeId);
-      if (deal) return deal;
-    }
-  }
+  const activeDeal = localColumns.flatMap(c => c.deals).find(d => d.id === activeId);
 
   const submitClosePrompt = (notes: string, lostReason?: string) => {
     if (!closePrompt) return;
     updateLocalState(closePrompt.deal.id, closePrompt.targetStage.id);
-    moveMutation.mutate({ 
-      dealId: closePrompt.deal.id, 
-      stageId: closePrompt.targetStage.id, 
+    moveMutation.mutate({
+      dealId: closePrompt.deal.id,
+      stageId: closePrompt.targetStage.id,
       status: closePrompt.status,
       notes: notes || undefined,
       lostReason: lostReason || undefined
@@ -132,9 +117,9 @@ export function DealsKanban({ columns, onCardClick, onAddDeal, currency = 'USD' 
   return (
     <>
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: 'calc(100vh - 260px)' }}>
+        <div className="flex gap-6 overflow-x-auto pb-8 min-h-[calc(100vh-280px)] custom-scrollbar">
           {localColumns.map(col => (
-            <KanbanColumn
+            <KanbanColumnComponent
               key={col.stage.id}
               column={col}
               onCardClick={onCardClick}
@@ -146,25 +131,33 @@ export function DealsKanban({ columns, onCardClick, onAddDeal, currency = 'USD' 
 
         <DragOverlay>
           {activeDeal && (
-            <div className="opacity-90 rotate-1 scale-105">
-              <DealCard deal={activeDeal} onClick={() => {}} currency={currency} isDragging />
+            <div className="opacity-90 rotate-2 scale-105 shadow-2xl">
+              <KanbanCard
+                title={activeDeal.title}
+                subtitle={activeDeal.contact ? `${activeDeal.contact.firstName} ${activeDeal.contact.lastName || ''}` : activeDeal.company?.name}
+                priority={activeDeal.status === 'won' ? 'low' : 'medium'} // Simplified mapping
+                value={Number(activeDeal.value || 0)}
+                currency={activeDeal.currency || currency}
+                score={activeDeal.probability}
+                lastActivity={activeDeal.expectedCloseAt ? `Closes ${format(new Date(activeDeal.expectedCloseAt), 'MMM dd')}` : undefined}
+              />
             </div>
           )}
         </DragOverlay>
       </DndContext>
 
       {closePrompt && (
-        <CloseDealModal 
-          prompt={closePrompt} 
-          onClose={() => setClosePrompt(null)} 
-          onSubmit={submitClosePrompt} 
+        <CloseDealModal
+          prompt={closePrompt}
+          onClose={() => setClosePrompt(null)}
+          onSubmit={submitClosePrompt}
         />
       )}
     </>
   );
 }
 
-function KanbanColumn({ column, onCardClick, onAddDeal, currency }: {
+function KanbanColumnComponent({ column, onCardClick, onAddDeal, currency }: {
   column: KanbanColumn;
   onCardClick: (deal: Deal) => void;
   onAddDeal: (stageId: string) => void;
@@ -173,19 +166,22 @@ function KanbanColumn({ column, onCardClick, onAddDeal, currency }: {
   const { setNodeRef, isOver } = useDroppable({ id: `stage-${column.stage.id}` });
 
   return (
-    <div className="flex-shrink-0 w-72 flex flex-col">
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: column.stage.color ?? '#6366f1' }} />
-          <span className="font-bold text-sm text-slate-800">{column.stage.name}</span>
-          <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">{column.totalCount}</span>
+    <div className="flex-shrink-0 w-80 flex flex-col group/col">
+      <div className="flex items-center justify-between mb-4 px-2">
+        <div className="flex items-center gap-3">
+          <div className="h-2 w-2 rounded-full shadow-[0_0_8px] shadow-current" style={{ backgroundColor: column.stage.color || '#6366f1', color: column.stage.color || '#6366f1' }} />
+          <span className="font-black text-xs uppercase tracking-widest text-slate-900 dark:text-white">{column.stage.name}</span>
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest leading-none bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">{column.totalCount}</span>
         </div>
-        <span className="text-xs font-semibold text-slate-500">{formatCurrency(column.totalValue, currency)}</span>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{formatCurrency(column.totalValue, currency)}</span>
       </div>
 
       <div
         ref={setNodeRef}
-        className={`flex-1 space-y-2 p-2 rounded-xl min-h-[200px] transition-colors ${isOver ? 'bg-indigo-50 ring-2 ring-indigo-300' : 'bg-slate-100/60'}`}
+        className={`flex-1 flex flex-col gap-3 p-3 rounded-3xl border-2 transition-all duration-200 ${isOver
+            ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-800 ring-4 ring-indigo-500/5'
+            : 'bg-slate-50/50 dark:bg-slate-900/30 border-transparent'
+          }`}
       >
         {column.deals.map(deal => (
           <DraggableCard key={deal.id} deal={deal} onClick={onCardClick} currency={currency} />
@@ -194,10 +190,10 @@ function KanbanColumn({ column, onCardClick, onAddDeal, currency }: {
         {!column.stage.isFinal && (
           <button
             onClick={() => onAddDeal(column.stage.id)}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg border-2 border-dashed border-transparent hover:border-indigo-200 transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800 hover:bg-white dark:hover:bg-slate-800 transition-all font-bold text-xs opacity-0 group-hover/col:opacity-100"
           >
-            <Plus className="h-3.5 w-3.5" />
-            Add deal
+            <Plus className="h-4 w-4" />
+            Add Deal
           </button>
         )}
       </div>
@@ -209,61 +205,18 @@ function DraggableCard({ deal, onClick, currency }: { deal: Deal; onClick: (deal
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: deal.id });
 
   return (
-    <div ref={setNodeRef} className={isDragging ? 'opacity-0' : ''}>
-      <DealCard deal={deal} onClick={onClick} currency={currency} dragListeners={listeners} dragAttributes={attributes} />
-    </div>
-  );
-}
-
-function DealCard({ deal, onClick, currency, isDragging, dragListeners, dragAttributes }: any) {
-  return (
-    <div
-      onClick={() => !isDragging && onClick(deal)}
-      className="bg-white rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:shadow-md transition-all select-none"
-    >
-      <div className="p-3">
-        <div className="flex items-start gap-1.5 mb-2">
-          <div
-            {...dragListeners}
-            {...dragAttributes}
-            className="mt-0.5 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing flex-shrink-0"
-            onClick={e => e.stopPropagation()}
-          >
-            <GripVertical className="h-4 w-4" />
-          </div>
-          <p className="text-sm font-semibold text-slate-900 leading-snug line-clamp-2">{deal.title}</p>
-        </div>
-
-        <div className="flex items-center gap-1.5 mb-2 ml-5">
-          {deal.contact && (
-            <div className="h-5 w-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 text-[9px] font-bold flex-shrink-0">
-              {deal.contact.firstName.charAt(0)}
-            </div>
-          )}
-          <p className="text-xs text-slate-500 truncate">
-            {deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName ?? ''}` : deal.company?.name ?? '—'}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1.5 ml-5 mb-2">
-          <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
-            <div className={`h-full rounded-full ${getProbabilityColor(deal.probability)}`} style={{ width: `${deal.probability}%` }} />
-          </div>
-          <span className="text-[10px] font-bold text-slate-400">{deal.probability}%</span>
-        </div>
-
-        <div className="ml-5">
-          <span className="text-xs font-bold text-slate-700">{formatCurrency(deal.value, deal.currency ?? currency)}</span>
-        </div>
-      </div>
-
-      <div className="border-t border-slate-100 px-3 py-2 flex items-center justify-between">
-        <span className="text-[10px] text-slate-400">
-          Expected: {deal.expectedCloseAt ? format(new Date(deal.expectedCloseAt), 'MMM dd') : '—'}
-        </span>
-        <span className="text-[10px] text-slate-400">
-          {deal.lastActivityAt ? formatDistanceToNow(new Date(deal.lastActivityAt)) : '—'} in pipeline
-        </span>
+    <div ref={setNodeRef} className={`${isDragging ? 'opacity-30 grayscale-[0.5]' : ''} transition-opacity`}>
+      <div {...attributes} {...listeners}>
+        <KanbanCard
+          title={deal.title}
+          subtitle={deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName || ''}` : deal.company?.name}
+          priority={deal.status === 'won' ? 'low' : 'medium'}
+          value={Number(deal.value || 0)}
+          currency={deal.currency || currency}
+          score={deal.probability}
+          lastActivity={deal.expectedCloseAt ? `Closes ${format(new Date(deal.expectedCloseAt), 'MMM dd')}` : undefined}
+          onClick={() => onClick(deal)}
+        />
       </div>
     </div>
   );
@@ -274,54 +227,62 @@ function CloseDealModal({ prompt, onClose, onSubmit }: any) {
   const [reason, setReason] = useState('');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-        <h3 className="text-lg font-bold text-slate-900 mb-2">
-          {prompt.status === 'won' ? '🎉 Deal Won!' : 'Close Deal as Lost'}
-        </h3>
-        <p className="text-sm text-slate-500 mb-4">
-          You're moving "{prompt.deal.title}" to {prompt.targetStage.name}.
-        </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="p-8">
+          <div className={`h-16 w-16 rounded-2xl mb-6 flex items-center justify-center shadow-lg ${prompt.status === 'won' ? 'bg-emerald-100 text-emerald-600 shadow-emerald-500/20' : 'bg-red-100 text-red-600 shadow-red-500/20'
+            }`}>
+            {prompt.status === 'won' ? <span className="text-2xl">🎉</span> : <AlertCircle className="h-8 w-8" />}
+          </div>
 
-        <div className="space-y-4">
-          {prompt.status === 'lost' && (
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+            {prompt.status === 'won' ? 'Closing Win!' : 'Mark as Lost'}
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-8">
+            You're moving <span className="font-black text-slate-900 dark:text-white">"{prompt.deal.title}"</span> to {prompt.targetStage.name}.
+          </p>
+
+          <div className="space-y-6">
+            {prompt.status === 'lost' && (
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Lost Reason</label>
+                <select
+                  value={reason}
+                  onChange={e => setReason(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-950 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none"
+                >
+                  <option value="">Select a reason...</option>
+                  <option value="price">Price</option>
+                  <option value="competitor">Competitor</option>
+                  <option value="timing">Timing</option>
+                  <option value="features">Missing Features</option>
+                  <option value="ghosted">Ghosted</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            )}
+
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Lost Reason</label>
-              <select 
-                value={reason} 
-                onChange={e => setReason(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
-              >
-                <option value="">Select a reason...</option>
-                <option value="price">Price</option>
-                <option value="competitor">Competitor</option>
-                <option value="timing">Timing</option>
-                <option value="features">Missing Features</option>
-                <option value="ghosted">Ghosted</option>
-                <option value="other">Other</option>
-              </select>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Closing Notes (optional)</label>
+              <textarea
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                rows={3}
+                placeholder={prompt.status === 'won' ? 'Any implementation notes?' : 'What could we have done better?'}
+                className="w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold bg-slate-50 dark:bg-slate-900 focus:bg-white dark:focus:bg-slate-950 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none placeholder:text-slate-400"
+              />
             </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Closing Notes (optional)</label>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              rows={3}
-              placeholder={prompt.status === 'won' ? 'Any implementation notes?' : 'What could we have done better?'}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all resize-none"
-            />
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3 justify-end">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button 
-            className={prompt.status === 'won' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'}
+        <div className="p-6 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
+          <Button variant="outline" className="flex-1 py-4 font-bold rounded-2xl" onClick={onClose}>Cancel</Button>
+          <Button
+            className={`flex-1 py-4 font-bold rounded-2xl shadow-lg ${prompt.status === 'won' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20' : 'bg-red-600 hover:bg-red-700 shadow-red-500/20'
+              }`}
             onClick={() => onSubmit(notes, reason)}
           >
-            {prompt.status === 'won' ? 'Mark as Won' : 'Mark as Lost'}
+            {prompt.status === 'won' ? 'Confirm Win' : 'Confirm Loss'}
           </Button>
         </div>
       </div>

@@ -82,6 +82,12 @@ apiClient.interceptors.response.use(
       }
     }
 
+    const message = error.response?.data?.message || 'An unexpected error occurred';
+    if (error.response?.status !== 401) {
+      const { useUIStore } = await import('@/store/ui.store.ts');
+      useUIStore.getState().addToast('error', message);
+    }
+
     return Promise.reject(error);
   }
 );
