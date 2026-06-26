@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api/index.cjs"
     }
   ],
   "functions": {
-    "api/index.js": {
+    "api/index.cjs": {
       "includeFiles": "node_modules/.prisma/client/libquery_engine-*.node"
     }
   }
