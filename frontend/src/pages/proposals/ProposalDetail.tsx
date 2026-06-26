@@ -169,7 +169,7 @@ export default function ProposalDetail() {
             <div className="p-6 border-b border-slate-200 bg-slate-50">
               <h2 className="text-lg font-bold text-slate-900">Line Items</h2>
             </div>
-            {proposal.items?.length > 0 ? (
+            {proposal.items && proposal.items.length > 0 ? (
               <table className="w-full text-sm text-left">
                 <thead className="bg-white border-b border-slate-200 text-slate-500 font-semibold">
                   <tr>

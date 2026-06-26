@@ -39,7 +39,7 @@ export function CompanyForm({ company, onClose, onSuccess }: CompanyFormProps) {
         name: company.name, website: company.website ?? '', industry: company.industry ?? '',
         size: company.size ?? '', annualRevenue: company.annualRevenue?.toString() ?? '',
         country: company.country ?? '', state: company.state ?? '', city: company.city ?? '',
-        address: company.address ?? '', linkedInUrl: company.linkedInUrl ?? '',
+        address: company.address ?? '', linkedInUrl: company.linkedinUrl ?? '',
         description: company.description ?? '', tags: company.tags?.join(', ') ?? ''
       };
     }

@@ -107,10 +107,10 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
-                <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 bg-white">
+                <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as any }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 bg-white">
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
-                  <option value="draft">Draft</option>
+                  <option value="archived">Archived</option>
                 </select>
               </div>
             </div>

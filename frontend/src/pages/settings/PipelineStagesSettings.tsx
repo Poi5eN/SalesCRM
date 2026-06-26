@@ -163,9 +163,9 @@ export function PipelineStagesSettings() {
                 isEditing={editingId === stage.id}
                 onEdit={() => setEditingId(stage.id)}
                 onCancel={() => setEditingId(null)}
-                onSave={(data) => updateMutation.mutate({ id: stage.id, data })}
+                onSave={(data: any) => updateMutation.mutate({ id: stage.id, data })}
                 onArchive={() => handleArchive(stage)}
-                onToggleActive={(isActive) => updateMutation.mutate({ id: stage.id, data: { isActive } })}
+                onToggleActive={(isActive: boolean) => updateMutation.mutate({ id: stage.id, data: { isActive } })}
               />
             ))}
           </SortableContext>
@@ -175,7 +175,7 @@ export function PipelineStagesSettings() {
           <StageForm
             type={type}
             onCancel={() => setIsAdding(false)}
-            onSave={(data) => createMutation.mutate({ ...data, type, position: stages.length })}
+            onSave={(data: any) => createMutation.mutate({ ...data, type, position: stages.length })}
           />
         ) : (
           <button
@@ -195,7 +195,7 @@ export function PipelineStagesSettings() {
           count={migrationModal.count}
           stages={stages.filter(s => s.id !== migrationModal.stageId && s.isActive)}
           onClose={() => setMigrationModal(null)}
-          onConfirm={(targetId) => archiveMutation.mutate({ id: migrationModal.stageId, targetStageId: targetId })}
+          onConfirm={(targetId: string) => archiveMutation.mutate({ id: migrationModal.stageId, targetStageId: targetId })}
         />
       )}
     </div>

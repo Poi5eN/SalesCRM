@@ -134,7 +134,7 @@ export function Table<T extends { id?: string | number }>({
                 </tr>
               ) : (
                 data.map((item, i) => {
-                  const isSelected = selection && item.id && selection.selectedIds.includes(String(item.id));
+                  const isSelected = !!(selection && item.id && selection.selectedIds.includes(String(item.id)));
                   return (
                     <tr 
                       key={item.id || i} 

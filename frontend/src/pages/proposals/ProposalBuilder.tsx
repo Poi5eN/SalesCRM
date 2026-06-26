@@ -93,7 +93,7 @@ export default function ProposalBuilder() {
       setNotes(p.notes || '');
       setTerms(p.terms || '');
       setCurrency(p.currency);
-      if (p.items?.length > 0 && items.length === 0) {
+      if (p.items && p.items.length > 0 && items.length === 0) {
         setItems(p.items.sort((a: any, b: any) => a.position - b.position).map((i: any) => ({ ...i, id: i.id })));
       }
     }

@@ -210,12 +210,12 @@ const DashboardPage = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Stale Deals Alert */}
-      {staleDeals.data?.data?.meta?.total > 0 && (
+      {(staleDeals.data?.data?.meta?.total ?? 0) > 0 && (
         <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-2xl flex items-center justify-between shadow-sm animate-in slide-in-from-top duration-300">
           <div className="flex items-center space-x-3 text-amber-800 dark:text-amber-400">
             <AlertTriangle className="h-5 w-5" />
             <p className="text-sm font-bold">
-              Attention: <span className="underline">{staleDeals.data.data.meta.total} deals</span> have been inactive for over 14 days.
+              Attention: <span className="underline">{(staleDeals.data?.data?.meta?.total ?? 0)} deals</span> have been inactive for over 14 days.
             </p>
           </div>
           <Link to="/deals?isStale=true" className="text-xs font-black uppercase tracking-widest text-amber-900 dark:text-amber-300 hover:opacity-70">
@@ -316,7 +316,7 @@ const DashboardPage = () => {
                   }}
                   itemStyle={{ fontWeight: 800 }}
                   labelStyle={{ fontWeight: 900, marginBottom: '4px' }}
-                  formatter={(val: number) => [formatCurrency(val, tenant?.currency), 'Won Value']}
+                  formatter={(val: any) => [formatCurrency(Number(val ?? 0), tenant?.currency), 'Won Value']}
                 />
                 <Area
                   type="monotone"
