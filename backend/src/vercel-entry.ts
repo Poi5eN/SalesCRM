@@ -1,3 +1,5 @@
-import app from './app.ts';
+import 'dotenv/config';
+import app from './app.js';
 
-export default app;
+// Vercel requires module.exports to be the handler directly (not exports.default)
+export = app;

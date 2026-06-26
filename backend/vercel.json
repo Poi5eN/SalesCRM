@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "npm run vercel-build",
   "rewrites": [
     {
       "source": "/(.*)",
@@ -8,7 +9,9 @@
   ],
   "functions": {
     "api/index.cjs": {
-      "includeFiles": "node_modules/.prisma/client/libquery_engine-*.node"
+      "memory": 1024,
+      "maxDuration": 30,
+      "includeFiles": "node_modules/.prisma/client/**"
     }
   }
 }
