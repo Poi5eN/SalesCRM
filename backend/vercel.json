@@ -8,10 +8,7 @@
   ],
   "functions": {
     "api/index.js": {
-      "includeFiles": [
-        "node_modules/.prisma/client/libquery_engine-*.node",
-        "prisma/schema.prisma"
-      ]
+      "includeFiles": "node_modules/.prisma/client/libquery_engine-*.node"
     }
   }
 }
