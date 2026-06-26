@@ -233,7 +233,7 @@ export class DealService {
 
   private static logActivity(tenantId: string, userId: string, entityId: string, action: string, metadata: any) {
     prisma.activityLog.create({
-      data: { tenantId, userId, entityId, entityType: 'deal', action, metadata }
+      data: { tenantId, userId, entityId, entityType: 'deal', dealId: entityId, action, metadata }
     }).catch(console.error);
 
     prisma.deal.update({

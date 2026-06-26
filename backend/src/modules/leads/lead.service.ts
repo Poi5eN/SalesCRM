@@ -270,6 +270,7 @@ export class LeadService {
         userId,
         entityId,
         entityType: 'lead',
+        leadId: entityId,
         action,
         metadata
       }

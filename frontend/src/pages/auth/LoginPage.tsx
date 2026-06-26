@@ -8,7 +8,7 @@ const LoginPage = () => {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: 'demo@dealmind.com', password: 'demo@123' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +79,7 @@ const LoginPage = () => {
             <div className="space-y-4">
               <Input
                 label="Email Address"
-                placeholder="you@company.com"
+                placeholder="demo@dealmind.com"
                 type="email"
                 required
                 value={form.email}
@@ -87,7 +87,7 @@ const LoginPage = () => {
               />
               <Input
                 label="Password"
-                placeholder="••••••••"
+                placeholder="demo@123"
                 type="password"
                 required
                 value={form.password}

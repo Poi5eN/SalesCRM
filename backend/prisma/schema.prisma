@@ -840,8 +840,10 @@ model ActivityLog {
 
   tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user            User                @relation(fields: [userId], references: [id], onDelete: Restrict)
-  lead            Lead?               @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "activity_lead_fk")
-  deal            Deal?               @relation(fields: [entityId], references: [id], onDelete: Cascade, map: "activity_deal_fk")
+  leadId          String?
+  lead            Lead?               @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  dealId          String?
+  deal            Deal?               @relation(fields: [dealId], references: [id], onDelete: Cascade)
 
   createdAt       DateTime            @default(now())
 
