@@ -29,7 +29,7 @@ import emailTemplateRoutes from '@/modules/emailTemplates/emailTemplate.routes.j
 const app = express();
 
 // Security Middleware
-app.use(helmet());
+app.use((helmet as any)());
 // Request Parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
