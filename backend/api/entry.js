@@ -1,61 +1,27 @@
-"use strict";
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
 // src/entry.ts
-var entry_exports = {};
-__export(entry_exports, {
-  default: () => entry_default
-});
-module.exports = __toCommonJS(entry_exports);
-var import_config2 = require("dotenv/config");
+import "dotenv/config";
 
 // src/express-app.ts
-var import_express17 = __toESM(require("express"), 1);
-var import_cors = __toESM(require("cors"), 1);
-var import_helmet = __toESM(require("helmet"), 1);
-var import_cookie_parser = __toESM(require("cookie-parser"), 1);
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
 
 // src/middleware/requestLogger.ts
-var import_morgan = __toESM(require("morgan"), 1);
+import morgan from "morgan";
 
 // src/config/env.ts
-var import_zod = require("zod");
-var import_config = require("dotenv/config");
-var envSchema = import_zod.z.object({
-  PORT: import_zod.z.string().transform(Number).default(4e3),
-  NODE_ENV: import_zod.z.enum(["development", "production", "test"]).default("development"),
-  DATABASE_URL: import_zod.z.string().url(),
-  JWT_SECRET: import_zod.z.string().min(1),
-  JWT_REFRESH_SECRET: import_zod.z.string().min(1),
-  JWT_EXPIRES_IN: import_zod.z.string().default("15m"),
-  JWT_REFRESH_EXPIRES_IN: import_zod.z.string().default("7d"),
-  FRONTEND_URL: import_zod.z.string().url()
+import { z } from "zod";
+import "dotenv/config";
+var envSchema = z.object({
+  PORT: z.string().transform(Number).default(4e3),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  DATABASE_URL: z.string().url(),
+  JWT_SECRET: z.string().min(1),
+  JWT_REFRESH_SECRET: z.string().min(1),
+  JWT_EXPIRES_IN: z.string().default("15m"),
+  JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+  FRONTEND_URL: z.string().url()
 });
 var parsedEnv = envSchema.safeParse(process.env);
 if (!parsedEnv.success) {
@@ -69,7 +35,7 @@ if (!parsedEnv.success) {
 var env = parsedEnv.data;
 
 // src/middleware/requestLogger.ts
-var requestLogger = (0, import_morgan.default)(env.NODE_ENV === "development" ? "dev" : "combined");
+var requestLogger = morgan(env.NODE_ENV === "development" ? "dev" : "combined");
 var requestLogger_default = requestLogger;
 
 // src/utils/response.ts
@@ -109,10 +75,10 @@ var errorHandler = (err, req, res, next) => {
 var errorHandler_default = errorHandler;
 
 // src/express-app.ts
-var import_swagger_ui_express = __toESM(require("swagger-ui-express"), 1);
+import swaggerUi from "swagger-ui-express";
 
 // src/config/swagger.ts
-var import_swagger_jsdoc = __toESM(require("swagger-jsdoc"), 1);
+import swaggerJsdoc from "swagger-jsdoc";
 
 // package.json
 var package_default = {
@@ -122,7 +88,7 @@ var package_default = {
   main: "index.js",
   scripts: {
     dev: "tsx watch src/main.ts",
-    build: "tsup src/entry.ts --format cjs --platform node --out-dir api",
+    build: "tsup src/entry.ts --format esm --platform node --out-dir api",
     "vercel-build": "prisma generate && npm run build",
     start: "node dist/main.js",
     typecheck: "tsc --noEmit",
@@ -206,7 +172,7 @@ var options = {
   apis: ["./src/modules/**/*.ts", "./src/express-app.ts"]
   // Path to the API docs
 };
-var swaggerSpec = (0, import_swagger_jsdoc.default)(options);
+var swaggerSpec = swaggerJsdoc(options);
 var swagger_default = swaggerSpec;
 
 // src/middleware/notFound.ts
@@ -216,40 +182,40 @@ var notFound = (req, res, next) => {
 var notFound_default = notFound;
 
 // src/modules/auth/auth.routes.ts
-var import_express = require("express");
+import { Router } from "express";
 
 // src/modules/auth/auth.service.ts
-var import_bcryptjs2 = __toESM(require("bcryptjs"), 1);
-var import_uuid = require("uuid");
+import bcrypt2 from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
 
 // src/config/database.ts
-var import_client = require("@prisma/client");
-var import_adapter_pg = require("@prisma/adapter-pg");
-var import_pg = __toESM(require("pg"), 1);
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 var prismaClientSingleton = () => {
-  const pool = new import_pg.default.Pool({ connectionString: process.env.DATABASE_URL });
-  const adapter = new import_adapter_pg.PrismaPg(pool);
-  return new import_client.PrismaClient({ adapter });
+  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter });
 };
 var prisma = globalThis.prisma ?? prismaClientSingleton();
 var database_default = prisma;
 if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;
 
 // src/utils/jwt.ts
-var import_jsonwebtoken = __toESM(require("jsonwebtoken"), 1);
+import jwt from "jsonwebtoken";
 var generateAccessToken = (payload) => {
-  return import_jsonwebtoken.default.sign(payload, env.JWT_SECRET, {
+  return jwt.sign(payload, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN
   });
 };
 var generateRefreshToken = (payload) => {
-  return import_jsonwebtoken.default.sign(payload, env.JWT_REFRESH_SECRET, {
+  return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN
   });
 };
 var verifyToken = (token, secret) => {
   try {
-    return import_jsonwebtoken.default.verify(token, secret);
+    return jwt.verify(token, secret);
   } catch (error3) {
     return null;
   }
@@ -395,9 +361,23 @@ var RBACService = class {
 };
 
 // src/utils/demo-seed.ts
-var import_date_fns = require("date-fns");
-var import_client2 = require("@prisma/client");
-var import_bcryptjs = __toESM(require("bcryptjs"), 1);
+import { subDays, addDays } from "date-fns";
+import {
+  UserRole,
+  LeadSource,
+  LeadPriority,
+  DealStatus,
+  TaskStatus,
+  TaskPriority,
+  TaskType,
+  CommunicationType,
+  CommunicationDirection,
+  CommunicationSourceType,
+  ProductType,
+  ProductStatus,
+  ProposalStatus
+} from "@prisma/client";
+import bcrypt from "bcryptjs";
 async function seedDemoData() {
   console.log("\u{1F331} Starting database seed for Demo Tenant...");
   let tenant = await database_default.tenant.findUnique({
@@ -440,7 +420,7 @@ async function seedDemoData() {
       status: "active"
     }
   });
-  const passwordHash = await import_bcryptjs.default.hash("password123", 12);
+  const passwordHash = await bcrypt.hash("password123", 12);
   console.log("\u{1F331} Seeding demo users...");
   const demoAdmin = await database_default.user.create({
     data: {
@@ -448,7 +428,7 @@ async function seedDemoData() {
       email: "demo@dealmind.com",
       firstName: "Demo",
       lastName: "User",
-      role: import_client2.UserRole.admin,
+      role: UserRole.admin,
       status: "active",
       passwordHash
     }
@@ -459,7 +439,7 @@ async function seedDemoData() {
       email: "admin@demo.com",
       firstName: "Admin",
       lastName: "User",
-      role: import_client2.UserRole.admin,
+      role: UserRole.admin,
       status: "active",
       passwordHash
     }
@@ -470,7 +450,7 @@ async function seedDemoData() {
       email: "manager@demo.com",
       firstName: "Sarah",
       lastName: "Manager",
-      role: import_client2.UserRole.salesManager,
+      role: UserRole.salesManager,
       status: "active",
       passwordHash
     }
@@ -491,7 +471,7 @@ async function seedDemoData() {
         email: repEmail,
         firstName: repNames[i].first,
         lastName: repNames[i].last,
-        role: import_client2.UserRole.salesRep,
+        role: UserRole.salesRep,
         status: "active",
         passwordHash
       }
@@ -551,13 +531,13 @@ async function seedDemoData() {
   const dbDealStages = dbStages.filter((s) => s.type === "deal");
   console.log("\u{1F331} Seeding products catalog...");
   const productData = [
-    { name: "Dedicated Desk", category: "Co-working", type: import_client2.ProductType.recurring, billingCycle: "monthly", price: 299, description: "Single reserved desk in shared workspace" },
-    { name: "Hot Desk Monthly", category: "Co-working", type: import_client2.ProductType.recurring, billingCycle: "monthly", price: 149, description: "Access to any available desk in open seating area" },
-    { name: "Private Office (4 Seats)", category: "Office Suite", type: import_client2.ProductType.recurring, billingCycle: "monthly", price: 1199, description: "Fully enclosed lockable office for team of 4" },
-    { name: "Private Office (10 Seats)", category: "Office Suite", type: import_client2.ProductType.recurring, billingCycle: "monthly", price: 2499, description: "Premium lockable office suite for team of 10" },
-    { name: "Enterprise Consulting Suite", category: "Consulting", type: import_client2.ProductType.oneTime, price: 4999, description: "Full space setup, branding, and dedicated IT infra consulting" },
-    { name: "Meeting Room Pass (10 Hrs)", category: "Usage", type: import_client2.ProductType.usage, price: 199, description: "Pack of 10 meeting room hours usable monthly" },
-    { name: "IT Infrastructure Package", category: "One-time Addon", type: import_client2.ProductType.oneTime, price: 499, description: "Dedicated static IP, custom firewall config, and high-speed port setup" }
+    { name: "Dedicated Desk", category: "Co-working", type: ProductType.recurring, billingCycle: "monthly", price: 299, description: "Single reserved desk in shared workspace" },
+    { name: "Hot Desk Monthly", category: "Co-working", type: ProductType.recurring, billingCycle: "monthly", price: 149, description: "Access to any available desk in open seating area" },
+    { name: "Private Office (4 Seats)", category: "Office Suite", type: ProductType.recurring, billingCycle: "monthly", price: 1199, description: "Fully enclosed lockable office for team of 4" },
+    { name: "Private Office (10 Seats)", category: "Office Suite", type: ProductType.recurring, billingCycle: "monthly", price: 2499, description: "Premium lockable office suite for team of 10" },
+    { name: "Enterprise Consulting Suite", category: "Consulting", type: ProductType.oneTime, price: 4999, description: "Full space setup, branding, and dedicated IT infra consulting" },
+    { name: "Meeting Room Pass (10 Hrs)", category: "Usage", type: ProductType.usage, price: 199, description: "Pack of 10 meeting room hours usable monthly" },
+    { name: "IT Infrastructure Package", category: "One-time Addon", type: ProductType.oneTime, price: 499, description: "Dedicated static IP, custom firewall config, and high-speed port setup" }
   ];
   const products = [];
   for (const p of productData) {
@@ -570,7 +550,7 @@ async function seedDemoData() {
         billingCycle: p.billingCycle || null,
         price: p.price,
         description: p.description,
-        status: import_client2.ProductStatus.active,
+        status: ProductStatus.active,
         sku: p.name.toUpperCase().replace(/[\s-()]/g, "_"),
         currency: "USD",
         taxRate: 18
@@ -639,14 +619,14 @@ async function seedDemoData() {
   }
   console.log("\u{1F331} Seeding leads...");
   const leadsData = [
-    { title: "Expansion Space Vortex AI", value: 12e3, stage: "Qualified", contact: "Sarah Connor", source: import_client2.LeadSource.webForm, priority: import_client2.LeadPriority.high },
-    { title: "Summit Health Remote Offices", value: 25e3, stage: "Contacted", contact: "Elena Rostova", source: import_client2.LeadSource.referral, priority: import_client2.LeadPriority.medium },
-    { title: "Nexus Logistics Hub Office", value: 8e3, stage: "New", contact: "David Kim", source: import_client2.LeadSource.coldOutreach, priority: import_client2.LeadPriority.low },
-    { title: "Starlight Creative Co-working", value: 1500, stage: "Nurturing", contact: "Chloe Bennett", source: import_client2.LeadSource.socialMedia, priority: import_client2.LeadPriority.low },
-    { title: "Nova Foods Hybrid Setup", value: 3e4, stage: "New", contact: "Rebecca Nunez", source: import_client2.LeadSource.webForm, priority: import_client2.LeadPriority.urgent },
-    { title: "Apex Wealth Corporate HQ", value: 18e3, stage: "Qualified", contact: "Arthur Pendleton", source: import_client2.LeadSource.referral, priority: import_client2.LeadPriority.high },
-    { title: "Pulse Media Extra Desks", value: 3500, stage: "Contacted", contact: "Julian Asher", source: import_client2.LeadSource.manual, priority: import_client2.LeadPriority.medium },
-    { title: "Core Infra Project Office", value: 9500, stage: "Nurturing", contact: "Liam Neeson", source: import_client2.LeadSource.manual, priority: import_client2.LeadPriority.medium }
+    { title: "Expansion Space Vortex AI", value: 12e3, stage: "Qualified", contact: "Sarah Connor", source: LeadSource.webForm, priority: LeadPriority.high },
+    { title: "Summit Health Remote Offices", value: 25e3, stage: "Contacted", contact: "Elena Rostova", source: LeadSource.referral, priority: LeadPriority.medium },
+    { title: "Nexus Logistics Hub Office", value: 8e3, stage: "New", contact: "David Kim", source: LeadSource.coldOutreach, priority: LeadPriority.low },
+    { title: "Starlight Creative Co-working", value: 1500, stage: "Nurturing", contact: "Chloe Bennett", source: LeadSource.socialMedia, priority: LeadPriority.low },
+    { title: "Nova Foods Hybrid Setup", value: 3e4, stage: "New", contact: "Rebecca Nunez", source: LeadSource.webForm, priority: LeadPriority.urgent },
+    { title: "Apex Wealth Corporate HQ", value: 18e3, stage: "Qualified", contact: "Arthur Pendleton", source: LeadSource.referral, priority: LeadPriority.high },
+    { title: "Pulse Media Extra Desks", value: 3500, stage: "Contacted", contact: "Julian Asher", source: LeadSource.manual, priority: LeadPriority.medium },
+    { title: "Core Infra Project Office", value: 9500, stage: "Nurturing", contact: "Liam Neeson", source: LeadSource.manual, priority: LeadPriority.medium }
   ];
   const leads = [];
   for (let i = 0; i < leadsData.length; i++) {
@@ -668,20 +648,20 @@ async function seedDemoData() {
         estimatedValue: l.value,
         currency: "USD",
         score: 60 + i * 5,
-        expectedCloseAt: (0, import_date_fns.addDays)(/* @__PURE__ */ new Date(), 30 + i * 2)
+        expectedCloseAt: addDays(/* @__PURE__ */ new Date(), 30 + i * 2)
       }
     });
     leads.push(lead);
   }
   console.log("\u{1F331} Seeding deals...");
   const dealsData = [
-    { title: "Vortex AI Office Lease", value: 45e3, status: import_client2.DealStatus.open, stage: "Proposal", contact: "Sarah Connor" },
-    { title: "Summit Global HQ Expansion", value: 12e4, status: import_client2.DealStatus.open, stage: "Negotiation", contact: "Elena Rostova" },
-    { title: "Nova Foods Premium Office Suite", value: 95e3, status: import_client2.DealStatus.won, stage: "Won", contact: "Rebecca Nunez" },
-    { title: "Apex Wealth HQ Relocation", value: 65e3, status: import_client2.DealStatus.lost, stage: "Lost", contact: "Arthur Pendleton", lostReason: "Competitor offered lower pricing" },
-    { title: "Starlight Creative Private Desk Combo", value: 8500, status: import_client2.DealStatus.open, stage: "Discovery", contact: "Chloe Bennett" },
-    { title: "Pulse Media Regional Office Suite", value: 38e3, status: import_client2.DealStatus.won, stage: "Won", contact: "Julian Asher" },
-    { title: "Core Infra On-Site Setup Office", value: 22e3, status: import_client2.DealStatus.open, stage: "Closing", contact: "Liam Neeson" }
+    { title: "Vortex AI Office Lease", value: 45e3, status: DealStatus.open, stage: "Proposal", contact: "Sarah Connor" },
+    { title: "Summit Global HQ Expansion", value: 12e4, status: DealStatus.open, stage: "Negotiation", contact: "Elena Rostova" },
+    { title: "Nova Foods Premium Office Suite", value: 95e3, status: DealStatus.won, stage: "Won", contact: "Rebecca Nunez" },
+    { title: "Apex Wealth HQ Relocation", value: 65e3, status: DealStatus.lost, stage: "Lost", contact: "Arthur Pendleton", lostReason: "Competitor offered lower pricing" },
+    { title: "Starlight Creative Private Desk Combo", value: 8500, status: DealStatus.open, stage: "Discovery", contact: "Chloe Bennett" },
+    { title: "Pulse Media Regional Office Suite", value: 38e3, status: DealStatus.won, stage: "Won", contact: "Julian Asher" },
+    { title: "Core Infra On-Site Setup Office", value: 22e3, status: DealStatus.open, stage: "Closing", contact: "Liam Neeson" }
   ];
   const deals = [];
   for (let i = 0; i < dealsData.length; i++) {
@@ -700,9 +680,9 @@ async function seedDemoData() {
         title: d.title,
         value: d.value,
         status: d.status,
-        probability: d.status === import_client2.DealStatus.won ? 100 : d.status === import_client2.DealStatus.lost ? 0 : 30 + i * 10,
-        expectedCloseAt: d.status === import_client2.DealStatus.open ? (0, import_date_fns.addDays)(/* @__PURE__ */ new Date(), 15 + i * 3) : null,
-        closedAt: d.status !== import_client2.DealStatus.open ? (0, import_date_fns.subDays)(/* @__PURE__ */ new Date(), 2) : null,
+        probability: d.status === DealStatus.won ? 100 : d.status === DealStatus.lost ? 0 : 30 + i * 10,
+        expectedCloseAt: d.status === DealStatus.open ? addDays(/* @__PURE__ */ new Date(), 15 + i * 3) : null,
+        closedAt: d.status !== DealStatus.open ? subDays(/* @__PURE__ */ new Date(), 2) : null,
         lostReason: d.lostReason || null,
         tags: ["demo", d.status.toLowerCase()]
       }
@@ -747,10 +727,10 @@ async function seedDemoData() {
   }
   console.log("\u{1F331} Seeding proposals and proposal items...");
   const proposalSeedData = [
-    { title: "Nova Foods Office Lease Proposal", deal: "Nova Foods Premium Office Suite", contact: "Rebecca Nunez", status: import_client2.ProposalStatus.accepted },
-    { title: "Vortex AI Co-working Workspace Proposal", deal: "Vortex AI Office Lease", contact: "Sarah Connor", status: import_client2.ProposalStatus.sent },
-    { title: "Summit Global Expansion Proposal", deal: "Summit Global HQ Expansion", contact: "Elena Rostova", status: import_client2.ProposalStatus.draft },
-    { title: "Apex Wealth Corporate HQ Offer", deal: "Apex Wealth HQ Relocation", contact: "Arthur Pendleton", status: import_client2.ProposalStatus.rejected }
+    { title: "Nova Foods Office Lease Proposal", deal: "Nova Foods Premium Office Suite", contact: "Rebecca Nunez", status: ProposalStatus.accepted },
+    { title: "Vortex AI Co-working Workspace Proposal", deal: "Vortex AI Office Lease", contact: "Sarah Connor", status: ProposalStatus.sent },
+    { title: "Summit Global Expansion Proposal", deal: "Summit Global HQ Expansion", contact: "Elena Rostova", status: ProposalStatus.draft },
+    { title: "Apex Wealth Corporate HQ Offer", deal: "Apex Wealth HQ Relocation", contact: "Arthur Pendleton", status: ProposalStatus.rejected }
   ];
   for (const p of proposalSeedData) {
     const deal = deals.find((d) => d.title === p.deal);
@@ -813,10 +793,10 @@ async function seedDemoData() {
         title: p.title,
         status: p.status,
         version: 1,
-        validUntil: (0, import_date_fns.addDays)(/* @__PURE__ */ new Date(), 15),
-        sentAt: p.status !== import_client2.ProposalStatus.draft ? (0, import_date_fns.subDays)(/* @__PURE__ */ new Date(), 3) : null,
-        viewedAt: [import_client2.ProposalStatus.sent, import_client2.ProposalStatus.accepted, import_client2.ProposalStatus.rejected].includes(p.status) ? (0, import_date_fns.subDays)(/* @__PURE__ */ new Date(), 2) : null,
-        respondedAt: [import_client2.ProposalStatus.accepted, import_client2.ProposalStatus.rejected].includes(p.status) ? (0, import_date_fns.subDays)(/* @__PURE__ */ new Date(), 1) : null,
+        validUntil: addDays(/* @__PURE__ */ new Date(), 15),
+        sentAt: p.status !== ProposalStatus.draft ? subDays(/* @__PURE__ */ new Date(), 3) : null,
+        viewedAt: [ProposalStatus.sent, ProposalStatus.accepted, ProposalStatus.rejected].includes(p.status) ? subDays(/* @__PURE__ */ new Date(), 2) : null,
+        respondedAt: [ProposalStatus.accepted, ProposalStatus.rejected].includes(p.status) ? subDays(/* @__PURE__ */ new Date(), 1) : null,
         notes: "Thank you for choosing DealMind. This proposal details your customizable workspace configuration.",
         terms: "Payment is due within 15 days of invoice date. Auto-renewals are billed monthly.",
         subtotal,
@@ -847,23 +827,23 @@ async function seedDemoData() {
   }
   console.log("\u{1F331} Seeding tasks...");
   const tasksData = [
-    { title: "Follow-up on Vortex AI Proposal", type: import_client2.TaskType.call, status: import_client2.TaskStatus.pending, priority: import_client2.TaskPriority.high, lead: null, deal: "Vortex AI Office Lease", daysDiff: 1 },
-    { title: "Schedule Discovery Call with Summit Health", type: import_client2.TaskType.call, status: import_client2.TaskStatus.completed, priority: import_client2.TaskPriority.medium, lead: "Summit Health Remote Offices", deal: null, daysDiff: -2 },
-    { title: "Send Contract Draft to Nova Foods", type: import_client2.TaskType.proposal, status: import_client2.TaskStatus.completed, priority: import_client2.TaskPriority.high, lead: null, deal: "Nova Foods Premium Office Suite", daysDiff: -1 },
-    { title: "Resolve pricing queries for Apex HQ Relocation", type: import_client2.TaskType.meeting, status: import_client2.TaskStatus.completed, priority: import_client2.TaskPriority.high, lead: null, deal: "Apex Wealth HQ Relocation", daysDiff: -5 },
-    { title: "Qualify requirements for Starlight Creative", type: import_client2.TaskType.followUp, status: import_client2.TaskStatus.pending, priority: import_client2.TaskPriority.low, lead: "Starlight Creative Co-working", deal: null, daysDiff: 3 },
-    { title: "Log new lead from Nexus Logistics website", type: import_client2.TaskType.other, status: import_client2.TaskStatus.completed, priority: import_client2.TaskPriority.low, lead: "Nexus Logistics Hub Office", deal: null, daysDiff: -3 },
-    { title: "Prepare presentation deck for Pulse Media", type: import_client2.TaskType.demo, status: import_client2.TaskStatus.completed, priority: import_client2.TaskPriority.medium, lead: null, deal: "Pulse Media Regional Office Suite", daysDiff: -6 },
-    { title: "Contract negotiation meeting with Core Infra", type: import_client2.TaskType.meeting, status: import_client2.TaskStatus.pending, priority: import_client2.TaskPriority.high, lead: null, deal: "Core Infra On-Site Setup Office", daysDiff: 2 },
-    { title: "Call Rebecca Nunez for feedback on onboarding", type: import_client2.TaskType.call, status: import_client2.TaskStatus.pending, priority: import_client2.TaskPriority.medium, lead: null, deal: "Nova Foods Premium Office Suite", daysDiff: 4 },
-    { title: "Send corporate brochure to David Kim", type: import_client2.TaskType.email, status: import_client2.TaskStatus.overdue, priority: import_client2.TaskPriority.low, lead: "Nexus Logistics Hub Office", deal: null, daysDiff: -2 }
+    { title: "Follow-up on Vortex AI Proposal", type: TaskType.call, status: TaskStatus.pending, priority: TaskPriority.high, lead: null, deal: "Vortex AI Office Lease", daysDiff: 1 },
+    { title: "Schedule Discovery Call with Summit Health", type: TaskType.call, status: TaskStatus.completed, priority: TaskPriority.medium, lead: "Summit Health Remote Offices", deal: null, daysDiff: -2 },
+    { title: "Send Contract Draft to Nova Foods", type: TaskType.proposal, status: TaskStatus.completed, priority: TaskPriority.high, lead: null, deal: "Nova Foods Premium Office Suite", daysDiff: -1 },
+    { title: "Resolve pricing queries for Apex HQ Relocation", type: TaskType.meeting, status: TaskStatus.completed, priority: TaskPriority.high, lead: null, deal: "Apex Wealth HQ Relocation", daysDiff: -5 },
+    { title: "Qualify requirements for Starlight Creative", type: TaskType.followUp, status: TaskStatus.pending, priority: TaskPriority.low, lead: "Starlight Creative Co-working", deal: null, daysDiff: 3 },
+    { title: "Log new lead from Nexus Logistics website", type: TaskType.other, status: TaskStatus.completed, priority: TaskPriority.low, lead: "Nexus Logistics Hub Office", deal: null, daysDiff: -3 },
+    { title: "Prepare presentation deck for Pulse Media", type: TaskType.demo, status: TaskStatus.completed, priority: TaskPriority.medium, lead: null, deal: "Pulse Media Regional Office Suite", daysDiff: -6 },
+    { title: "Contract negotiation meeting with Core Infra", type: TaskType.meeting, status: TaskStatus.pending, priority: TaskPriority.high, lead: null, deal: "Core Infra On-Site Setup Office", daysDiff: 2 },
+    { title: "Call Rebecca Nunez for feedback on onboarding", type: TaskType.call, status: TaskStatus.pending, priority: TaskPriority.medium, lead: null, deal: "Nova Foods Premium Office Suite", daysDiff: 4 },
+    { title: "Send corporate brochure to David Kim", type: TaskType.email, status: TaskStatus.overdue, priority: TaskPriority.low, lead: "Nexus Logistics Hub Office", deal: null, daysDiff: -2 }
   ];
   for (const t of tasksData) {
     const assignedRep = reps[Math.floor(Math.random() * reps.length)];
     const dbLead = t.lead ? leads.find((l) => l.title === t.lead) : null;
     const dbDeal = t.deal ? deals.find((d) => d.title === t.deal) : null;
     const contactId = dbLead ? dbLead.contactId : dbDeal ? dbDeal.contactId : null;
-    const dueAt = (0, import_date_fns.addDays)(/* @__PURE__ */ new Date(), t.daysDiff);
+    const dueAt = addDays(/* @__PURE__ */ new Date(), t.daysDiff);
     await database_default.task.create({
       data: {
         tenantId: tenant.id,
@@ -877,20 +857,20 @@ async function seedDemoData() {
         status: t.status,
         priority: t.priority,
         dueAt,
-        completedAt: t.status === import_client2.TaskStatus.completed ? (0, import_date_fns.subDays)(dueAt, 1) : null
+        completedAt: t.status === TaskStatus.completed ? subDays(dueAt, 1) : null
       }
     });
   }
   console.log("\u{1F331} Seeding communications history...");
   const communicationsData = [
-    { deal: "Vortex AI Office Lease", type: import_client2.CommunicationType.email, subject: "Space layout suggestions", body: "Hi Sarah, following up on our call. Please see attached space layouts." },
-    { lead: "Summit Health Remote Offices", type: import_client2.CommunicationType.call, subject: "Initial Discovery Call", body: "Discussed remote space options. Elena requested 3 regional offices, looking for pricing." },
-    { deal: "Nova Foods Premium Office Suite", type: import_client2.CommunicationType.meeting, subject: "Contract Walkthrough Meeting", body: "Reviewed the terms. Nova Foods is happy with the 3 suites layout. Confirmed start date." },
-    { deal: "Apex Wealth HQ Relocation", type: import_client2.CommunicationType.email, subject: "Revised Quote and Site Tour Invite", body: "Sent revised quotation with lower setup fee. Invited Arthur for site tour." },
-    { lead: "Starlight Creative Co-working", type: import_client2.CommunicationType.whatsapp, subject: "Tour booking confirmed", body: "Sent WhatsApp text confirming tour at 4 PM tomorrow." },
-    { lead: "Nexus Logistics Hub Office", type: import_client2.CommunicationType.note, subject: "CRM Import Note", body: "Lead imported automatically from landing page form submissions." },
-    { deal: "Pulse Media Regional Office Suite", type: import_client2.CommunicationType.call, subject: "Pricing Proposal review", body: "Discussed pricing discount. Accepted the offer over the phone. Awaiting signature." },
-    { deal: "Core Infra On-Site Setup Office", type: import_client2.CommunicationType.email, subject: "Draft contract package", body: "Sent complete draft lease package for internal legal review." }
+    { deal: "Vortex AI Office Lease", type: CommunicationType.email, subject: "Space layout suggestions", body: "Hi Sarah, following up on our call. Please see attached space layouts." },
+    { lead: "Summit Health Remote Offices", type: CommunicationType.call, subject: "Initial Discovery Call", body: "Discussed remote space options. Elena requested 3 regional offices, looking for pricing." },
+    { deal: "Nova Foods Premium Office Suite", type: CommunicationType.meeting, subject: "Contract Walkthrough Meeting", body: "Reviewed the terms. Nova Foods is happy with the 3 suites layout. Confirmed start date." },
+    { deal: "Apex Wealth HQ Relocation", type: CommunicationType.email, subject: "Revised Quote and Site Tour Invite", body: "Sent revised quotation with lower setup fee. Invited Arthur for site tour." },
+    { lead: "Starlight Creative Co-working", type: CommunicationType.whatsapp, subject: "Tour booking confirmed", body: "Sent WhatsApp text confirming tour at 4 PM tomorrow." },
+    { lead: "Nexus Logistics Hub Office", type: CommunicationType.note, subject: "CRM Import Note", body: "Lead imported automatically from landing page form submissions." },
+    { deal: "Pulse Media Regional Office Suite", type: CommunicationType.call, subject: "Pricing Proposal review", body: "Discussed pricing discount. Accepted the offer over the phone. Awaiting signature." },
+    { deal: "Core Infra On-Site Setup Office", type: CommunicationType.email, subject: "Draft contract package", body: "Sent complete draft lease package for internal legal review." }
   ];
   for (const c of communicationsData) {
     const dbLead = c.lead ? leads.find((l) => l.title === c.lead) : null;
@@ -905,11 +885,11 @@ async function seedDemoData() {
         leadId: dbLead ? dbLead.id : null,
         dealId: dbDeal ? dbDeal.id : null,
         type: c.type,
-        direction: import_client2.CommunicationDirection.outbound,
-        sourceType: import_client2.CommunicationSourceType.human,
+        direction: CommunicationDirection.outbound,
+        sourceType: CommunicationSourceType.human,
         subject: c.subject,
         body: c.body,
-        occurredAt: (0, import_date_fns.subDays)(/* @__PURE__ */ new Date(), Math.floor(Math.random() * 10) + 1),
+        occurredAt: subDays(/* @__PURE__ */ new Date(), Math.floor(Math.random() * 10) + 1),
         outcome: "Completed successfully"
       }
     });
@@ -1024,7 +1004,7 @@ var AuthService = class {
     if (existingTenant) {
       throw { status: 400, message: "Tenant slug already exists", code: "SLUG_EXISTS" };
     }
-    const passwordHash = await import_bcryptjs2.default.hash(adminPassword, 12);
+    const passwordHash = await bcrypt2.hash(adminPassword, 12);
     return await database_default.$transaction(async (tx) => {
       const tenant = await tx.tenant.create({
         data: {
@@ -1070,7 +1050,7 @@ var AuthService = class {
         }
       });
       const tokens = this.issueTokens(user);
-      const refreshTokenHash = await import_bcryptjs2.default.hash(tokens.refreshToken, 10);
+      const refreshTokenHash = await bcrypt2.hash(tokens.refreshToken, 10);
       await tx.user.update({
         where: { id: user.id },
         data: { refreshToken: refreshTokenHash }
@@ -1105,12 +1085,12 @@ var AuthService = class {
     if (user.status !== "active") {
       throw { status: 403, message: `Your account is ${user.status}`, code: "USER_NOT_ACTIVE" };
     }
-    const isMatch = email === "demo@dealmind.com" ? true : await import_bcryptjs2.default.compare(password, user.passwordHash);
+    const isMatch = email === "demo@dealmind.com" ? true : await bcrypt2.compare(password, user.passwordHash);
     if (!isMatch) {
       throw { status: 401, message: "Invalid credentials", code: "INVALID_CREDENTIALS" };
     }
     const tokens = this.issueTokens(user);
-    const refreshTokenHash = await import_bcryptjs2.default.hash(tokens.refreshToken, 10);
+    const refreshTokenHash = await bcrypt2.hash(tokens.refreshToken, 10);
     await database_default.user.update({
       where: { id: user.id },
       data: {
@@ -1126,11 +1106,11 @@ var AuthService = class {
     try {
       const decoded = jwt2.default.verify(refreshToken, env.JWT_REFRESH_SECRET);
       const user = await database_default.user.findUnique({ where: { id: decoded.id } });
-      if (!user || !user.refreshToken || !await import_bcryptjs2.default.compare(refreshToken, user.refreshToken)) {
+      if (!user || !user.refreshToken || !await bcrypt2.compare(refreshToken, user.refreshToken)) {
         throw { status: 401, message: "Invalid refresh token", code: "INVALID_REFRESH_TOKEN" };
       }
       const tokens = this.issueTokens(user);
-      const refreshTokenHash = await import_bcryptjs2.default.hash(tokens.refreshToken, 10);
+      const refreshTokenHash = await bcrypt2.hash(tokens.refreshToken, 10);
       await database_default.user.update({
         where: { id: user.id },
         data: { refreshToken: refreshTokenHash }
@@ -1154,7 +1134,7 @@ var AuthService = class {
     if (existingUser) {
       throw { status: 400, message: "User already exists in this tenant", code: "USER_EXISTS" };
     }
-    const inviteToken = (0, import_uuid.v4)();
+    const inviteToken = uuidv4();
     const inviteExpiresAt = new Date(Date.now() + 72 * 60 * 60 * 1e3);
     const user = await database_default.user.create({
       data: {
@@ -1180,7 +1160,7 @@ var AuthService = class {
     if (!user || !user.inviteExpiresAt || user.inviteExpiresAt < /* @__PURE__ */ new Date()) {
       throw { status: 400, message: "Invalid or expired invite token", code: "INVALID_INVITE_TOKEN" };
     }
-    const passwordHash = await import_bcryptjs2.default.hash(password, 12);
+    const passwordHash = await bcrypt2.hash(password, 12);
     const updatedUser = await database_default.user.update({
       where: { id: user.id },
       data: {
@@ -1292,7 +1272,7 @@ var AuthController = class {
 };
 
 // src/middleware/validate.ts
-var import_zod2 = require("zod");
+import { ZodError } from "zod";
 var validate = (schema) => {
   return async (req, res, next) => {
     try {
@@ -1303,7 +1283,7 @@ var validate = (schema) => {
       });
       return next();
     } catch (err) {
-      if (err instanceof import_zod2.ZodError) {
+      if (err instanceof ZodError) {
         return error(res, "Validation Error", 400, "VALIDATION_ERROR", err.issues);
       }
       return next(err);
@@ -1388,42 +1368,42 @@ var asyncHandler = (fn) => {
 var asyncHandler_default = asyncHandler;
 
 // src/modules/auth/auth.schemas.ts
-var import_zod3 = require("zod");
-var registerTenantSchema = import_zod3.z.object({
-  body: import_zod3.z.object({
-    tenantName: import_zod3.z.string().min(2, "Tenant name must be at least 2 characters"),
-    tenantSlug: import_zod3.z.string().min(2, "Slug must be at least 2 characters").regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric and hyphens only"),
-    adminEmail: import_zod3.z.string().email("Invalid email address"),
-    adminPassword: import_zod3.z.string().min(8, "Password must be at least 8 characters"),
-    adminFirstName: import_zod3.z.string().min(1, "First name is required"),
-    adminLastName: import_zod3.z.string().min(1, "Last name is required")
+import { z as z3 } from "zod";
+var registerTenantSchema = z3.object({
+  body: z3.object({
+    tenantName: z3.string().min(2, "Tenant name must be at least 2 characters"),
+    tenantSlug: z3.string().min(2, "Slug must be at least 2 characters").regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric and hyphens only"),
+    adminEmail: z3.string().email("Invalid email address"),
+    adminPassword: z3.string().min(8, "Password must be at least 8 characters"),
+    adminFirstName: z3.string().min(1, "First name is required"),
+    adminLastName: z3.string().min(1, "Last name is required")
   })
 });
-var loginSchema = import_zod3.z.object({
-  body: import_zod3.z.object({
-    email: import_zod3.z.string().email("Invalid email address"),
-    password: import_zod3.z.string().min(1, "Password is required")
+var loginSchema = z3.object({
+  body: z3.object({
+    email: z3.string().email("Invalid email address"),
+    password: z3.string().min(1, "Password is required")
   })
 });
-var inviteUserSchema = import_zod3.z.object({
-  body: import_zod3.z.object({
-    email: import_zod3.z.string().email("Invalid email address"),
-    firstName: import_zod3.z.string().min(1, "First name is required"),
-    lastName: import_zod3.z.string().min(1, "Last name is required"),
-    role: import_zod3.z.enum(["admin", "salesManager", "salesRep", "viewer"])
+var inviteUserSchema = z3.object({
+  body: z3.object({
+    email: z3.string().email("Invalid email address"),
+    firstName: z3.string().min(1, "First name is required"),
+    lastName: z3.string().min(1, "Last name is required"),
+    role: z3.enum(["admin", "salesManager", "salesRep", "viewer"])
   })
 });
-var acceptInviteSchema = import_zod3.z.object({
-  body: import_zod3.z.object({
-    inviteToken: import_zod3.z.string().uuid("Invalid invite token"),
-    password: import_zod3.z.string().min(8, "Password must be at least 8 characters"),
-    firstName: import_zod3.z.string().min(1, "First name is required"),
-    lastName: import_zod3.z.string().min(1, "Last name is required")
+var acceptInviteSchema = z3.object({
+  body: z3.object({
+    inviteToken: z3.string().uuid("Invalid invite token"),
+    password: z3.string().min(8, "Password must be at least 8 characters"),
+    firstName: z3.string().min(1, "First name is required"),
+    lastName: z3.string().min(1, "Last name is required")
   })
 });
 
 // src/modules/auth/auth.routes.ts
-var router = (0, import_express.Router)();
+var router = Router();
 router.post(
   "/register-tenant",
   validate_default(registerTenantSchema),
@@ -1463,7 +1443,7 @@ router.get(
 var auth_routes_default = router;
 
 // src/modules/rbac/rbac.routes.ts
-var import_express2 = require("express");
+import { Router as Router2 } from "express";
 
 // src/modules/rbac/rbac.controller.ts
 var RBACController = class {
@@ -1501,21 +1481,21 @@ var RBACController = class {
 };
 
 // src/modules/rbac/rbac.schemas.ts
-var import_zod4 = require("zod");
-var createRoleSchema = import_zod4.z.object({
-  body: import_zod4.z.object({
-    name: import_zod4.z.string().min(2, "Role name must be at least 2 characters"),
-    description: import_zod4.z.string().optional()
+import { z as z4 } from "zod";
+var createRoleSchema = z4.object({
+  body: z4.object({
+    name: z4.string().min(2, "Role name must be at least 2 characters"),
+    description: z4.string().optional()
   })
 });
-var updateRolePermissionsSchema = import_zod4.z.object({
-  body: import_zod4.z.object({
-    permissionIds: import_zod4.z.array(import_zod4.z.string().cuid("Invalid permission ID"))
+var updateRolePermissionsSchema = z4.object({
+  body: z4.object({
+    permissionIds: z4.array(z4.string().cuid("Invalid permission ID"))
   })
 });
 
 // src/modules/rbac/rbac.routes.ts
-var router2 = (0, import_express2.Router)();
+var router2 = Router2();
 router2.use(authGuard_default);
 router2.use(rbacGuard_default("settings", "update"));
 router2.get("/roles", asyncHandler_default(RBACController.listRoles));
@@ -1528,7 +1508,7 @@ router2.post("/seed-defaults", asyncHandler_default(RBACController.seedDefaults)
 var rbac_routes_default = router2;
 
 // src/modules/tenants/tenant.routes.ts
-var import_express3 = require("express");
+import { Router as Router3 } from "express";
 
 // src/modules/tenants/tenant.service.ts
 var TenantService = class {
@@ -1667,30 +1647,30 @@ var TenantController = class {
 };
 
 // src/modules/tenants/tenant.schemas.ts
-var import_zod5 = require("zod");
-var updateTenantSchema = import_zod5.z.object({
-  body: import_zod5.z.object({
-    name: import_zod5.z.string().min(2).optional(),
-    timezone: import_zod5.z.string().optional(),
-    currency: import_zod5.z.string().optional(),
-    logoUrl: import_zod5.z.string().url().optional().or(import_zod5.z.literal("")),
-    settings: import_zod5.z.record(import_zod5.z.string(), import_zod5.z.any()).optional()
+import { z as z5 } from "zod";
+var updateTenantSchema = z5.object({
+  body: z5.object({
+    name: z5.string().min(2).optional(),
+    timezone: z5.string().optional(),
+    currency: z5.string().optional(),
+    logoUrl: z5.string().url().optional().or(z5.literal("")),
+    settings: z5.record(z5.string(), z5.any()).optional()
   })
 });
-var updateUserStatusRoleSchema = import_zod5.z.object({
-  body: import_zod5.z.object({
-    status: import_zod5.z.enum(["active", "inactive", "suspended"]).optional(),
-    roleId: import_zod5.z.string().cuid().optional()
+var updateUserStatusRoleSchema = z5.object({
+  body: z5.object({
+    status: z5.enum(["active", "inactive", "suspended"]).optional(),
+    roleId: z5.string().cuid().optional()
   })
 });
-var deleteUserSchema = import_zod5.z.object({
-  body: import_zod5.z.object({
-    reassignToUserId: import_zod5.z.string().cuid("User ID to reassign records to is required")
+var deleteUserSchema = z5.object({
+  body: z5.object({
+    reassignToUserId: z5.string().cuid("User ID to reassign records to is required")
   })
 });
 
 // src/modules/tenants/tenant.routes.ts
-var router3 = (0, import_express3.Router)();
+var router3 = Router3();
 router3.use(authGuard_default);
 router3.use(rbacGuard_default("settings", "update"));
 router3.get("/me", asyncHandler_default(TenantController.getMe));
@@ -1701,7 +1681,7 @@ router3.delete("/users/:id", validate_default(deleteUserSchema), asyncHandler_de
 var tenant_routes_default = router3;
 
 // src/modules/pipeline-stages/stage.routes.ts
-var import_express4 = require("express");
+import { Router as Router4 } from "express";
 
 // src/modules/pipeline-stages/stage.service.ts
 var StageService = class {
@@ -1851,46 +1831,46 @@ var StageController = class {
 };
 
 // src/modules/pipeline-stages/stage.schemas.ts
-var import_zod6 = require("zod");
-var createStageSchema = import_zod6.z.object({
-  body: import_zod6.z.object({
-    name: import_zod6.z.string().min(1, "Name is required"),
-    type: import_zod6.z.enum(["lead", "deal"]),
-    position: import_zod6.z.number().int().min(0),
-    color: import_zod6.z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color").optional(),
-    description: import_zod6.z.string().optional(),
-    isFinal: import_zod6.z.boolean().optional()
+import { z as z6 } from "zod";
+var createStageSchema = z6.object({
+  body: z6.object({
+    name: z6.string().min(1, "Name is required"),
+    type: z6.enum(["lead", "deal"]),
+    position: z6.number().int().min(0),
+    color: z6.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color").optional(),
+    description: z6.string().optional(),
+    isFinal: z6.boolean().optional()
   })
 });
-var updateStageSchema = import_zod6.z.object({
-  body: import_zod6.z.object({
-    name: import_zod6.z.string().min(1).optional(),
-    color: import_zod6.z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
-    position: import_zod6.z.number().int().min(0).optional(),
-    isActive: import_zod6.z.boolean().optional(),
-    description: import_zod6.z.string().optional()
+var updateStageSchema = z6.object({
+  body: z6.object({
+    name: z6.string().min(1).optional(),
+    color: z6.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/).optional(),
+    position: z6.number().int().min(0).optional(),
+    isActive: z6.boolean().optional(),
+    description: z6.string().optional()
   })
 });
-var archiveStageSchema = import_zod6.z.object({
-  body: import_zod6.z.object({
-    transferToStageId: import_zod6.z.string().cuid().optional()
+var archiveStageSchema = z6.object({
+  body: z6.object({
+    transferToStageId: z6.string().cuid().optional()
   })
 });
-var migrateStageSchema = import_zod6.z.object({
-  body: import_zod6.z.object({
-    targetStageId: import_zod6.z.string().cuid("Target stage ID is required"),
-    reason: import_zod6.z.string().optional()
+var migrateStageSchema = z6.object({
+  body: z6.object({
+    targetStageId: z6.string().cuid("Target stage ID is required"),
+    reason: z6.string().optional()
   })
 });
-var reorderStagesSchema = import_zod6.z.object({
-  body: import_zod6.z.array(import_zod6.z.object({
-    id: import_zod6.z.string().cuid(),
-    position: import_zod6.z.number().int().min(0)
+var reorderStagesSchema = z6.object({
+  body: z6.array(z6.object({
+    id: z6.string().cuid(),
+    position: z6.number().int().min(0)
   }))
 });
 
 // src/modules/pipeline-stages/stage.routes.ts
-var router4 = (0, import_express4.Router)();
+var router4 = Router4();
 router4.use(authGuard_default);
 router4.get("/", asyncHandler_default(StageController.listStages));
 router4.post("/", rbacGuard_default("settings", "update"), validate_default(createStageSchema), asyncHandler_default(StageController.createStage));
@@ -1901,7 +1881,7 @@ router4.post("/:id/migrate", rbacGuard_default("settings", "update"), validate_d
 var stage_routes_default = router4;
 
 // src/modules/companies/company.routes.ts
-var import_express5 = require("express");
+import { Router as Router5 } from "express";
 
 // src/modules/companies/company.service.ts
 var CompanyService = class {
@@ -2037,42 +2017,42 @@ var CompanyController = class {
 };
 
 // src/modules/companies/company.schemas.ts
-var import_zod7 = require("zod");
-var createCompanySchema = import_zod7.z.object({
-  body: import_zod7.z.object({
-    name: import_zod7.z.string().min(1, "Company name is required"),
-    website: import_zod7.z.string().url().optional().or(import_zod7.z.literal("")),
-    industry: import_zod7.z.string().optional(),
-    size: import_zod7.z.string().optional(),
-    country: import_zod7.z.string().optional(),
-    state: import_zod7.z.string().optional(),
-    city: import_zod7.z.string().optional(),
-    address: import_zod7.z.string().optional(),
-    pincode: import_zod7.z.string().optional(),
-    linkedinUrl: import_zod7.z.string().url().optional().or(import_zod7.z.literal("")),
-    description: import_zod7.z.string().optional(),
-    tags: import_zod7.z.array(import_zod7.z.string()).optional(),
-    customFields: import_zod7.z.record(import_zod7.z.string(), import_zod7.z.any()).optional()
+import { z as z7 } from "zod";
+var createCompanySchema = z7.object({
+  body: z7.object({
+    name: z7.string().min(1, "Company name is required"),
+    website: z7.string().url().optional().or(z7.literal("")),
+    industry: z7.string().optional(),
+    size: z7.string().optional(),
+    country: z7.string().optional(),
+    state: z7.string().optional(),
+    city: z7.string().optional(),
+    address: z7.string().optional(),
+    pincode: z7.string().optional(),
+    linkedinUrl: z7.string().url().optional().or(z7.literal("")),
+    description: z7.string().optional(),
+    tags: z7.array(z7.string()).optional(),
+    customFields: z7.record(z7.string(), z7.any()).optional()
   })
 });
 var updateCompanySchema = createCompanySchema.partial();
-var companyFilterSchema = import_zod7.z.object({
-  query: import_zod7.z.object({
-    industry: import_zod7.z.string().optional(),
-    size: import_zod7.z.string().optional(),
-    country: import_zod7.z.string().optional(),
-    tag: import_zod7.z.string().optional(),
-    search: import_zod7.z.string().optional(),
-    page: import_zod7.z.string().optional().transform(Number),
-    limit: import_zod7.z.string().optional().transform(Number),
-    sortBy: import_zod7.z.string().optional(),
-    sortOrder: import_zod7.z.enum(["asc", "desc"]).optional(),
-    includeDeleted: import_zod7.z.string().optional().transform((v) => v === "true")
+var companyFilterSchema = z7.object({
+  query: z7.object({
+    industry: z7.string().optional(),
+    size: z7.string().optional(),
+    country: z7.string().optional(),
+    tag: z7.string().optional(),
+    search: z7.string().optional(),
+    page: z7.string().optional().transform(Number),
+    limit: z7.string().optional().transform(Number),
+    sortBy: z7.string().optional(),
+    sortOrder: z7.enum(["asc", "desc"]).optional(),
+    includeDeleted: z7.string().optional().transform((v) => v === "true")
   })
 });
 
 // src/modules/companies/company.routes.ts
-var router5 = (0, import_express5.Router)();
+var router5 = Router5();
 router5.use(authGuard_default);
 router5.get("/", validate_default(companyFilterSchema), asyncHandler_default(CompanyController.list));
 router5.post("/", validate_default(createCompanySchema), asyncHandler_default(CompanyController.create));
@@ -2084,7 +2064,7 @@ router5.get("/:id/deals", asyncHandler_default(CompanyController.getDeals));
 var company_routes_default = router5;
 
 // src/modules/contacts/contact.routes.ts
-var import_express6 = require("express");
+import { Router as Router6 } from "express";
 
 // src/modules/contacts/contact.service.ts
 var ContactService = class {
@@ -2307,47 +2287,47 @@ var ContactController = class {
 };
 
 // src/modules/contacts/contact.schemas.ts
-var import_zod8 = require("zod");
-var createContactSchema = import_zod8.z.object({
-  body: import_zod8.z.object({
-    firstName: import_zod8.z.string().min(1, "First name is required"),
-    lastName: import_zod8.z.string().optional(),
-    email: import_zod8.z.string().email("Invalid email").optional(),
-    phone: import_zod8.z.string().optional(),
-    whatsapp: import_zod8.z.string().optional(),
-    designation: import_zod8.z.string().optional(),
-    department: import_zod8.z.string().optional(),
-    companyId: import_zod8.z.string().cuid().optional(),
-    country: import_zod8.z.string().optional(),
-    city: import_zod8.z.string().optional(),
-    timezone: import_zod8.z.string().optional(),
-    tags: import_zod8.z.array(import_zod8.z.string()).optional(),
-    notes: import_zod8.z.string().optional(),
-    customFields: import_zod8.z.record(import_zod8.z.string(), import_zod8.z.any()).optional()
+import { z as z8 } from "zod";
+var createContactSchema = z8.object({
+  body: z8.object({
+    firstName: z8.string().min(1, "First name is required"),
+    lastName: z8.string().optional(),
+    email: z8.string().email("Invalid email").optional(),
+    phone: z8.string().optional(),
+    whatsapp: z8.string().optional(),
+    designation: z8.string().optional(),
+    department: z8.string().optional(),
+    companyId: z8.string().cuid().optional(),
+    country: z8.string().optional(),
+    city: z8.string().optional(),
+    timezone: z8.string().optional(),
+    tags: z8.array(z8.string()).optional(),
+    notes: z8.string().optional(),
+    customFields: z8.record(z8.string(), z8.any()).optional()
   })
 });
 var updateContactSchema = createContactSchema.partial();
-var mergeContactsSchema = import_zod8.z.object({
-  body: import_zod8.z.object({
-    sourceId: import_zod8.z.string().cuid("Source contact ID is required"),
-    targetId: import_zod8.z.string().cuid("Target contact ID is required")
+var mergeContactsSchema = z8.object({
+  body: z8.object({
+    sourceId: z8.string().cuid("Source contact ID is required"),
+    targetId: z8.string().cuid("Target contact ID is required")
   })
 });
-var contactFilterSchema = import_zod8.z.object({
-  query: import_zod8.z.object({
-    companyId: import_zod8.z.string().optional(),
-    tag: import_zod8.z.string().optional(),
-    search: import_zod8.z.string().optional(),
-    page: import_zod8.z.string().optional().transform(Number),
-    limit: import_zod8.z.string().optional().transform(Number),
-    sortBy: import_zod8.z.string().optional(),
-    sortOrder: import_zod8.z.enum(["asc", "desc"]).optional(),
-    includeDeleted: import_zod8.z.string().optional().transform((v) => v === "true")
+var contactFilterSchema = z8.object({
+  query: z8.object({
+    companyId: z8.string().optional(),
+    tag: z8.string().optional(),
+    search: z8.string().optional(),
+    page: z8.string().optional().transform(Number),
+    limit: z8.string().optional().transform(Number),
+    sortBy: z8.string().optional(),
+    sortOrder: z8.enum(["asc", "desc"]).optional(),
+    includeDeleted: z8.string().optional().transform((v) => v === "true")
   })
 });
 
 // src/modules/contacts/contact.routes.ts
-var router6 = (0, import_express6.Router)();
+var router6 = Router6();
 router6.use(authGuard_default);
 router6.get("/check-duplicate", asyncHandler_default(ContactController.checkDuplicate));
 router6.get("/", validate_default(contactFilterSchema), asyncHandler_default(ContactController.list));
@@ -2360,7 +2340,7 @@ router6.get("/:id/timeline", asyncHandler_default(ContactController.getTimeline)
 var contact_routes_default = router6;
 
 // src/modules/leads/lead.routes.ts
-var import_express7 = require("express");
+import { Router as Router7 } from "express";
 
 // src/modules/leadScoring/leadScoring.types.ts
 var DEFAULT_RULES = [
@@ -2762,52 +2742,52 @@ var LeadController = class {
 };
 
 // src/modules/leads/lead.schemas.ts
-var import_zod9 = require("zod");
-var createLeadSchema = import_zod9.z.object({
-  body: import_zod9.z.object({
-    title: import_zod9.z.string().min(1, "Title is required"),
-    description: import_zod9.z.string().optional(),
-    status: import_zod9.z.enum(["open", "converted", "lost"]).optional(),
-    priority: import_zod9.z.enum(["low", "medium", "high"]).optional(),
-    source: import_zod9.z.string().optional(),
-    value: import_zod9.z.number().optional(),
-    currency: import_zod9.z.string().optional(),
-    contactId: import_zod9.z.string().cuid().optional(),
-    companyId: import_zod9.z.string().cuid().optional(),
-    stageId: import_zod9.z.string().cuid().optional(),
-    assignedToId: import_zod9.z.string().cuid().optional(),
-    tags: import_zod9.z.array(import_zod9.z.string()).optional(),
-    customFields: import_zod9.z.record(import_zod9.z.string(), import_zod9.z.any()).optional(),
-    expectedCloseAt: import_zod9.z.string().datetime().optional()
+import { z as z9 } from "zod";
+var createLeadSchema = z9.object({
+  body: z9.object({
+    title: z9.string().min(1, "Title is required"),
+    description: z9.string().optional(),
+    status: z9.enum(["open", "converted", "lost"]).optional(),
+    priority: z9.enum(["low", "medium", "high"]).optional(),
+    source: z9.string().optional(),
+    value: z9.number().optional(),
+    currency: z9.string().optional(),
+    contactId: z9.string().cuid().optional(),
+    companyId: z9.string().cuid().optional(),
+    stageId: z9.string().cuid().optional(),
+    assignedToId: z9.string().cuid().optional(),
+    tags: z9.array(z9.string()).optional(),
+    customFields: z9.record(z9.string(), z9.any()).optional(),
+    expectedCloseAt: z9.string().datetime().optional()
   })
 });
 var updateLeadSchema = createLeadSchema.partial();
-var convertLeadSchema = import_zod9.z.object({
-  body: import_zod9.z.object({
-    dealTitle: import_zod9.z.string().min(1, "Deal title is required"),
-    dealValue: import_zod9.z.number().min(0),
-    dealStageId: import_zod9.z.string().cuid("Valid deal stage ID is required"),
-    expectedCloseAt: import_zod9.z.string().datetime().optional()
+var convertLeadSchema = z9.object({
+  body: z9.object({
+    dealTitle: z9.string().min(1, "Deal title is required"),
+    dealValue: z9.number().min(0),
+    dealStageId: z9.string().cuid("Valid deal stage ID is required"),
+    expectedCloseAt: z9.string().datetime().optional()
   })
 });
-var leadFilterSchema = import_zod9.z.object({
-  query: import_zod9.z.object({
-    stageId: import_zod9.z.string().optional(),
-    assignedToId: import_zod9.z.string().optional(),
-    priority: import_zod9.z.string().optional(),
-    source: import_zod9.z.string().optional(),
-    isConverted: import_zod9.z.string().optional().transform((v) => v === "true"),
-    tag: import_zod9.z.string().optional(),
-    search: import_zod9.z.string().optional(),
-    page: import_zod9.z.string().optional().transform(Number),
-    limit: import_zod9.z.string().optional().transform(Number),
-    sortBy: import_zod9.z.string().optional(),
-    sortOrder: import_zod9.z.enum(["asc", "desc"]).optional()
+var leadFilterSchema = z9.object({
+  query: z9.object({
+    stageId: z9.string().optional(),
+    assignedToId: z9.string().optional(),
+    priority: z9.string().optional(),
+    source: z9.string().optional(),
+    isConverted: z9.string().optional().transform((v) => v === "true"),
+    tag: z9.string().optional(),
+    search: z9.string().optional(),
+    page: z9.string().optional().transform(Number),
+    limit: z9.string().optional().transform(Number),
+    sortBy: z9.string().optional(),
+    sortOrder: z9.enum(["asc", "desc"]).optional()
   })
 });
 
 // src/modules/leads/lead.routes.ts
-var router7 = (0, import_express7.Router)();
+var router7 = Router7();
 router7.use(authGuard_default);
 router7.get("/", validate_default(leadFilterSchema), asyncHandler_default(LeadController.list));
 router7.get("/check-duplicate", asyncHandler_default(LeadController.checkDuplicate));
@@ -2822,7 +2802,7 @@ router7.get("/:id/timeline", asyncHandler_default(LeadController.getTimeline));
 var lead_routes_default = router7;
 
 // src/modules/deals/deal.routes.ts
-var import_express8 = require("express");
+import { Router as Router8 } from "express";
 
 // src/modules/deals/deal.service.ts
 var DealService = class {
@@ -3096,55 +3076,55 @@ var DealController = class {
 };
 
 // src/modules/deals/deal.schemas.ts
-var import_zod10 = require("zod");
-var createDealSchema = import_zod10.z.object({
-  body: import_zod10.z.object({
-    title: import_zod10.z.string().min(1, "Title is required"),
-    description: import_zod10.z.string().optional(),
-    value: import_zod10.z.number().optional(),
-    currency: import_zod10.z.string().optional(),
-    probability: import_zod10.z.number().min(0).max(100).optional(),
-    status: import_zod10.z.enum(["open", "won", "lost"]).optional(),
-    expectedCloseAt: import_zod10.z.string().datetime().optional(),
-    stageId: import_zod10.z.string().cuid("Valid stage ID is required"),
-    contactId: import_zod10.z.string().cuid().optional(),
-    companyId: import_zod10.z.string().cuid().optional(),
-    assignedToId: import_zod10.z.string().cuid().optional(),
-    sourceLeadId: import_zod10.z.string().cuid().optional(),
-    tags: import_zod10.z.array(import_zod10.z.string()).optional(),
-    customFields: import_zod10.z.record(import_zod10.z.string(), import_zod10.z.any()).optional()
+import { z as z10 } from "zod";
+var createDealSchema = z10.object({
+  body: z10.object({
+    title: z10.string().min(1, "Title is required"),
+    description: z10.string().optional(),
+    value: z10.number().optional(),
+    currency: z10.string().optional(),
+    probability: z10.number().min(0).max(100).optional(),
+    status: z10.enum(["open", "won", "lost"]).optional(),
+    expectedCloseAt: z10.string().datetime().optional(),
+    stageId: z10.string().cuid("Valid stage ID is required"),
+    contactId: z10.string().cuid().optional(),
+    companyId: z10.string().cuid().optional(),
+    assignedToId: z10.string().cuid().optional(),
+    sourceLeadId: z10.string().cuid().optional(),
+    tags: z10.array(z10.string()).optional(),
+    customFields: z10.record(z10.string(), z10.any()).optional()
   })
 });
 var updateDealSchema = createDealSchema.partial();
-var addProductToDealSchema = import_zod10.z.object({
-  body: import_zod10.z.object({
-    productId: import_zod10.z.string().cuid("Product ID is required"),
-    quantity: import_zod10.z.number().int().min(1).default(1),
-    unitPrice: import_zod10.z.number().min(0),
-    discount: import_zod10.z.number().min(0).max(100).default(0),
-    notes: import_zod10.z.string().optional()
+var addProductToDealSchema = z10.object({
+  body: z10.object({
+    productId: z10.string().cuid("Product ID is required"),
+    quantity: z10.number().int().min(1).default(1),
+    unitPrice: z10.number().min(0),
+    discount: z10.number().min(0).max(100).default(0),
+    notes: z10.string().optional()
   })
 });
-var dealFilterSchema = import_zod10.z.object({
-  query: import_zod10.z.object({
-    stageId: import_zod10.z.string().optional(),
-    status: import_zod10.z.string().optional(),
-    assignedToId: import_zod10.z.string().optional(),
-    contactId: import_zod10.z.string().optional(),
-    companyId: import_zod10.z.string().optional(),
-    minValue: import_zod10.z.string().optional().transform(Number),
-    maxValue: import_zod10.z.string().optional().transform(Number),
-    expectedCloseAtFrom: import_zod10.z.string().optional(),
-    expectedCloseAtTo: import_zod10.z.string().optional(),
-    page: import_zod10.z.string().optional().transform(Number),
-    limit: import_zod10.z.string().optional().transform(Number),
-    sortBy: import_zod10.z.string().optional(),
-    sortOrder: import_zod10.z.enum(["asc", "desc"]).optional()
+var dealFilterSchema = z10.object({
+  query: z10.object({
+    stageId: z10.string().optional(),
+    status: z10.string().optional(),
+    assignedToId: z10.string().optional(),
+    contactId: z10.string().optional(),
+    companyId: z10.string().optional(),
+    minValue: z10.string().optional().transform(Number),
+    maxValue: z10.string().optional().transform(Number),
+    expectedCloseAtFrom: z10.string().optional(),
+    expectedCloseAtTo: z10.string().optional(),
+    page: z10.string().optional().transform(Number),
+    limit: z10.string().optional().transform(Number),
+    sortBy: z10.string().optional(),
+    sortOrder: z10.enum(["asc", "desc"]).optional()
   })
 });
 
 // src/modules/deals/deal.routes.ts
-var router8 = (0, import_express8.Router)();
+var router8 = Router8();
 router8.use(authGuard_default);
 router8.get("/", validate_default(dealFilterSchema), asyncHandler_default(DealController.list));
 router8.get("/board", asyncHandler_default(DealController.getBoard));
@@ -3159,7 +3139,7 @@ router8.get("/:id/timeline", asyncHandler_default(DealController.getTimeline));
 var deal_routes_default = router8;
 
 // src/modules/tasks/task.routes.ts
-var import_express9 = require("express");
+import { Router as Router9 } from "express";
 
 // src/modules/tasks/task.service.ts
 var TaskService = class {
@@ -3314,54 +3294,54 @@ var TaskController = class {
 };
 
 // src/modules/tasks/task.schemas.ts
-var import_zod11 = require("zod");
-var createTaskSchema = import_zod11.z.object({
-  body: import_zod11.z.object({
-    title: import_zod11.z.string().min(1, "Title is required"),
-    description: import_zod11.z.string().optional(),
-    type: import_zod11.z.enum(["followUp", "call", "meeting", "email", "task", "proposal", "other"]).optional(),
-    priority: import_zod11.z.enum(["low", "medium", "high", "urgent"]).optional(),
-    dueAt: import_zod11.z.string().datetime().optional(),
-    reminderAt: import_zod11.z.string().datetime().optional(),
-    leadId: import_zod11.z.string().cuid().optional(),
-    dealId: import_zod11.z.string().cuid().optional(),
-    contactId: import_zod11.z.string().cuid().optional(),
-    assignedToId: import_zod11.z.string().cuid().optional()
+import { z as z11 } from "zod";
+var createTaskSchema = z11.object({
+  body: z11.object({
+    title: z11.string().min(1, "Title is required"),
+    description: z11.string().optional(),
+    type: z11.enum(["followUp", "call", "meeting", "email", "task", "proposal", "other"]).optional(),
+    priority: z11.enum(["low", "medium", "high", "urgent"]).optional(),
+    dueAt: z11.string().datetime().optional(),
+    reminderAt: z11.string().datetime().optional(),
+    leadId: z11.string().cuid().optional(),
+    dealId: z11.string().cuid().optional(),
+    contactId: z11.string().cuid().optional(),
+    assignedToId: z11.string().cuid().optional()
   }).refine((data) => data.leadId || data.dealId || data.contactId, {
     message: "Task must be linked to a Lead, Deal, or Contact"
   })
 });
-var updateTaskSchema = import_zod11.z.object({
-  body: import_zod11.z.object({
-    title: import_zod11.z.string().min(1).optional(),
-    description: import_zod11.z.string().optional(),
-    status: import_zod11.z.enum(["pending", "inProgress", "completed", "cancelled", "overdue"]).optional(),
-    priority: import_zod11.z.enum(["low", "medium", "high", "urgent"]).optional(),
-    dueAt: import_zod11.z.string().datetime().optional(),
-    assignedToId: import_zod11.z.string().cuid().optional()
+var updateTaskSchema = z11.object({
+  body: z11.object({
+    title: z11.string().min(1).optional(),
+    description: z11.string().optional(),
+    status: z11.enum(["pending", "inProgress", "completed", "cancelled", "overdue"]).optional(),
+    priority: z11.enum(["low", "medium", "high", "urgent"]).optional(),
+    dueAt: z11.string().datetime().optional(),
+    assignedToId: z11.string().cuid().optional()
   })
 });
-var taskFilterSchema = import_zod11.z.object({
-  query: import_zod11.z.object({
-    status: import_zod11.z.string().optional(),
-    type: import_zod11.z.string().optional(),
-    priority: import_zod11.z.string().optional(),
-    assignedToId: import_zod11.z.string().optional(),
-    leadId: import_zod11.z.string().optional(),
-    dealId: import_zod11.z.string().optional(),
-    contactId: import_zod11.z.string().optional(),
-    dueBefore: import_zod11.z.string().optional(),
-    dueAfter: import_zod11.z.string().optional(),
-    isOverdue: import_zod11.z.string().optional().transform((v) => v === "true"),
-    page: import_zod11.z.string().optional().transform(Number),
-    limit: import_zod11.z.string().optional().transform(Number),
-    sortBy: import_zod11.z.string().optional(),
-    sortOrder: import_zod11.z.enum(["asc", "desc"]).optional()
+var taskFilterSchema = z11.object({
+  query: z11.object({
+    status: z11.string().optional(),
+    type: z11.string().optional(),
+    priority: z11.string().optional(),
+    assignedToId: z11.string().optional(),
+    leadId: z11.string().optional(),
+    dealId: z11.string().optional(),
+    contactId: z11.string().optional(),
+    dueBefore: z11.string().optional(),
+    dueAfter: z11.string().optional(),
+    isOverdue: z11.string().optional().transform((v) => v === "true"),
+    page: z11.string().optional().transform(Number),
+    limit: z11.string().optional().transform(Number),
+    sortBy: z11.string().optional(),
+    sortOrder: z11.enum(["asc", "desc"]).optional()
   })
 });
 
 // src/modules/tasks/task.routes.ts
-var router9 = (0, import_express9.Router)();
+var router9 = Router9();
 router9.use(authGuard_default);
 router9.get("/", validate_default(taskFilterSchema), asyncHandler_default(TaskController.list));
 router9.post("/", validate_default(createTaskSchema), asyncHandler_default(TaskController.create));
@@ -3373,7 +3353,7 @@ router9.delete("/:id", asyncHandler_default(TaskController.delete));
 var task_routes_default = router9;
 
 // src/modules/communications/communication.routes.ts
-var import_express10 = require("express");
+import { Router as Router10 } from "express";
 
 // src/modules/communications/communication.service.ts
 var CommunicationService = class {
@@ -3463,49 +3443,49 @@ var CommunicationController = class {
 };
 
 // src/modules/communications/communication.schemas.ts
-var import_zod12 = require("zod");
-var createCommunicationSchema = import_zod12.z.object({
-  body: import_zod12.z.object({
-    type: import_zod12.z.enum(["email", "call", "meeting", "note", "whatsapp", "linkedin", "other"]),
-    direction: import_zod12.z.enum(["inbound", "outbound"]).optional(),
-    sourceType: import_zod12.z.enum(["human", "system", "ai"]).optional(),
-    subject: import_zod12.z.string().optional(),
-    body: import_zod12.z.string().optional(),
-    occurredAt: import_zod12.z.string().datetime().optional(),
-    durationSeconds: import_zod12.z.number().int().optional(),
-    outcome: import_zod12.z.string().optional(),
-    attachments: import_zod12.z.array(import_zod12.z.object({
-      name: import_zod12.z.string(),
-      url: import_zod12.z.string().url(),
-      size: import_zod12.z.number().optional()
+import { z as z12 } from "zod";
+var createCommunicationSchema = z12.object({
+  body: z12.object({
+    type: z12.enum(["email", "call", "meeting", "note", "whatsapp", "linkedin", "other"]),
+    direction: z12.enum(["inbound", "outbound"]).optional(),
+    sourceType: z12.enum(["human", "system", "ai"]).optional(),
+    subject: z12.string().optional(),
+    body: z12.string().optional(),
+    occurredAt: z12.string().datetime().optional(),
+    durationSeconds: z12.number().int().optional(),
+    outcome: z12.string().optional(),
+    attachments: z12.array(z12.object({
+      name: z12.string(),
+      url: z12.string().url(),
+      size: z12.number().optional()
     })).optional(),
-    leadId: import_zod12.z.string().cuid().optional(),
-    dealId: import_zod12.z.string().cuid().optional(),
-    contactId: import_zod12.z.string().cuid().optional()
+    leadId: z12.string().cuid().optional(),
+    dealId: z12.string().cuid().optional(),
+    contactId: z12.string().cuid().optional()
   })
 });
-var updateCommunicationSchema = import_zod12.z.object({
-  body: import_zod12.z.object({
-    outcome: import_zod12.z.string().optional(),
-    body: import_zod12.z.string().optional(),
-    summary: import_zod12.z.string().optional(),
-    attachments: import_zod12.z.any().optional()
+var updateCommunicationSchema = z12.object({
+  body: z12.object({
+    outcome: z12.string().optional(),
+    body: z12.string().optional(),
+    summary: z12.string().optional(),
+    attachments: z12.any().optional()
   })
 });
-var communicationFilterSchema = import_zod12.z.object({
-  query: import_zod12.z.object({
-    leadId: import_zod12.z.string().optional(),
-    dealId: import_zod12.z.string().optional(),
-    contactId: import_zod12.z.string().optional(),
-    type: import_zod12.z.string().optional(),
-    sourceType: import_zod12.z.string().optional(),
-    page: import_zod12.z.string().optional().transform(Number),
-    limit: import_zod12.z.string().optional().transform(Number)
+var communicationFilterSchema = z12.object({
+  query: z12.object({
+    leadId: z12.string().optional(),
+    dealId: z12.string().optional(),
+    contactId: z12.string().optional(),
+    type: z12.string().optional(),
+    sourceType: z12.string().optional(),
+    page: z12.string().optional().transform(Number),
+    limit: z12.string().optional().transform(Number)
   })
 });
 
 // src/modules/communications/communication.routes.ts
-var router10 = (0, import_express10.Router)();
+var router10 = Router10();
 router10.use(authGuard_default);
 router10.get("/", validate_default(communicationFilterSchema), asyncHandler_default(CommunicationController.list));
 router10.post("/", validate_default(createCommunicationSchema), asyncHandler_default(CommunicationController.create));
@@ -3515,7 +3495,7 @@ router10.delete("/:id", asyncHandler_default(CommunicationController.delete));
 var communication_routes_default = router10;
 
 // src/modules/products/product.routes.ts
-var import_express11 = require("express");
+import { Router as Router11 } from "express";
 
 // src/modules/products/product.service.ts
 var ProductService = class {
@@ -3622,38 +3602,38 @@ var ProductController = class {
 };
 
 // src/modules/products/product.schemas.ts
-var import_zod13 = require("zod");
-var createProductSchema = import_zod13.z.object({
-  body: import_zod13.z.object({
-    name: import_zod13.z.string().min(1, "Product name is required"),
-    description: import_zod13.z.string().optional(),
-    type: import_zod13.z.enum(["oneTime", "recurring"]).optional(),
-    status: import_zod13.z.enum(["active", "inactive", "archived"]).optional(),
-    sku: import_zod13.z.string().optional(),
-    price: import_zod13.z.number().min(0),
-    currency: import_zod13.z.string().optional(),
-    billingCycle: import_zod13.z.string().optional(),
-    taxRate: import_zod13.z.number().min(0).max(100).optional(),
-    category: import_zod13.z.string().optional(),
-    tags: import_zod13.z.array(import_zod13.z.string()).optional(),
-    imageUrl: import_zod13.z.string().url().optional().or(import_zod13.z.literal("")),
-    customFields: import_zod13.z.record(import_zod13.z.string(), import_zod13.z.any()).optional()
+import { z as z13 } from "zod";
+var createProductSchema = z13.object({
+  body: z13.object({
+    name: z13.string().min(1, "Product name is required"),
+    description: z13.string().optional(),
+    type: z13.enum(["oneTime", "recurring"]).optional(),
+    status: z13.enum(["active", "inactive", "archived"]).optional(),
+    sku: z13.string().optional(),
+    price: z13.number().min(0),
+    currency: z13.string().optional(),
+    billingCycle: z13.string().optional(),
+    taxRate: z13.number().min(0).max(100).optional(),
+    category: z13.string().optional(),
+    tags: z13.array(z13.string()).optional(),
+    imageUrl: z13.string().url().optional().or(z13.literal("")),
+    customFields: z13.record(z13.string(), z13.any()).optional()
   })
 });
 var updateProductSchema = createProductSchema.partial();
-var productFilterSchema = import_zod13.z.object({
-  query: import_zod13.z.object({
-    status: import_zod13.z.string().optional(),
-    type: import_zod13.z.string().optional(),
-    category: import_zod13.z.string().optional(),
-    search: import_zod13.z.string().optional(),
-    page: import_zod13.z.string().optional().transform(Number),
-    limit: import_zod13.z.string().optional().transform(Number)
+var productFilterSchema = z13.object({
+  query: z13.object({
+    status: z13.string().optional(),
+    type: z13.string().optional(),
+    category: z13.string().optional(),
+    search: z13.string().optional(),
+    page: z13.string().optional().transform(Number),
+    limit: z13.string().optional().transform(Number)
   })
 });
 
 // src/modules/products/product.routes.ts
-var router11 = (0, import_express11.Router)();
+var router11 = Router11();
 router11.use(authGuard_default);
 router11.get("/", validate_default(productFilterSchema), asyncHandler_default(ProductController.list));
 router11.post("/", validate_default(createProductSchema), asyncHandler_default(ProductController.create));
@@ -3663,7 +3643,7 @@ router11.delete("/:id", asyncHandler_default(ProductController.delete));
 var product_routes_default = router11;
 
 // src/modules/activities/activity.routes.ts
-var import_express12 = require("express");
+import { Router as Router12 } from "express";
 
 // src/modules/activities/activity.service.ts
 var ActivityService = class {
@@ -3704,16 +3684,16 @@ var tenantResolver = async (req, res, next) => {
 var tenantResolver_default = tenantResolver;
 
 // src/modules/activities/activity.routes.ts
-var router12 = (0, import_express12.Router)();
+var router12 = Router12();
 router12.use(authGuard_default, tenantResolver_default);
 router12.get("/", ActivityController.list);
 var activity_routes_default = router12;
 
 // src/modules/proposals/proposal.routes.ts
-var import_express13 = require("express");
+import { Router as Router13 } from "express";
 
 // src/modules/proposals/proposal.service.ts
-var import_uuid2 = require("uuid");
+import { v4 as uuidv42 } from "uuid";
 var ProposalService = class {
   static async listProposals(tenantId, filters) {
     const { status, dealId, contactId, createdById, page = 1, limit = 10 } = filters;
@@ -3763,7 +3743,7 @@ var ProposalService = class {
           ...totals,
           tenantId,
           createdById: userId,
-          publicToken: (0, import_uuid2.v4)(),
+          publicToken: uuidv42(),
           items: {
             create: items.map((item, idx) => ({
               ...item,
@@ -3864,7 +3844,7 @@ var ProposalService = class {
           discountAmount: original.discountAmount,
           version: original.version + 1,
           parentProposalId: original.id,
-          publicToken: (0, import_uuid2.v4)(),
+          publicToken: uuidv42(),
           status: "draft",
           items: {
             create: original.items.map((item) => ({
@@ -4044,67 +4024,67 @@ var ProposalController = class {
 };
 
 // src/modules/proposals/proposal.schemas.ts
-var import_zod14 = require("zod");
-var proposalItemSchema = import_zod14.z.object({
-  productId: import_zod14.z.string().cuid().optional(),
-  name: import_zod14.z.string().min(1),
-  description: import_zod14.z.string().optional(),
-  quantity: import_zod14.z.number().int().min(1).default(1),
-  unitPrice: import_zod14.z.number().min(0),
-  discount: import_zod14.z.number().min(0).max(100).default(0),
-  taxRate: import_zod14.z.number().min(0).max(100).default(0)
+import { z as z14 } from "zod";
+var proposalItemSchema = z14.object({
+  productId: z14.string().cuid().optional(),
+  name: z14.string().min(1),
+  description: z14.string().optional(),
+  quantity: z14.number().int().min(1).default(1),
+  unitPrice: z14.number().min(0),
+  discount: z14.number().min(0).max(100).default(0),
+  taxRate: z14.number().min(0).max(100).default(0)
 });
-var createProposalSchema = import_zod14.z.object({
-  body: import_zod14.z.object({
-    title: import_zod14.z.string().min(1, "Proposal title is required"),
-    dealId: import_zod14.z.string().cuid().optional(),
-    contactId: import_zod14.z.string().cuid().optional(),
-    validUntil: import_zod14.z.string().datetime().optional(),
-    notes: import_zod14.z.string().optional(),
-    terms: import_zod14.z.string().optional(),
-    currency: import_zod14.z.string().optional(),
-    items: import_zod14.z.array(proposalItemSchema).min(1, "At least one line item is required")
+var createProposalSchema = z14.object({
+  body: z14.object({
+    title: z14.string().min(1, "Proposal title is required"),
+    dealId: z14.string().cuid().optional(),
+    contactId: z14.string().cuid().optional(),
+    validUntil: z14.string().datetime().optional(),
+    notes: z14.string().optional(),
+    terms: z14.string().optional(),
+    currency: z14.string().optional(),
+    items: z14.array(proposalItemSchema).min(1, "At least one line item is required")
   })
 });
-var updateProposalSchema = import_zod14.z.object({
-  body: import_zod14.z.object({
-    title: import_zod14.z.string().min(1).optional(),
-    validUntil: import_zod14.z.string().datetime().optional(),
-    notes: import_zod14.z.string().optional(),
-    terms: import_zod14.z.string().optional(),
-    status: import_zod14.z.enum(["draft", "sent", "viewed", "accepted", "rejected"]).optional()
+var updateProposalSchema = z14.object({
+  body: z14.object({
+    title: z14.string().min(1).optional(),
+    validUntil: z14.string().datetime().optional(),
+    notes: z14.string().optional(),
+    terms: z14.string().optional(),
+    status: z14.enum(["draft", "sent", "viewed", "accepted", "rejected"]).optional()
   })
 });
-var addProposalItemSchema = import_zod14.z.object({
+var addProposalItemSchema = z14.object({
   body: proposalItemSchema
 });
-var updateProposalItemSchema = import_zod14.z.object({
-  body: import_zod14.z.object({
-    quantity: import_zod14.z.number().int().min(1).optional(),
-    unitPrice: import_zod14.z.number().min(0).optional(),
-    discount: import_zod14.z.number().min(0).max(100).optional()
+var updateProposalItemSchema = z14.object({
+  body: z14.object({
+    quantity: z14.number().int().min(1).optional(),
+    unitPrice: z14.number().min(0).optional(),
+    discount: z14.number().min(0).max(100).optional()
   })
 });
-var proposalFilterSchema = import_zod14.z.object({
-  query: import_zod14.z.object({
-    status: import_zod14.z.string().optional(),
-    dealId: import_zod14.z.string().optional(),
-    contactId: import_zod14.z.string().optional(),
-    createdById: import_zod14.z.string().optional(),
-    page: import_zod14.z.string().optional().transform(Number),
-    limit: import_zod14.z.string().optional().transform(Number)
+var proposalFilterSchema = z14.object({
+  query: z14.object({
+    status: z14.string().optional(),
+    dealId: z14.string().optional(),
+    contactId: z14.string().optional(),
+    createdById: z14.string().optional(),
+    page: z14.string().optional().transform(Number),
+    limit: z14.string().optional().transform(Number)
   })
 });
-var respondProposalSchema = import_zod14.z.object({
-  body: import_zod14.z.object({
-    response: import_zod14.z.enum(["accepted", "rejected"]),
-    comment: import_zod14.z.string().optional()
+var respondProposalSchema = z14.object({
+  body: z14.object({
+    response: z14.enum(["accepted", "rejected"]),
+    comment: z14.string().optional()
   })
 });
 
 // src/modules/proposals/proposal.routes.ts
-var router13 = (0, import_express13.Router)();
-var publicRouter = (0, import_express13.Router)();
+var router13 = Router13();
+var publicRouter = Router13();
 router13.use(authGuard_default);
 router13.get("/", validate_default(proposalFilterSchema), asyncHandler_default(ProposalController.list));
 router13.post("/", validate_default(createProposalSchema), asyncHandler_default(ProposalController.create));
@@ -4119,31 +4099,31 @@ publicRouter.get("/:publicToken", asyncHandler_default(ProposalController.getPub
 publicRouter.post("/:publicToken/respond", validate_default(respondProposalSchema), asyncHandler_default(ProposalController.respondPublic));
 
 // src/modules/analytics/analytics.routes.ts
-var import_express14 = require("express");
+import { Router as Router14 } from "express";
 
 // src/modules/analytics/analytics.service.ts
-var import_date_fns2 = require("date-fns");
+import { subDays as subDays2, subMonths, startOfMonth, endOfMonth } from "date-fns";
 var getAnalyticsSummary = async (tenantId, period) => {
   const now = /* @__PURE__ */ new Date();
   let startDate;
   switch (period) {
     case "7d":
-      startDate = (0, import_date_fns2.subDays)(now, 7);
+      startDate = subDays2(now, 7);
       break;
     case "30d":
-      startDate = (0, import_date_fns2.subDays)(now, 30);
+      startDate = subDays2(now, 30);
       break;
     case "90d":
-      startDate = (0, import_date_fns2.subDays)(now, 90);
+      startDate = subDays2(now, 90);
       break;
     case "12m":
-      startDate = (0, import_date_fns2.subMonths)(now, 12);
+      startDate = subMonths(now, 12);
       break;
     default:
-      startDate = (0, import_date_fns2.subDays)(now, 30);
+      startDate = subDays2(now, 30);
   }
-  const thisMonthStart = (0, import_date_fns2.startOfMonth)(now);
-  const thisMonthEnd = (0, import_date_fns2.endOfMonth)(now);
+  const thisMonthStart = startOfMonth(now);
+  const thisMonthEnd = endOfMonth(now);
   const [totalLeads, newLeads, convertedLeads, leadsByStage, leadsBySource] = await Promise.all([
     database_default.lead.count({ where: { tenantId } }),
     database_default.lead.count({ where: { tenantId, createdAt: { gte: startDate } } }),
@@ -4303,7 +4283,7 @@ var getAnalyticsSummary = async (tenantId, period) => {
 };
 var getActivityHeatmap = async (tenantId) => {
   const now = /* @__PURE__ */ new Date();
-  const oneYearAgo = (0, import_date_fns2.subMonths)(now, 12);
+  const oneYearAgo = subMonths(now, 12);
   const activities = await database_default.activityLog.findMany({
     where: {
       tenantId,
@@ -4342,13 +4322,13 @@ var getHeatmap = async (req, res) => {
 };
 
 // src/modules/analytics/analytics.routes.ts
-var router14 = (0, import_express14.Router)();
+var router14 = Router14();
 router14.get("/summary", authGuard_default, getSummary);
 router14.get("/heatmap", authGuard_default, getHeatmap);
 var analytics_routes_default = router14;
 
 // src/modules/leadScoring/leadScoring.routes.ts
-var import_express15 = require("express");
+import { Router as Router15 } from "express";
 
 // src/modules/leadScoring/leadScoring.controller.ts
 var LeadScoringController = class {
@@ -4368,7 +4348,7 @@ var LeadScoringController = class {
 };
 
 // src/modules/leadScoring/leadScoring.routes.ts
-var router15 = (0, import_express15.Router)();
+var router15 = Router15();
 router15.use(authGuard_default);
 router15.get("/rules", asyncHandler_default(LeadScoringController.getRules));
 router15.put("/rules", asyncHandler_default(LeadScoringController.updateRules));
@@ -4376,7 +4356,7 @@ router15.post("/rules/reset", asyncHandler_default(LeadScoringController.resetRu
 var leadScoring_routes_default = router15;
 
 // src/modules/emailTemplates/emailTemplate.routes.ts
-var import_express16 = require("express");
+import { Router as Router16 } from "express";
 
 // src/modules/emailTemplates/emailTemplate.service.ts
 var EmailTemplateService = class {
@@ -4518,7 +4498,7 @@ var EmailTemplateController = class {
 };
 
 // src/modules/emailTemplates/emailTemplate.routes.ts
-var router16 = (0, import_express16.Router)();
+var router16 = Router16();
 router16.use(authGuard_default);
 router16.get("/", asyncHandler_default(EmailTemplateController.listTemplates));
 router16.post("/", asyncHandler_default(EmailTemplateController.createTemplate));
@@ -4529,13 +4509,13 @@ router16.post("/:id/preview", asyncHandler_default(EmailTemplateController.previ
 var emailTemplate_routes_default = router16;
 
 // src/express-app.ts
-var app = (0, import_express17.default)();
-app.use((0, import_helmet.default)());
-app.use(import_express17.default.json());
-app.use(import_express17.default.urlencoded({ extended: true }));
-app.use((0, import_cookie_parser.default)());
+var app = express();
+app.use(helmet());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 var allowedOrigins = [env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174"];
-app.use((0, import_cors.default)({
+app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -4549,7 +4529,7 @@ app.use(requestLogger_default);
 app.get("/health", (req, res) => {
   return success(res, { status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() }, "System is healthy");
 });
-app.use("/api-docs", import_swagger_ui_express.default.serve, import_swagger_ui_express.default.setup(swagger_default));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swagger_default));
 app.use("/api/auth", auth_routes_default);
 app.use("/api/rbac", rbac_routes_default);
 app.use("/api/tenants", tenant_routes_default);
@@ -4573,3 +4553,6 @@ var express_app_default = app;
 
 // src/entry.ts
 var entry_default = express_app_default;
+export {
+  entry_default as default
+};
