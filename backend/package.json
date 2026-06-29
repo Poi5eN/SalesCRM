@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsup src/index.ts --format cjs --platform node --out-dir api",
+    "dev": "tsx watch src/main.ts",
+    "build": "tsup src/entry.ts --format cjs --platform node --out-dir api",
     "vercel-build": "prisma generate && npm run build",
-    "start": "node dist/server.js",
+    "start": "node dist/main.js",
     "typecheck": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
