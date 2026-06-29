@@ -1,4 +1,4 @@
-import prisma from '@/config/database.ts';
+import prisma from '@/config/database.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export class ProposalService {

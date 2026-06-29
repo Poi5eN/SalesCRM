@@ -1,15 +1,15 @@
 import { Router } from 'express';
-import { AuthController } from './auth.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import rbacGuard from '@/middleware/rbacGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { AuthController } from './auth.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import rbacGuard from '@/middleware/rbacGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   registerTenantSchema, 
   loginSchema, 
   inviteUserSchema, 
   acceptInviteSchema 
-} from './auth.schemas.ts';
+} from './auth.schemas.js';
 
 const router = Router();
 

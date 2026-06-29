@@ -1,6 +1,6 @@
-import app from './app.ts';
-import { env } from '@/config/env.ts';
-import prisma from '@/config/database.ts';
+import app from "./app.js";
+import { env } from "@/config/env.js";
+import prisma from "@/config/database.js";
 
 const port = env.PORT || 4000;
 

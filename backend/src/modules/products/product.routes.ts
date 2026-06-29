@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { ProductController } from './product.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { ProductController } from './product.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   createProductSchema, 
   updateProductSchema, 
   productFilterSchema 
-} from './product.schemas.ts';
+} from './product.schemas.js';
 
 const router = Router();
 

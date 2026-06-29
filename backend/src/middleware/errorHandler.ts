@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import { error } from '@/utils/response.ts';
-import { env } from '@/config/env.ts';
+import { error } from '@/utils/response.js';
+import { env } from '@/config/env.js';
 
 interface AppError extends Error {
   status?: number;

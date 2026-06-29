@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { CompanyService } from './company.service.ts';
-import { success } from '@/utils/response.ts';
+import { CompanyService } from './company.service.js';
+import { success } from '@/utils/response.js';
 
 export class CompanyController {
   static list = async (req: Request, res: Response) => {

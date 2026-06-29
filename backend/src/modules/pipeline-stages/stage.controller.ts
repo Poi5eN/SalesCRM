@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { StageService } from './stage.service.ts';
-import { success } from '@/utils/response.ts';
+import { StageService } from './stage.service.js';
+import { success } from '@/utils/response.js';
 
 export class StageController {
   static listStages = async (req: Request, res: Response) => {

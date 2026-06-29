@@ -1,5 +1,5 @@
-import prisma from '@/config/database.ts';
-import { LeadScoringService } from '../leadScoring/leadScoring.service.ts';
+import prisma from '@/config/database.js';
+import { LeadScoringService } from '../leadScoring/leadScoring.service.js';
 
 export class LeadService {
   static async listLeads(tenantId: string, filters: any) {

@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { CommunicationController } from './communication.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { CommunicationController } from './communication.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   createCommunicationSchema, 
   updateCommunicationSchema, 
   communicationFilterSchema 
-} from './communication.schemas.ts';
+} from './communication.schemas.js';
 
 const router = Router();
 

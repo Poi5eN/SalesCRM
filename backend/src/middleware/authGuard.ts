@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '@/utils/jwt.ts';
-import { env } from '@/config/env.ts';
-import { error } from '@/utils/response.ts';
-import type { AuthUser } from '@/types/index.ts';
+import { verifyToken } from '@/utils/jwt.js';
+import { env } from '@/config/env.js';
+import { error } from '@/utils/response.js';
+import type { AuthUser } from '@/types/index.js';
 
 const authGuard = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { success, error } from '@/utils/response.ts';
-import * as analyticsService from './analytics.service.ts';
+import { success, error } from '@/utils/response.js';
+import * as analyticsService from './analytics.service.js';
 
 export const getSummary = async (req: Request, res: Response) => {
   try {

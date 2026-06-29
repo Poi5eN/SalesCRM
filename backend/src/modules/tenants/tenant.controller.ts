@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { TenantService } from './tenant.service.ts';
-import { success } from '@/utils/response.ts';
+import { TenantService } from './tenant.service.js';
+import { success } from '@/utils/response.js';
 
 export class TenantController {
   static getMe = async (req: Request, res: Response) => {

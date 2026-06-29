@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { ProductService } from './product.service.ts';
-import { success } from '@/utils/response.ts';
+import { ProductService } from './product.service.js';
+import { success } from '@/utils/response.js';
 
 export class ProductController {
   static list = async (req: Request, res: Response) => {

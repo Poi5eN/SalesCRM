@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { TaskService } from './task.service.ts';
-import { success } from '@/utils/response.ts';
+import { TaskService } from './task.service.js';
+import { success } from '@/utils/response.js';
 
 export class TaskController {
   static list = async (req: Request, res: Response) => {
@@ -42,4 +42,4 @@ export class TaskController {
   };
 }
 
-import prisma from '@/config/database.ts';
+import prisma from '@/config/database.js';

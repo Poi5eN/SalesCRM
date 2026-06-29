@@ -1,6 +1,6 @@
-import prisma from '@/config/database.ts';
-import { DEFAULT_RULES } from './leadScoring.types.ts';
-import { type ScoringRule } from './leadScoring.types.ts';
+import prisma from '@/config/database.js';
+import { DEFAULT_RULES } from './leadScoring.types.js';
+import { type ScoringRule } from './leadScoring.types.js';
 
 export class LeadScoringService {
   static async getRules(tenantId: string): Promise<ScoringRule[]> {

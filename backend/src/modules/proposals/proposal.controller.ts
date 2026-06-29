@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { ProposalService } from './proposal.service.ts';
-import { success } from '@/utils/response.ts';
+import { ProposalService } from './proposal.service.js';
+import { success } from '@/utils/response.js';
 
 export class ProposalController {
   static list = async (req: Request, res: Response) => {

@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { RBACController } from './rbac.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import rbacGuard from '@/middleware/rbacGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
-import { createRoleSchema, updateRolePermissionsSchema } from './rbac.schemas.ts';
+import { RBACController } from './rbac.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import rbacGuard from '@/middleware/rbacGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
+import { createRoleSchema, updateRolePermissionsSchema } from './rbac.schemas.js';
 
 const router = Router();
 

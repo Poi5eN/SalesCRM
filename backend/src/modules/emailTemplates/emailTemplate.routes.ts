@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { EmailTemplateController } from './emailTemplate.controller.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { EmailTemplateController } from './emailTemplate.controller.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 
 const router = Router();
 

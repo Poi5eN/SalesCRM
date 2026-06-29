@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import { LeadScoringService } from './leadScoring.service.ts';
-import { success } from '@/utils/response.ts';
-import { DEFAULT_RULES } from './leadScoring.types.ts';
+import { LeadScoringService } from './leadScoring.service.js';
+import { success } from '@/utils/response.js';
+import { DEFAULT_RULES } from './leadScoring.types.js';
 
 export class LeadScoringController {
   static getRules = async (req: Request, res: Response) => {

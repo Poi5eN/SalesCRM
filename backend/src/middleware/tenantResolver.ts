@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import { error } from '@/utils/response.ts';
-import prisma from '@/config/database.ts';
+import { error } from '@/utils/response.js';
+import prisma from '@/config/database.js';
 
 const tenantResolver = async (req: Request, res: Response, next: NextFunction) => {
   // Usually tenantId is in the JWT, which authGuard already attached to req.user

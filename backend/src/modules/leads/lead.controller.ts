@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { LeadService } from './lead.service.ts';
-import { success } from '@/utils/response.ts';
+import { LeadService } from './lead.service.js';
+import { success } from '@/utils/response.js';
 
 export class LeadController {
   static list = async (req: Request, res: Response) => {

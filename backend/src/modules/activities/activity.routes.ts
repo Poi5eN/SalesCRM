@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { ActivityController } from './activity.controller.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import tenantResolver from '@/middleware/tenantResolver.ts';
+import { ActivityController } from './activity.controller.js';
+import authGuard from '@/middleware/authGuard.js';
+import tenantResolver from '@/middleware/tenantResolver.js';
 
 const router = Router();
 

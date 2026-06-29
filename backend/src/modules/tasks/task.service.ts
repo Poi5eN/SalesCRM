@@ -1,4 +1,4 @@
-import prisma from '@/config/database.ts';
+import prisma from '@/config/database.js';
 
 export class TaskService {
   static async listTasks(tenantId: string, filters: any) {

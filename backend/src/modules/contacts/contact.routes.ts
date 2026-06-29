@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { ContactController } from './contact.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { ContactController } from './contact.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   createContactSchema, 
   updateContactSchema, 
   mergeContactsSchema, 
   contactFilterSchema 
-} from './contact.schemas.ts';
+} from './contact.schemas.js';
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import * as analyticsController from './analytics.controller.ts';
-import authGuard from '@/middleware/authGuard.ts';
+import * as analyticsController from './analytics.controller.js';
+import authGuard from '@/middleware/authGuard.js';
 
 const router = Router();
 

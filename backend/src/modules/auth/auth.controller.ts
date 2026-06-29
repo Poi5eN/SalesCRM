@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import { AuthService } from './auth.service.ts';
-import { success } from '@/utils/response.ts';
-import { env } from '@/config/env.ts';
+import { AuthService } from './auth.service.js';
+import { success } from '@/utils/response.js';
+import { env } from '@/config/env.js';
 
 export class AuthController {
   static registerTenant = async (req: Request, res: Response) => {

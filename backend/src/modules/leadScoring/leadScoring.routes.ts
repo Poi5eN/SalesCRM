@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { LeadScoringController } from './leadScoring.controller.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { LeadScoringController } from './leadScoring.controller.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 
 const router = Router();
 

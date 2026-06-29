@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { ContactService } from './contact.service.ts';
-import { success, error } from '@/utils/response.ts';
+import { ContactService } from './contact.service.js';
+import { success, error } from '@/utils/response.js';
 
 export class ContactController {
   static list = async (req: Request, res: Response) => {

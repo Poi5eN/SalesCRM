@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { TaskController } from './task.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { TaskController } from './task.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   createTaskSchema, 
   updateTaskSchema, 
   taskFilterSchema 
-} from './task.schemas.ts';
+} from './task.schemas.js';
 
 const router = Router();
 

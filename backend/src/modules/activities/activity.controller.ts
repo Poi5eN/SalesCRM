@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { ActivityService } from './activity.service.ts';
-import { success } from '@/utils/response.ts';
+import { ActivityService } from './activity.service.js';
+import { success } from '@/utils/response.js';
 
 export class ActivityController {
   static async list(req: Request, res: Response) {

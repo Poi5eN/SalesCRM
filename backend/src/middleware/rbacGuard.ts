@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import { error } from '@/utils/response.ts';
+import { error } from '@/utils/response.js';
 
-import prisma from '@/config/database.ts';
+import prisma from '@/config/database.js';
 
 const rbacGuard = (resource: string, action: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {

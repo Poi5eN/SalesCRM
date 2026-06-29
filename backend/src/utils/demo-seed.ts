@@ -1,4 +1,4 @@
-import prisma from '@/config/database.ts';
+import prisma from '@/config/database.js';
 import { subDays, addDays } from 'date-fns';
 import { 
   UserRole, 
@@ -16,7 +16,7 @@ import {
   ProposalStatus,
   ActivityEntityType
 } from '@prisma/client';
-import { RBACService } from '@/modules/rbac/rbac.service.ts';
+import { RBACService } from '@/modules/rbac/rbac.service.js';
 import bcrypt from 'bcryptjs';
 
 export async function seedDemoData() {

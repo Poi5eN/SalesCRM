@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { LeadController } from './lead.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { LeadController } from './lead.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   createLeadSchema, 
   updateLeadSchema, 
   convertLeadSchema, 
   leadFilterSchema 
-} from './lead.schemas.ts';
+} from './lead.schemas.js';
 
 const router = Router();
 

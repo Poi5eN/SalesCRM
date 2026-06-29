@@ -1,4 +1,4 @@
-import prisma from '@/config/database.ts';
+import prisma from '@/config/database.js';
 import { subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 
 export const getAnalyticsSummary = async (tenantId: string, period: string) => {

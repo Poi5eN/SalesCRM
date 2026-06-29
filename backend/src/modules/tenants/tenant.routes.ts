@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { TenantController } from './tenant.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import rbacGuard from '@/middleware/rbacGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { TenantController } from './tenant.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import rbacGuard from '@/middleware/rbacGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   updateTenantSchema, 
   updateUserStatusRoleSchema, 
   deleteUserSchema 
-} from './tenant.schemas.ts';
+} from './tenant.schemas.js';
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import prisma from '../config/database.ts';
-import { seedDemoData } from '../utils/demo-seed.ts';
+import prisma from '../config/database.js';
+import { seedDemoData } from '../utils/demo-seed.js';
 
 async function main() {
   console.log('🌱 Starting command-line seed script...');

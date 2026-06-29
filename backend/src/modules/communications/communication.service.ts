@@ -1,4 +1,4 @@
-import prisma from '@/config/database.ts';
+import prisma from '@/config/database.js';
 
 export class CommunicationService {
   static async listCommunications(tenantId: string, filters: any) {

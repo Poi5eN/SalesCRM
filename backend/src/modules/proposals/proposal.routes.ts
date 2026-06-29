@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { ProposalController } from './proposal.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { ProposalController } from './proposal.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   createProposalSchema, 
   updateProposalSchema, 
@@ -10,7 +10,7 @@ import {
   updateProposalItemSchema, 
   proposalFilterSchema,
   respondProposalSchema
-} from './proposal.schemas.ts';
+} from './proposal.schemas.js';
 
 const router = Router();
 const publicRouter = Router();

@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { CompanyController } from './company.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { CompanyController } from './company.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   createCompanySchema, 
   updateCompanySchema, 
   companyFilterSchema 
-} from './company.schemas.ts';
+} from './company.schemas.js';
 
 const router = Router();
 

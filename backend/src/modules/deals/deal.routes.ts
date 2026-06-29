@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { DealController } from './deal.controller.ts';
-import validate from '@/middleware/validate.ts';
-import authGuard from '@/middleware/authGuard.ts';
-import asyncHandler from '@/utils/asyncHandler.ts';
+import { DealController } from './deal.controller.js';
+import validate from '@/middleware/validate.js';
+import authGuard from '@/middleware/authGuard.js';
+import asyncHandler from '@/utils/asyncHandler.js';
 import { 
   createDealSchema, 
   updateDealSchema, 
   addProductToDealSchema, 
   dealFilterSchema 
-} from './deal.schemas.ts';
+} from './deal.schemas.js';
 
 const router = Router();
 

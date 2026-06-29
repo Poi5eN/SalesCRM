@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { CommunicationService } from './communication.service.ts';
-import { success } from '@/utils/response.ts';
+import { CommunicationService } from './communication.service.js';
+import { success } from '@/utils/response.js';
 
 export class CommunicationController {
   static list = async (req: Request, res: Response) => {

@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import prisma from '@/config/database.ts';
-import { generateAccessToken, generateRefreshToken } from '@/utils/jwt.ts';
-import { env } from '@/config/env.ts';
+import prisma from '@/config/database.js';
+import { generateAccessToken, generateRefreshToken } from '@/utils/jwt.js';
+import { env } from '@/config/env.js';
 import { UserRole, UserStatus } from '@prisma/client';
-import { RBACService } from '../rbac/rbac.service.ts';
-import { seedDemoData } from '@/utils/demo-seed.ts';
+import { RBACService } from '../rbac/rbac.service.js';
+import { seedDemoData } from '@/utils/demo-seed.js';
 
 export class AuthService {
   static async registerTenant(data: any) {

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { EmailTemplateService } from './emailTemplate.service.ts';
-import { success } from '@/utils/response.ts';
+import { EmailTemplateService } from './emailTemplate.service.js';
+import { success } from '@/utils/response.js';
 
 export class EmailTemplateController {
   static listTemplates = async (req: Request, res: Response) => {

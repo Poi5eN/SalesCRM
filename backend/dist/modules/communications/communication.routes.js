@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import { CommunicationController } from './communication.controller.js';
+import validate from '../../middleware/validate.js';
+import authGuard from '../../middleware/authGuard.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import { createCommunicationSchema, updateCommunicationSchema, communicationFilterSchema } from './communication.schemas.js';
+const router = Router();
+router.use(authGuard);
+router.get('/', validate(communicationFilterSchema), asyncHandler(CommunicationController.list));
+router.post('/', validate(createCommunicationSchema), asyncHandler(CommunicationController.create));
+router.get('/:id', asyncHandler(CommunicationController.get));
+router.patch('/:id', validate(updateCommunicationSchema), asyncHandler(CommunicationController.update));
+router.delete('/:id', asyncHandler(CommunicationController.delete));
+export default router;

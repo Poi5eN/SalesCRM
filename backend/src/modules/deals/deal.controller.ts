@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
-import { DealService } from './deal.service.ts';
-import { success } from '@/utils/response.ts';
+import { DealService } from './deal.service.js';
+import { success } from '@/utils/response.js';
 
 export class DealController {
   static list = async (req: Request, res: Response) => {
