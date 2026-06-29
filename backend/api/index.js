@@ -88,8 +88,8 @@ var package_default = {
   main: "index.js",
   scripts: {
     dev: "tsx watch src/main.ts",
-    build: "tsup src/entry.ts --format esm --platform node --out-dir api",
-    "vercel-build": "prisma generate && npm run build",
+    build: "prisma generate && tsc && tsc-alias",
+    "vercel-build": "prisma generate && tsup src/entry.ts --format esm --platform node --out-dir api && mv api/entry.js api/index.js",
     start: "node dist/main.js",
     typecheck: "tsc --noEmit",
     test: 'echo "Error: no test specified" && exit 1'

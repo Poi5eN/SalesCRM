@@ -4,11 +4,11 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/entry"
+      "destination": "/api/index"
     }
   ],
   "functions": {
-    "api/entry": {
+    "api/index": {
       "maxDuration": 30,
       "includeFiles": "node_modules/.prisma/client/**"
     }
