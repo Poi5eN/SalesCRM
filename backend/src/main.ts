@@ -1,4 +1,4 @@
-import app from "./app.js";
+import app from "./express-app.js";
 import { env } from "@/config/env.js";
 import prisma from "@/config/database.js";
 

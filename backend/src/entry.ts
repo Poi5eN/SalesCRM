@@ -1,4 +1,4 @@
 import 'dotenv/config';
-import app from './app.js';
+import app from './express-app.js';
 
 export default app;
