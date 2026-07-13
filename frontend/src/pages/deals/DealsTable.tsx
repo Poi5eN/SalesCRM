@@ -68,8 +68,8 @@ export function DealsTable({ deals, stages, isLoading, pagination, sort, onRowCl
       header: 'Stage',
       accessor: (deal: Deal) => (
         <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full" style={{ backgroundColor: deal.stage?.color || '#cbd5e1' }} />
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">{deal.stage?.name || '—'}</span>
+          <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: deal.stage?.color || '#cbd5e1' }} />
+          <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{deal.stage?.name || '—'}</span>
         </div>
       ),
     },

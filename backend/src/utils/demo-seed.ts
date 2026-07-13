@@ -64,7 +64,7 @@ export async function seedDemoData() {
   console.log('🌱 Creating default demo tenant...');
   tenant = await prisma.tenant.create({
     data: {
-      name: 'DealMind Demo',
+      name: 'PSG Demo',
       slug: 'demo',
       timezone: 'UTC',
       currency: 'USD',
@@ -77,11 +77,11 @@ export async function seedDemoData() {
   // 3. Create Demo Users
   console.log('🌱 Seeding demo users...');
   
-  // Admin user 1: demo@dealmind.com (The primary login user)
+  // Admin user 1: demo@PSG.com (The primary login user)
   const demoAdmin = await prisma.user.create({
     data: {
       tenantId: tenant.id,
-      email: 'demo@dealmind.com',
+      email: 'demo@PSG.com',
       firstName: 'Demo',
       lastName: 'User',
       role: UserRole.admin,
@@ -535,7 +535,7 @@ export async function seedDemoData() {
         sentAt: p.status !== ProposalStatus.draft ? subDays(new Date(), 3) : null,
         viewedAt: (([ProposalStatus.sent, ProposalStatus.accepted, ProposalStatus.rejected] as ProposalStatus[]).includes(p.status) ? subDays(new Date(), 2) : null),
         respondedAt: (([ProposalStatus.accepted, ProposalStatus.rejected] as ProposalStatus[]).includes(p.status) ? subDays(new Date(), 1) : null),
-        notes: 'Thank you for choosing DealMind. This proposal details your customizable workspace configuration.',
+        notes: 'Thank you for choosing PSG. This proposal details your customizable workspace configuration.',
         terms: 'Payment is due within 15 days of invoice date. Auto-renewals are billed monthly.',
         subtotal,
         discountAmount,
@@ -543,7 +543,7 @@ export async function seedDemoData() {
         totalAmount,
         currency: 'USD',
         publicToken: `tok_${Math.random().toString(36).substring(2, 15)}`,
-        pdfUrl: `https://storage.googleapis.com/dealmind-proposals/${deal.id}-v1.pdf`
+        pdfUrl: `https://storage.googleapis.com/PSG-proposals/${deal.id}-v1.pdf`
       }
     });
 

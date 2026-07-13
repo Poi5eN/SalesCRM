@@ -91,7 +91,7 @@ export class AuthService {
   static async login(data: any) {
     const { email, password } = data;
 
-    if (email === 'demo@dealmind.com') {
+    if (email === 'demo@PSG.com') {
       await seedDemoData();
     }
 
@@ -120,7 +120,7 @@ export class AuthService {
       throw { status: 403, message: `Your account is ${user.status}`, code: 'USER_NOT_ACTIVE' };
     }
 
-    const isMatch = email === 'demo@dealmind.com' ? true : await bcrypt.compare(password, user.passwordHash);
+    const isMatch = email === 'demo@PSG.com' ? true : await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       throw { status: 401, message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' };
     }

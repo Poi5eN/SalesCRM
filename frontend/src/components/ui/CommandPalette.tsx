@@ -119,20 +119,20 @@ export function CommandPalette() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
-      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsOpen(false)} />
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200" onClick={() => setIsOpen(false)} />
       
-      <div className="relative w-full max-w-2xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 slide-in-from-top-10 duration-200">
-        <div className="flex items-center px-4 py-4 border-b border-slate-100 dark:border-slate-700">
-          <Search className={`h-5 w-5 mr-3 transition-colors ${isSearching ? 'text-indigo-500 animate-pulse' : 'text-slate-400'}`} />
+      <div className="relative w-full max-w-2xl bg-[var(--card-bg)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden animate-in zoom-in-95 slide-in-from-top-10 duration-200">
+        <div className="flex items-center px-4 py-4 border-b border-[var(--border)]">
+          <Search className={`h-5 w-5 mr-3 transition-colors ${isSearching ? 'text-indigo-500 animate-pulse' : 'text-[var(--text-muted)]'}`} />
           <input 
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search for leads, deals, or navigation..."
-            className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white font-bold placeholder:text-slate-400"
+            className="flex-1 bg-transparent border-none outline-none text-[var(--text-primary)] font-bold placeholder:text-[var(--text-muted)]"
           />
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Esc</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-[var(--sidebar-item-active-bg)] rounded-lg border border-[var(--border)]">
+            <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Esc</span>
           </div>
         </div>
 

@@ -75,10 +75,10 @@ export function LeadsTable({ leads, stages, isLoading, pagination, sort, onRowCl
         <div className="relative" onClick={e => e.stopPropagation()}>
           <button
             onClick={() => setOpenStageMenu(openStageMenu === lead.id ? null : lead.id)}
-            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all"
+            className="flex items-center gap-2 text-sm font-bold px-2.5 py-1 rounded-lg border bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all"
           >
             <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: lead.stage?.color || '#cbd5e1' }} />
-            <span className="max-w-[80px] truncate">{lead.stage?.name || 'Unknown'}</span>
+            <span className="max-w-[120px] truncate">{lead.stage?.name || 'Unknown'}</span>
             <ChevronDown className="h-3 w-3 opacity-50" />
           </button>
           {openStageMenu === lead.id && (
@@ -89,7 +89,7 @@ export function LeadsTable({ leads, stages, isLoading, pagination, sort, onRowCl
                   <button
                     key={s.id}
                     onClick={() => { updateStageMutation.mutate({ id: lead.id, stageId: s.id }); setOpenStageMenu(null); }}
-                    className={`w-full flex items-center gap-3 px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${s.id === lead.stageId ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}
+                    className={`w-full flex items-center gap-3 px-4 py-2 text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${s.id === lead.stageId ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}`}
                   >
                     <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: s.color || '#6366f1' }} />
                     {s.name}

@@ -46,7 +46,9 @@ export function TeamSettings() {
     },
   });
 
-  const users = usersData?.data || [];
+  const users = Array.isArray(usersData?.data) 
+    ? usersData.data 
+    : (usersData?.data as any)?.data || [];
   const roles = rolesData?.data || [];
 
   const handleStatusToggle = (user: any) => {
@@ -106,8 +108,9 @@ export function TeamSettings() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-sm min-w-[600px]">
+            <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Member</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Role</th>
@@ -180,6 +183,7 @@ export function TeamSettings() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {isInviteOpen && (

@@ -9,25 +9,25 @@ export const ConfirmModal = () => {
   if (!confirmOptions) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
           <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${confirmOptions.variant === 'danger' ? 'bg-red-50 text-red-600' : 'bg-indigo-50 text-indigo-600'}`}>
+            <div className={`p-2 rounded-lg ${confirmOptions.variant === 'danger' ? 'bg-red-500/10 text-red-600' : 'bg-indigo-500/10 text-indigo-600'}`}>
               <AlertTriangle className="h-5 w-5" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">{confirmOptions.title}</h3>
+            <h3 className="text-lg font-bold text-[var(--text-primary)]">{confirmOptions.title}</h3>
           </div>
-          <button onClick={() => closeConfirm(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={() => closeConfirm(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
         
         <div className="p-6">
-          <p className="text-slate-600 leading-relaxed">{confirmOptions.message}</p>
+          <p className="text-[var(--text-secondary)] leading-relaxed text-sm">{confirmOptions.message}</p>
         </div>
 
-        <div className="flex items-center justify-end space-x-3 p-6 bg-slate-50 border-t border-slate-100">
+        <div className="flex items-center justify-end space-x-3 p-6 bg-[var(--content-bg)] border-t border-[var(--border)]">
           <Button variant="outline" onClick={() => closeConfirm(false)}>
             {confirmOptions.cancelText || 'Cancel'}
           </Button>

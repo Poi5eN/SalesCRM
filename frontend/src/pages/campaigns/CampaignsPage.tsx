@@ -24,6 +24,7 @@ import { Table } from '@/components/ui/Table.tsx';
 import { formatCurrency, formatNumber } from '@/utils/format.ts';
 import type { Campaign } from '@/types/api.types.ts';
 import { queryKeys } from '@/lib/queryKeys.ts';
+import { EmptyState } from '@/components/ui/EmptyState.tsx';
 
 const PLATFORMS = [
   { value: 'Google Ads', label: 'Google Ads' },
@@ -365,16 +366,13 @@ export default function CampaignsPage() {
           <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
         </div>
       ) : campaignsList.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[32px]">
-          <Megaphone className="mx-auto h-12 w-12 text-slate-400" />
-          <h3 className="mt-4 text-sm font-bold text-slate-900 dark:text-white">No campaigns found</h3>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Get started by creating a marketing campaign.</p>
-          <div className="mt-6">
-            <Button size="sm" onClick={() => handleOpenForm()}>
-              <Plus className="mr-1.5 h-4 w-4 stroke-[3px]" /> Create Campaign
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          title="No campaigns found"
+          description="Track your performance metrics by setting up a marketing campaign."
+          actionText="Create Campaign"
+          onAction={() => handleOpenForm()}
+          icon={Plus}
+        />
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {campaignsList.map(campaign => {

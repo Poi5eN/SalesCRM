@@ -91,9 +91,9 @@ export function RolesSettings() {
   if (isLoading) return <div className="p-8 text-center text-slate-500">Loading roles...</div>;
 
   return (
-    <div className="flex h-full min-h-[600px]">
+    <div className="flex flex-col lg:flex-row h-full min-h-[600px]">
       {/* Left: Role List */}
-      <div className="w-64 border-r border-slate-100 p-6 flex flex-col">
+      <div className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-[var(--border)] p-6 flex flex-col shrink-0">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Roles</h3>
           <button 
@@ -128,8 +128,8 @@ export function RolesSettings() {
               onClick={() => setSelectedRoleId(role.id)}
               className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold transition-all group ${
                 selectedRoleId === role.id 
-                  ? 'bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-100 ring-1 ring-indigo-100' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-[var(--sidebar-item-active-bg)] text-[var(--sidebar-text-active)] shadow-sm border border-[var(--border)]' 
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--sidebar-item-active-bg)]/50 hover:text-[var(--text-primary)]'
               }`}
             >
               <div className="flex items-center gap-2.5 truncate">
@@ -182,9 +182,10 @@ export function RolesSettings() {
               </div>
             )}
 
-            <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b border-slate-200">
+            <div className="bg-[var(--card-bg)] border border-[var(--border)] rounded-3xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left min-w-[700px]">
+                  <thead className="bg-[var(--content-bg)] border-b border-[var(--border)]">
                   <tr>
                     <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Resource</th>
                     {ACTIONS.map(action => (
@@ -225,6 +226,7 @@ export function RolesSettings() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}
