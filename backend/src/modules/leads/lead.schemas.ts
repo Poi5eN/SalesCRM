@@ -16,6 +16,7 @@ export const createLeadSchema = z.object({
     tags: z.array(z.string()).optional(),
     customFields: z.record(z.string(), z.any()).optional(),
     expectedCloseAt: z.string().datetime().optional(),
+    campaignId: z.string().cuid().or(z.string().nullable()).optional(),
   }),
 });
 
@@ -34,6 +35,7 @@ export const leadFilterSchema = z.object({
   query: z.object({
     stageId: z.string().optional(),
     assignedToId: z.string().optional(),
+    campaignId: z.string().optional(),
     priority: z.string().optional(),
     source: z.string().optional(),
     isConverted: z.string().optional().transform(v => v === 'true'),

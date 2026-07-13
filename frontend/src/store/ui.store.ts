@@ -24,6 +24,9 @@ interface UIState {
   setTheme: (theme: 'light' | 'dark') => void;
   sidebarCollapsed: boolean;
   toggleSidebar: () => void;
+  mobileSidebarOpen: boolean;
+  toggleMobileSidebar: () => void;
+  setMobileSidebarOpen: (open: boolean) => void;
   activeModule: string;
   setActiveModule: (module: string) => void;
 
@@ -68,6 +71,9 @@ export const useUIStore = create<UIState>()(
       },
       sidebarCollapsed: false,
       toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      mobileSidebarOpen: false,
+      toggleMobileSidebar: () => set((state) => ({ mobileSidebarOpen: !state.mobileSidebarOpen })),
+      setMobileSidebarOpen: (open) => set({ mobileSidebarOpen: open }),
       activeModule: 'dashboard',
       setActiveModule: (module) => set({ activeModule: module }),
       

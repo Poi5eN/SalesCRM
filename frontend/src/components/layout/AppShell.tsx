@@ -92,7 +92,7 @@ export const AppShell = ({ children }: AppShellProps) => {
   }, [openCommModal]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-content-bg)] flex transition-colors duration-200">
+    <div className="min-h-screen bg-[var(--content-bg)] flex transition-colors duration-200">
       <Sidebar />
       
       <div 

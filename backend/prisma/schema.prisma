@@ -155,6 +155,7 @@ enum ActivityEntityType {
   product
   user
   pipelineStage
+  campaign
 }
 
 // =============================================================================
@@ -182,6 +183,7 @@ model Tenant {
   userRoles       UserTenantRole[]
   pipelineStages  PipelineStage[]
   leads           Lead[]
+  campaigns       Campaign[]
   contacts        Contact[]
   companies       Company[]
   deals           Deal[]
@@ -499,6 +501,7 @@ model Lead {
   isConverted     Boolean       @default(false)  // true when lead becomes a Deal
   convertedAt     DateTime?
   convertedToDealId String?
+  campaignId      String?
 
   score           Int           @default(0)
   lastActivityAt  DateTime      @default(now())
@@ -519,6 +522,7 @@ model Lead {
   company         Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
   assignedTo      User?         @relation("LeadAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   createdBy       User          @relation("LeadCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  campaign        Campaign?     @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   tasks           Task[]
   communications  Communication[]
   activities      ActivityLog[]
@@ -878,4 +882,29 @@ model EmailTemplate {
   @@index([tenantId])
   @@index([type])
   @@map("email_templates")
+}
+
+// =============================================================================
+// CAMPAIGN (marketing campaigns driving leads)
+// =============================================================================
+
+model Campaign {
+  id              String      @id @default(cuid())
+  tenantId        String
+  name            String
+  platform        String      // "Google Ads" | "Meta Ads" | "Landing Page" | "WhatsApp" | etc.
+  budget          Decimal     @default(0) @db.Decimal(15, 2)
+  status          String      @default("draft") // "draft" | "active" | "paused" | "completed"
+  startDate       DateTime?
+  endDate         DateTime?
+
+  tenant          Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  leads           Lead[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime?
+
+  @@index([tenantId])
+  @@map("campaigns")
 }

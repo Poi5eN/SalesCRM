@@ -225,8 +225,8 @@ const DashboardPage = () => {
       )}
 
       <div>
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Performance Overview</h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Track your team's progress and sales velocity in real-time.</p>
+        <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">Performance Overview</h1>
+        <p className="text-sm text-[var(--text-secondary)] font-medium mt-1">Track your team's progress and sales velocity in real-time.</p>
       </div>
 
       {/* Stats Grid */}
@@ -271,15 +271,15 @@ const DashboardPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Deal Velocity Chart */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 flex flex-col">
+        <div className="lg:col-span-2 bg-[var(--card-bg)] rounded-[32px] border border-[var(--border)] shadow-sm p-8 flex flex-col">
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Revenue Velocity</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Monthly won deal value trends</p>
+              <h3 className="text-xl font-black text-[var(--text-primary)] tracking-tight">Revenue Velocity</h3>
+              <p className="text-sm text-[var(--text-secondary)] font-medium">Monthly won deal value trends</p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Won This Month</p>
-              <p className="text-3xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">{formatCurrency(thisMonthWonValue, tenant?.currency)}</p>
+              <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Won This Month</p>
+              <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight">{formatCurrency(thisMonthWonValue, tenant?.currency)}</p>
             </div>
           </div>
 
@@ -292,27 +292,27 @@ const DashboardPage = () => {
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#2A2A2A' : '#E8E8E6'} />
                 <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                  tick={{ fill: '#747878', fontSize: 10, fontWeight: 755 }}
                   dy={15}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                  tick={{ fill: '#747878', fontSize: 10, fontWeight: 755 }}
                   tickFormatter={(val) => `₹${val / 1000}k`}
                 />
                 <Tooltip
                   contentStyle={{
                     borderRadius: '16px',
-                    border: 'none',
+                    border: '1px solid var(--border)',
                     boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)',
-                    backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
-                    color: theme === 'dark' ? '#ffffff' : '#000000'
+                    backgroundColor: 'var(--card-bg)',
+                    color: 'var(--text-primary)'
                   }}
                   itemStyle={{ fontWeight: 800 }}
                   labelStyle={{ fontWeight: 900, marginBottom: '4px' }}
@@ -332,10 +332,10 @@ const DashboardPage = () => {
         </div>
 
         {/* Upcoming Tasks Panel */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Today's Focus</h3>
-            <Link to="/tasks" className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 hover:opacity-70">View Agenda</Link>
+        <div className="bg-[var(--card-bg)] rounded-[32px] border border-[var(--border)] shadow-sm flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-[var(--sidebar-bg)]/50">
+            <h3 className="text-lg font-black text-[var(--text-primary)] tracking-tight">Today's Focus</h3>
+            <Link to="/tasks" className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] hover:opacity-70">View Agenda</Link>
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
@@ -353,12 +353,12 @@ const DashboardPage = () => {
               </div>
             ) : upcomingTasks.data?.data?.data?.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center space-y-4 py-12">
-                <div className="h-16 w-16 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl flex items-center justify-center text-emerald-500">
+                <div className="h-16 w-16 bg-emerald-50 dark:bg-emerald-950/20 rounded-3xl flex items-center justify-center text-emerald-500">
                   <CheckCircle2 className="h-8 w-8" />
                 </div>
                 <div>
-                  <p className="text-base font-black text-slate-900 dark:text-white tracking-tight">All caught up!</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-[150px] mx-auto mt-1">You have no tasks due for the rest of the week.</p>
+                  <p className="text-base font-black text-[var(--text-primary)] tracking-tight">All caught up!</p>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium max-w-[150px] mx-auto mt-1">You have no tasks due for the rest of the week.</p>
                 </div>
               </div>
             ) : (
@@ -373,18 +373,18 @@ const DashboardPage = () => {
                       {tasks.map((task: any) => (
                         <div
                           key={task.id}
-                          className="group p-3 rounded-2xl border border-transparent hover:border-slate-100 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50 cursor-pointer transition-all"
+                          className="group p-3 rounded-2xl border border-transparent hover:border-[var(--border)] hover:bg-[var(--sidebar-item-active-bg)]/30 cursor-pointer transition-all"
                           onClick={() => navigate(task.leadId ? `/leads/${task.leadId}` : `/deals/${task.dealId}`)}
                         >
                           <div className="flex items-start gap-4">
-                            <div className="mt-0.5 h-10 w-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-100 dark:border-slate-700 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all shadow-sm">
+                            <div className="mt-0.5 h-10 w-10 rounded-xl bg-[var(--card-bg)] flex items-center justify-center text-[var(--text-secondary)] border border-[var(--border)] group-hover:bg-[var(--text-primary)] group-hover:text-[var(--card-bg)] group-hover:border-[var(--text-primary)] transition-all shadow-sm">
                               <Calendar className="h-5 w-5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-black text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{task.title}</p>
+                              <p className="text-sm font-black text-[var(--text-primary)] truncate group-hover:text-[var(--text-primary)] transition-colors">{task.title}</p>
                               <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className="px-1 py-0 border-none bg-slate-100 dark:bg-slate-700">{format(new Date(task.dueAt), 'h:mm a')}</Badge>
-                                <span className="text-[10px] font-bold text-slate-400 truncate tracking-tight">{task.lead?.title || task.deal?.title || 'No relation'}</span>
+                                <Badge variant="outline" className="px-1 py-0 border-none bg-[var(--sidebar-item-active-bg)] text-[var(--text-secondary)]">{format(new Date(task.dueAt), 'h:mm a')}</Badge>
+                                <span className="text-[10px] font-bold text-[var(--text-muted)] truncate tracking-tight">{task.lead?.title || task.deal?.title || 'No relation'}</span>
                               </div>
                             </div>
                           </div>
@@ -401,8 +401,8 @@ const DashboardPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Pipeline Health */}
-        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 flex flex-col">
-          <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-8">Lead Flow</h3>
+        <div className="bg-[var(--card-bg)] rounded-[32px] border border-[var(--border)] shadow-sm p-8 flex flex-col">
+          <h3 className="text-xl font-black text-[var(--text-primary)] tracking-tight mb-8">Lead Flow</h3>
           <div className="flex-1 min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart layout="vertical" data={pipelineHealth.data?.data?.map((s: any) => ({
@@ -410,24 +410,24 @@ const DashboardPage = () => {
                 count: s.totalCount,
                 color: s.stage.color || '#6366f1'
               })) || []}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={theme === 'dark' ? '#2A2A2A' : '#E8E8E6'} />
                 <XAxis type="number" hide />
                 <YAxis
                   dataKey="name"
                   type="category"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#475569', fontSize: 10, fontWeight: 800 }}
+                  tick={{ fill: '#747878', fontSize: 10, fontWeight: 755 }}
                   width={100}
                 />
                 <Tooltip
-                  cursor={{ fill: theme === 'dark' ? '#0f172a' : '#f8fafc' }}
+                  cursor={{ fill: 'var(--sidebar-item-active-bg)' }}
                   contentStyle={{
                     borderRadius: '16px',
-                    border: 'none',
+                    border: '1px solid var(--border)',
                     boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)',
-                    backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
-                    color: theme === 'dark' ? '#ffffff' : '#000000'
+                    backgroundColor: 'var(--card-bg)',
+                    color: 'var(--text-primary)'
                   }}
                 />
                 <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={24}>
@@ -441,15 +441,14 @@ const DashboardPage = () => {
         </div>
 
         {/* Recent Activity Feed */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">Timeline</h3>
+        <div className="lg:col-span-2 bg-[var(--card-bg)] rounded-[32px] border border-[var(--border)] shadow-sm flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-[var(--border)] bg-[var(--sidebar-bg)]/50">
+            <h3 className="text-lg font-black text-[var(--text-primary)] tracking-tight">Timeline</h3>
           </div>
           <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
             <div className="relative">
               {/* Vertical line for timeline */}
-              <div className="absolute left-5 top-0 bottom-0 w-px bg-slate-100 dark:bg-slate-700" />
-
+              <div className="absolute left-5 top-0 bottom-0 w-px bg-[var(--border)]" />
               <div className="space-y-10">
                 {recentActivities.isLoading ? (
                   [1, 2, 3, 4, 5].map(i => (
@@ -465,27 +464,27 @@ const DashboardPage = () => {
                   recentActivities.data?.data?.map((activity: any) => (
                     <div key={activity.id} className="relative flex items-start gap-6 pl-1.5 group">
                       {/* Timeline dot */}
-                      <div className="h-8 w-8 rounded-full bg-white dark:bg-slate-800 border-2 border-indigo-500 shadow-md flex items-center justify-center shrink-0 z-10 transition-transform group-hover:scale-110">
-                        <div className="h-2 w-2 rounded-full bg-indigo-500" />
+                      <div className="h-8 w-8 rounded-full bg-[var(--card-bg)] border-2 border-[var(--text-primary)] shadow-sm flex items-center justify-center shrink-0 z-10 transition-transform group-hover:scale-110">
+                        <div className="h-2 w-2 rounded-full bg-[var(--text-primary)]" />
                       </div>
 
                       <div className="flex-1 min-w-0 pt-0.5">
                         <div className="flex items-center gap-3 mb-1">
-                          <div className="h-5 w-5 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-[10px] font-black text-slate-500 overflow-hidden shrink-0">
+                          <div className="h-5 w-5 rounded-full bg-[var(--sidebar-item-active-bg)] border border-[var(--border)] flex items-center justify-center text-[10px] font-black text-[var(--text-secondary)] overflow-hidden shrink-0">
                             {activity.user.avatarUrl ? (
                               <img src={activity.user.avatarUrl} className="h-full w-full object-cover" />
                             ) : (
                               <span>{activity.user.firstName.charAt(0)}</span>
                             )}
                           </div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{formatRelativeTime(activity.createdAt)}</p>
+                          <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">{formatRelativeTime(activity.createdAt)}</p>
                         </div>
-                        <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-                          <span className="font-black text-slate-900 dark:text-white">{activity.user.firstName} {activity.user.lastName}</span>
+                        <p className="text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                          <span className="font-black text-[var(--text-primary)]">{activity.user.firstName} {activity.user.lastName}</span>
                           {' '}{activity.action.replace('_', ' ')}
-                          {' '}<span className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mx-1">{activity.entityType}</span>
+                          {' '}<span className="bg-[var(--sidebar-item-active-bg)] px-1.5 py-0.5 rounded text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mx-1">{activity.entityType}</span>
                           {activity.metadata?.newValue?.stageName && (
-                            <span> to <span className="font-bold text-indigo-600 dark:text-indigo-400 underline decoration-indigo-200 dark:decoration-indigo-800 underline-offset-4">{activity.metadata.newValue.stageName}</span></span>
+                            <span> to <span className="font-bold text-[var(--text-primary)] underline decoration-indigo-200 dark:decoration-indigo-850 underline-offset-4">{activity.metadata.newValue.stageName}</span></span>
                           )}
                         </p>
                       </div>

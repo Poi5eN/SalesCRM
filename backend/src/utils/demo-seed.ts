@@ -39,6 +39,7 @@ export async function seedDemoData() {
     await prisma.task.deleteMany({ where: { tenantId: tenant.id } });
     await prisma.communication.deleteMany({ where: { tenantId: tenant.id } });
     await prisma.lead.deleteMany({ where: { tenantId: tenant.id } });
+    await prisma.campaign.deleteMany({ where: { tenantId: tenant.id } });
     await prisma.deal.deleteMany({ where: { tenantId: tenant.id } });
     await prisma.contact.deleteMany({ where: { tenantId: tenant.id } });
     await prisma.company.deleteMany({ where: { tenantId: tenant.id } });
@@ -234,6 +235,31 @@ export async function seedDemoData() {
     products.push(prod);
   }
 
+  // 6.5. Create Campaigns
+  console.log('🌱 Seeding campaigns...');
+  const campaignsData = [
+    { name: 'Google Ads Search Q3', platform: 'Google Ads', budget: 5000, status: 'active', startDate: subDays(new Date(), 30), endDate: addDays(new Date(), 30) },
+    { name: 'Meta Core Retargeting', platform: 'Meta Ads', budget: 3500, status: 'active', startDate: subDays(new Date(), 15), endDate: addDays(new Date(), 45) },
+    { name: 'Summer Coworking Email Blast', platform: 'Email', budget: 800, status: 'completed', startDate: subDays(new Date(), 60), endDate: subDays(new Date(), 30) },
+    { name: 'Direct Inbound Organic', platform: 'Landing Page', budget: 0, status: 'active', startDate: subDays(new Date(), 90) }
+  ];
+
+  const campaigns = [];
+  for (const c of campaignsData) {
+    const camp = await prisma.campaign.create({
+      data: {
+        tenantId: tenant.id,
+        name: c.name,
+        platform: c.platform,
+        budget: c.budget,
+        status: c.status,
+        startDate: c.startDate,
+        endDate: c.endDate,
+      }
+    });
+    campaigns.push(camp);
+  }
+
   // 7. Create Companies
   console.log('🌱 Seeding companies...');
   const companiesData = [
@@ -302,14 +328,14 @@ export async function seedDemoData() {
   // 9. Create Leads
   console.log('🌱 Seeding leads...');
   const leadsData = [
-    { title: 'Expansion Space Vortex AI', value: 12000, stage: 'Qualified', contact: 'Sarah Connor', source: LeadSource.webForm, priority: LeadPriority.high },
-    { title: 'Summit Health Remote Offices', value: 25000, stage: 'Contacted', contact: 'Elena Rostova', source: LeadSource.referral, priority: LeadPriority.medium },
-    { title: 'Nexus Logistics Hub Office', value: 8000, stage: 'New', contact: 'David Kim', source: LeadSource.coldOutreach, priority: LeadPriority.low },
-    { title: 'Starlight Creative Co-working', value: 1500, stage: 'Nurturing', contact: 'Chloe Bennett', source: LeadSource.socialMedia, priority: LeadPriority.low },
-    { title: 'Nova Foods Hybrid Setup', value: 30000, stage: 'New', contact: 'Rebecca Nunez', source: LeadSource.webForm, priority: LeadPriority.urgent },
-    { title: 'Apex Wealth Corporate HQ', value: 18000, stage: 'Qualified', contact: 'Arthur Pendleton', source: LeadSource.referral, priority: LeadPriority.high },
-    { title: 'Pulse Media Extra Desks', value: 3500, stage: 'Contacted', contact: 'Julian Asher', source: LeadSource.manual, priority: LeadPriority.medium },
-    { title: 'Core Infra Project Office', value: 9500, stage: 'Nurturing', contact: 'Liam Neeson', source: LeadSource.manual, priority: LeadPriority.medium }
+    { title: 'Expansion Space Vortex AI', value: 12000, stage: 'Qualified', contact: 'Sarah Connor', source: LeadSource.webForm, priority: LeadPriority.high, campaign: 'Google Ads Search Q3' },
+    { title: 'Summit Health Remote Offices', value: 25000, stage: 'Contacted', contact: 'Elena Rostova', source: LeadSource.referral, priority: LeadPriority.medium, campaign: 'Meta Core Retargeting' },
+    { title: 'Nexus Logistics Hub Office', value: 8000, stage: 'New', contact: 'David Kim', source: LeadSource.coldOutreach, priority: LeadPriority.low, campaign: 'Google Ads Search Q3' },
+    { title: 'Starlight Creative Co-working', value: 1500, stage: 'Nurturing', contact: 'Chloe Bennett', source: LeadSource.socialMedia, priority: LeadPriority.low, campaign: 'Summer Coworking Email Blast' },
+    { title: 'Nova Foods Hybrid Setup', value: 30000, stage: 'New', contact: 'Rebecca Nunez', source: LeadSource.webForm, priority: LeadPriority.urgent, campaign: 'Google Ads Search Q3' },
+    { title: 'Apex Wealth Corporate HQ', value: 18000, stage: 'Qualified', contact: 'Arthur Pendleton', source: LeadSource.referral, priority: LeadPriority.high, campaign: 'Meta Core Retargeting' },
+    { title: 'Pulse Media Extra Desks', value: 3500, stage: 'Contacted', contact: 'Julian Asher', source: LeadSource.manual, priority: LeadPriority.medium, campaign: 'Direct Inbound Organic' },
+    { title: 'Core Infra Project Office', value: 9500, stage: 'Nurturing', contact: 'Liam Neeson', source: LeadSource.manual, priority: LeadPriority.medium, campaign: 'Direct Inbound Organic' }
   ];
 
   const leads = [];
@@ -318,6 +344,7 @@ export async function seedDemoData() {
     const contact = contacts.find(c => `${c.firstName} ${c.lastName}` === l.contact)!;
     const stage = dbLeadStages.find(s => s.name === l.stage)!;
     const rep = reps[i % reps.length];
+    const leadCampaign = campaigns.find(c => c.name === l.campaign);
 
     const lead = await prisma.lead.create({
       data: {
@@ -334,6 +361,7 @@ export async function seedDemoData() {
         currency: 'USD',
         score: 60 + (i * 5),
         expectedCloseAt: addDays(new Date(), 30 + i * 2),
+        campaignId: leadCampaign?.id || null,
       }
     });
     leads.push(lead);

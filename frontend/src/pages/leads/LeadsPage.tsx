@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Plus, Filter, Download, LayoutGrid, List, Search, X } from 'lucide-react';
 import * as leadsApi from '@/api/leads.api.ts';
 import * as pipelineApi from '@/api/pipeline.api.ts';
+import * as campaignsApi from '@/api/campaigns.api.ts';
 import { Button } from '@/components/ui/Button.tsx';
 import { useDebounce } from '@/hooks/useDebounce.ts';
 import { useConfirm } from '@/hooks/useConfirm.ts';
@@ -34,7 +35,10 @@ const LeadsPage = () => {
   // Local state
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [filters, setFilters] = useState<LeadFiltersState>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<LeadFiltersState>(() => ({
+    ...DEFAULT_FILTERS,
+    campaignId: searchParams.get('campaignId') ?? '',
+  }));
   const [formOpen, setFormOpen] = useState(false);
   const [editLead, setEditLead] = useState<Lead | null>(null);
   const [detailLead, setDetailLead] = useState<Lead | null>(null);
@@ -56,6 +60,7 @@ const LeadsPage = () => {
     ...(filters.priorities.length === 1 ? { priority: filters.priorities[0] } : {}),
     ...(filters.sources.length === 1 ? { source: filters.sources[0] } : {}),
     ...(filters.assignedToId ? { assignedToId: filters.assignedToId } : {}),
+    ...(filters.campaignId ? { campaignId: filters.campaignId } : {}),
     ...(filters.createdAtFrom ? { createdAtFrom: new Date(filters.createdAtFrom).toISOString() } : {}),
     ...(filters.createdAtTo ? { createdAtTo: new Date(filters.createdAtTo + 'T23:59:59').toISOString() } : {}),
     ...(filters.isStale ? { isStale: 'true' } : {}),
@@ -76,6 +81,11 @@ const LeadsPage = () => {
   const { data: stagesData } = useQuery({
     queryKey: ['pipeline-stages', 'lead'],
     queryFn: () => pipelineApi.getStages({ type: 'lead', isActive: true }),
+  });
+
+  const { data: campaignsData } = useQuery({
+    queryKey: ['campaigns'],
+    queryFn: () => campaignsApi.getCampaigns({ limit: 100 }),
   });
 
   const deleteMutation = useMutation({
@@ -118,6 +128,7 @@ const LeadsPage = () => {
   const leads: Lead[] = leadsData?.data?.data ?? [];
   const total: number = leadsData?.data?.meta?.total ?? 0;
   const stages: PipelineStage[] = (stagesData?.data as any) ?? [];
+  const campaigns = campaignsData?.data?.data ?? [];
   const board: any[] = boardData?.data ?? [];
 
   return (
@@ -176,6 +187,17 @@ const LeadsPage = () => {
           {filters.isStale && <FilterChip label="Stale leads" onRemove={() => setFilters(f => ({ ...f, isStale: false }))} />}
           {filters.hasCompany && <FilterChip label="Has company" onRemove={() => setFilters(f => ({ ...f, hasCompany: false }))} />}
           {filters.assignedToId && <FilterChip label="Assigned to filter" onRemove={() => setFilters(f => ({ ...f, assignedToId: '' }))} />}
+          {filters.campaignId && (() => {
+            const camp = campaigns.find(c => c.id === filters.campaignId);
+            return <FilterChip label={`Campaign: ${camp ? camp.name : 'Selected'}`} onRemove={() => {
+              setFilters(f => ({ ...f, campaignId: '' }));
+              setSearchParams(prev => {
+                const next = new URLSearchParams(prev);
+                next.delete('campaignId');
+                return next;
+              });
+            }} />;
+          })()}
           {filters.priorities.map(p => <FilterChip key={p} label={`Priority: ${p}`} onRemove={() => setFilters(f => ({ ...f, priorities: f.priorities.filter(x => x !== p) }))} />)}
           {filters.sources.map(s => <FilterChip key={s} label={`Source: ${s}`} onRemove={() => setFilters(f => ({ ...f, sources: f.sources.filter(x => x !== s) }))} />)}
           {filters.stageIds.map(id => {

@@ -166,6 +166,8 @@ export interface Lead {
   contact?: Contact;
   company?: Company;
   assignedTo?: User;
+  campaignId?: string;
+  campaign?: { id: string; name: string };
   createdAt: string;
   updatedAt: string;
 }
@@ -338,4 +340,20 @@ export interface ApiResponse<T> {
   success: boolean;
   data: T;
   message?: string;
+}
+
+export interface Campaign {
+  id: string;
+  tenantId: string;
+  name: string;
+  platform: string;
+  budget: number;
+  status: 'draft' | 'active' | 'paused' | 'completed';
+  startDate?: string;
+  endDate?: string;
+  leadsCount?: number;
+  costPerLead?: number;
+  conversionRate?: number;
+  createdAt: string;
+  updatedAt: string;
 }

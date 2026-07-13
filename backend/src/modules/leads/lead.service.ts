@@ -4,7 +4,7 @@ import { LeadScoringService } from '../leadScoring/leadScoring.service.js';
 export class LeadService {
   static async listLeads(tenantId: string, filters: any) {
     const { 
-      stageId, assignedToId, priority, source, isConverted, tag, search, 
+      stageId, assignedToId, campaignId, priority, source, isConverted, tag, search, 
       createdAtFrom, createdAtTo, isStale,
       page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' 
     } = filters;
@@ -15,6 +15,7 @@ export class LeadService {
       deletedAt: null,
       ...(stageId ? { stageId } : {}),
       ...(assignedToId ? { assignedToId } : {}),
+      ...(campaignId ? { campaignId } : {}),
       ...(priority ? { priority } : {}),
       ...(source ? { source } : {}),
       ...(isConverted !== undefined ? { isConverted: isConverted === 'true' } : {}),
@@ -45,7 +46,8 @@ export class LeadService {
           contact: { select: { firstName: true, lastName: true, email: true } },
           company: { select: { name: true } },
           stage: { select: { name: true } },
-          assignedTo: { select: { firstName: true, lastName: true } }
+          assignedTo: { select: { firstName: true, lastName: true } },
+          campaign: { select: { name: true } }
         }
       }),
       prisma.lead.count({ where }),
@@ -133,6 +135,7 @@ export class LeadService {
         company: true,
         stage: true,
         assignedTo: { select: { id: true, firstName: true, lastName: true } },
+        campaign: { select: { id: true, name: true } },
         _count: {
           select: { tasks: true, communications: true }
         }

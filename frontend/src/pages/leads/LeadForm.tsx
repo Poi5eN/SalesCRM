@@ -9,6 +9,7 @@ import * as leadsApi from '@/api/leads.api.ts';
 import * as contactsApi from '@/api/contacts.api.ts';
 import * as pipelineApi from '@/api/pipeline.api.ts';
 import * as usersApi from '@/api/users.api.ts';
+import * as campaignsApi from '@/api/campaigns.api.ts';
 import { Button } from '@/components/ui/Button.tsx';
 import type { Lead, Contact, PipelineStage } from '@/types/api.types.ts';
 import { PRIORITY_OPTIONS, SOURCE_OPTIONS } from './leadUtils.ts';
@@ -28,6 +29,7 @@ const leadSchema = z.object({
   assignedToId: z.string().optional(),
   description: z.string().optional(),
   tags: z.string().optional(),
+  campaignId: z.string().optional(),
 });
 
 type LeadFormData = z.infer<typeof leadSchema>;
@@ -68,6 +70,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
       assignedToId: lead.assignedToId ?? '',
       description: lead.description ?? '',
       tags: lead.tags.join(', '),
+      campaignId: lead.campaignId ?? '',
     } : {
       title: '',
       stageId: defaultStageId ?? '',
@@ -75,6 +78,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
       source: 'manual',
       currency: 'USD',
       tags: '',
+      campaignId: '',
     },
   });
 
@@ -111,6 +115,11 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
     queryFn: () => usersApi.getUsers(),
   });
 
+  const { data: campaignsData } = useQuery({
+    queryKey: ['campaigns'],
+    queryFn: () => campaignsApi.getCampaigns({ limit: 100 }),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data: any) => leadsApi.createLead(data),
     onSuccess: (res) => {
@@ -140,6 +149,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
       estimatedValue: data.estimatedValue ? parseFloat(data.estimatedValue) : undefined,
       expectedCloseAt: data.expectedCloseAt ? new Date(data.expectedCloseAt).toISOString() : undefined,
       tags: data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+      campaignId: data.campaignId || null,
     };
 
     if (lead) updateMutation.mutate(payload);
@@ -157,6 +167,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
   const stages: PipelineStage[] = (stagesData?.data as any) || [];
   const contacts: Contact[] = contactsData?.data?.data ?? [];
   const users = usersData?.data?.data ?? [];
+  const campaigns = campaignsData?.data?.data ?? [];
   const isSaving = createMutation.isPending || updateMutation.isPending || isSubmitting;
 
   return (
@@ -344,13 +355,28 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Categorization Tags</label>
-            <input
-              {...register('tags')}
-              placeholder="e.g. high-value, q4-target, enterprise"
-              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-            />
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Marketing Campaign</label>
+              <select
+                {...register('campaignId')}
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none text-left"
+              >
+                <option value="">No Campaign</option>
+                {campaigns.map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.name} ({c.platform})</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Categorization Tags</label>
+              <input
+                {...register('tags')}
+                placeholder="e.g. high-value, q4-target, enterprise"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end space-x-4 pt-4">

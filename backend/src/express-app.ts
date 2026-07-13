@@ -25,6 +25,7 @@ import { proposalRoutes, publicProposalRoutes } from '@/modules/proposals/propos
 import analyticsRoutes from '@/modules/analytics/analytics.routes.js';
 import leadScoringRoutes from '@/modules/leadScoring/leadScoring.routes.js';
 import emailTemplateRoutes from '@/modules/emailTemplates/emailTemplate.routes.js';
+import campaignRoutes from '@/modules/campaigns/campaign.routes.js';
 
 const app = express();
 
@@ -68,22 +69,58 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/rbac', rbacRoutes);
+app.use('/rbac', rbacRoutes);
+
 app.use('/api/tenants', tenantRoutes);
+app.use('/tenants', tenantRoutes);
+
 app.use('/api/pipeline-stages', stageRoutes);
+app.use('/pipeline-stages', stageRoutes);
+
 app.use('/api/companies', companyRoutes);
+app.use('/companies', companyRoutes);
+
 app.use('/api/contacts', contactRoutes);
+app.use('/contacts', contactRoutes);
+
 app.use('/api/leads', leadRoutes);
+app.use('/leads', leadRoutes);
+
 app.use('/api/deals', dealRoutes);
+app.use('/deals', dealRoutes);
+
 app.use('/api/tasks', taskRoutes);
+app.use('/tasks', taskRoutes);
+
 app.use('/api/communications', communicationRoutes);
+app.use('/communications', communicationRoutes);
+
 app.use('/api/products', productRoutes);
+app.use('/products', productRoutes);
+
 app.use('/api/activities', activityRoutes);
+app.use('/activities', activityRoutes);
+
 app.use('/api/proposals', proposalRoutes);
+app.use('/proposals', proposalRoutes);
+
 app.use('/api/public/proposals', publicProposalRoutes);
+app.use('/public/proposals', publicProposalRoutes);
+
 app.use('/api/analytics', analyticsRoutes);
+app.use('/analytics', analyticsRoutes);
+
 app.use('/api/lead-scoring', leadScoringRoutes);
+app.use('/lead-scoring', leadScoringRoutes);
+
 app.use('/api/email-templates', emailTemplateRoutes);
+app.use('/email-templates', emailTemplateRoutes);
+
+app.use('/api/campaigns', campaignRoutes);
+app.use('/campaigns', campaignRoutes);
 
 // Error Handling
 app.use(notFound);

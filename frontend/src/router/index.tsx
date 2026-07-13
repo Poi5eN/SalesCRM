@@ -8,6 +8,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary.tsx';
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage.tsx'));
 const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage.tsx'));
 const LeadsPage = lazy(() => import('@/pages/leads/LeadsPage.tsx'));
+const CampaignsPage = lazy(() => import('@/pages/campaigns/CampaignsPage.tsx'));
 const DealsPage = lazy(() => import('@/pages/deals/DealsPage.tsx'));
 const ContactsPage = lazy(() => import('@/pages/contacts/ContactsPage.tsx'));
 const CompaniesPage = lazy(() => import('@/pages/companies/CompaniesPage.tsx'));
@@ -33,6 +34,7 @@ export const AppRouter = () => {
                <Route index element={<Navigate to="/dashboard" replace />} />
                <Route path="/dashboard" element={<DashboardPage />} />
                <Route path="/leads" element={<LeadsPage />} />
+               <Route path="/campaigns" element={<CampaignsPage />} />
                <Route path="/deals" element={<DealsPage />} />
                <Route path="/contacts" element={<ContactsPage />} />
                <Route path="/companies" element={<CompaniesPage />} />

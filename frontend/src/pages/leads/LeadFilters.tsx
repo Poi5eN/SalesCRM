@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { X, SlidersHorizontal } from 'lucide-react';
 import * as pipelineApi from '@/api/pipeline.api.ts';
 import * as usersApi from '@/api/users.api.ts';
+import * as campaignsApi from '@/api/campaigns.api.ts';
 import { Button } from '@/components/ui/Button.tsx';
 import { PRIORITY_OPTIONS, SOURCE_OPTIONS } from './leadUtils.ts';
 
@@ -11,6 +12,7 @@ export interface LeadFiltersState {
   priorities: string[];
   sources: string[];
   assignedToId: string;
+  campaignId: string;
   createdAtFrom: string;
   createdAtTo: string;
   minScore: string;
@@ -20,7 +22,7 @@ export interface LeadFiltersState {
 }
 
 export const DEFAULT_FILTERS: LeadFiltersState = {
-  stageIds: [], priorities: [], sources: [], assignedToId: '',
+  stageIds: [], priorities: [], sources: [], assignedToId: '', campaignId: '',
   createdAtFrom: '', createdAtTo: '', minScore: '', maxScore: '',
   hasCompany: false, isStale: false,
 };
@@ -31,6 +33,7 @@ export function countActiveFilters(filters: LeadFiltersState): number {
   if (filters.priorities.length) count++;
   if (filters.sources.length) count++;
   if (filters.assignedToId) count++;
+  if (filters.campaignId) count++;
   if (filters.createdAtFrom || filters.createdAtTo) count++;
   if (filters.minScore || filters.maxScore) count++;
   if (filters.hasCompany) count++;
@@ -54,9 +57,14 @@ export function LeadFilters({ open, filters, onChange, onClose }: LeadFiltersPro
     queryKey: ['users'],
     queryFn: () => usersApi.getUsers(),
   });
+  const { data: campaignsData } = useQuery({
+    queryKey: ['campaigns'],
+    queryFn: () => campaignsApi.getCampaigns({ limit: 100 }),
+  });
 
   const stages = (stagesData?.data as any) ?? [];
   const users = usersData?.data?.data ?? [];
+  const campaigns = campaignsData?.data?.data ?? [];
 
   function toggleMulti<K extends 'stageIds' | 'priorities' | 'sources'>(key: K, value: string) {
     const current = filters[key] as string[];
@@ -151,6 +159,21 @@ export function LeadFilters({ open, filters, onChange, onClose }: LeadFiltersPro
               <option value="">Anyone</option>
               {users.map((u: any) => (
                 <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Marketing Campaign */}
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Marketing Campaign</p>
+            <select
+              value={filters.campaignId}
+              onChange={e => onChange({ ...filters, campaignId: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+            >
+              <option value="">Any Campaign</option>
+              {campaigns.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.name} ({c.platform})</option>
               ))}
             </select>
           </div>

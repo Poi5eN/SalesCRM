@@ -206,6 +206,7 @@ export function LeadDetailModal({ lead, onClose, onEdit, onConvert }: Props) {
                   ['Source', currentLead.source?.replace(/([A-Z])/g, ' $1').trim()],
                   ['Contact', currentLead.contact ? `${currentLead.contact.firstName} ${currentLead.contact.lastName ?? ''}` : '—'],
                   ['Company', currentLead.company?.name ?? '—'],
+                  ['Marketing Campaign', currentLead.campaign?.name ?? '—'],
                   ['Currency', currentLead.currency],
                   ['Last Activity', currentLead.lastActivityAt ? formatDistanceToNow(new Date(currentLead.lastActivityAt), { addSuffix: true }) : '—'],
                   ['Created', format(new Date(currentLead.createdAt), 'dd MMM yyyy, HH:mm')],

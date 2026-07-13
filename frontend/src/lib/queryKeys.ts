@@ -60,6 +60,11 @@ export const queryKeys = {
     summary: (period: string) => ['analytics', 'summary', period],
     heatmap: ['analytics', 'heatmap'],
   },
+  campaigns: {
+    all: ['campaigns'],
+    list: (params: any) => ['campaigns', 'list', params],
+    detail: (id: string) => ['campaigns', 'detail', id],
+  },
   settings: {
     stages: ['settings', 'stages'],
     team: ['settings', 'team'],

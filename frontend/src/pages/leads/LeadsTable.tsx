@@ -118,6 +118,14 @@ export function LeadsTable({ leads, stages, isLoading, pagination, sort, onRowCl
       ),
     },
     {
+      header: 'Campaign',
+      accessor: (lead: Lead) => (
+        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[120px] inline-block" title={lead.campaign?.name || '—'}>
+          {lead.campaign?.name || '—'}
+        </span>
+      ),
+    },
+    {
       header: 'Value',
       accessor: (lead: Lead) => (
         <span className="text-sm font-black text-slate-900 dark:text-white tracking-tight">

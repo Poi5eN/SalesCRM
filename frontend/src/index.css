@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
-  --font-mono: "DM Mono", monospace;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
   
   --color-sidebar-bg: var(--sidebar-bg);
   --color-sidebar-text: var(--sidebar-text);
@@ -19,32 +19,32 @@
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-error: #EF4444;
-  --color-info: #6366F1;
+  --color-success: #2E8B57;
+  --color-warning: #C58A00;
+  --color-error: #ba1a1a;
+  --color-info: #3B82F6;
   
-  --color-priority-urgent: #EF4444;
-  --color-priority-high: #F97316;
-  --color-priority-medium: #F59E0B;
-  --color-priority-low: #6B7280;
+  --color-priority-urgent: #ba1a1a;
+  --color-priority-high: #f97316;
+  --color-priority-medium: #C58A00;
+  --color-priority-low: #747878;
 }
 
 :root {
-  /* Light Mode Tokens (Default Sidebar is dark anyway) */
-  --sidebar-bg: #0F1117;
-  --sidebar-text: #8B8FA8;
-  --sidebar-text-active: #FFFFFF;
-  --sidebar-accent: #6366F1;
-  --sidebar-item-active-bg: rgba(99, 102, 241, 0.15);
+  /* Light Mode (Notion-inspired Calm) */
+  --sidebar-bg: #F5F5F3;
+  --sidebar-text: #5e5e5e;
+  --sidebar-text-active: #1c1b1b;
+  --sidebar-accent: #000000;
+  --sidebar-item-active-bg: #e5e2e1;
   
-  --content-bg: #FAFAFA;
+  --content-bg: #FAFAF8;
   --card-bg: #FFFFFF;
-  --border: #E5E7EB;
+  --border: #E8E8E6;
   
-  --text-primary: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #9CA3AF;
+  --text-primary: #1c1b1b;
+  --text-secondary: #444748;
+  --text-muted: #747878;
 
   font-family: var(--font-sans);
   line-height: 1.5;
@@ -53,13 +53,20 @@
 }
 
 [data-theme="dark"] {
-  --content-bg: #0B0E14;
-  --card-bg: #14171F;
-  --border: #232730;
+  /* Dark Mode (Calm dark) */
+  --sidebar-bg: #171717;
+  --sidebar-text: #cac6c3;
+  --sidebar-text-active: #ffffff;
+  --sidebar-accent: #ffffff;
+  --sidebar-item-active-bg: #2d2d2d;
+
+  --content-bg: #121212;
+  --card-bg: #1B1B1B;
+  --border: #2A2A2A;
   
-  --text-primary: #F9FAFB;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
+  --text-primary: #f4f0ef;
+  --text-secondary: #cac6c3;
+  --text-muted: #747878;
   
   color-scheme: dark;
 }
@@ -100,4 +107,58 @@ body {
 
 .hover-bg-transition {
   @apply transition-colors duration-100;
+}
+
+/* Global design system mapping overrides for instant theme-wide cohesion */
+.bg-white {
+  background-color: var(--card-bg) !important;
+}
+.bg-slate-50 {
+  background-color: var(--content-bg) !important;
+}
+.bg-slate-100 {
+  background-color: var(--sidebar-item-active-bg) !important;
+}
+.border-slate-100,
+.border-slate-200 {
+  border-color: var(--border) !important;
+}
+.text-slate-900 {
+  color: var(--text-primary) !important;
+}
+.text-slate-700,
+.text-slate-600,
+.text-slate-500 {
+  color: var(--text-secondary) !important;
+}
+.text-slate-400 {
+  color: var(--text-muted) !important;
+}
+
+/* Dark theme specific class overrides */
+[data-theme="dark"] {
+  .dark\:bg-slate-800,
+  .dark\:bg-slate-900 {
+    background-color: var(--card-bg) !important;
+  }
+  .dark\:bg-slate-950\/20,
+  .dark\:bg-slate-900\/50 {
+    background-color: var(--content-bg) !important;
+  }
+  .dark\:border-slate-650,
+  .dark\:border-slate-700,
+  .dark\:border-slate-800 {
+    border-color: var(--border) !important;
+  }
+  .dark\:text-white {
+    color: var(--text-primary) !important;
+  }
+  .dark\:text-slate-200,
+  .dark\:text-slate-300,
+  .dark\:text-slate-400 {
+    color: var(--text-secondary) !important;
+  }
+  .dark\:text-slate-500 {
+    color: var(--text-muted) !important;
+  }
 }
