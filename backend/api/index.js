@@ -88,7 +88,7 @@ var package_default = {
   main: "index.js",
   scripts: {
     dev: "tsx watch src/main.ts",
-    build: "prisma generate && tsc && tsc-alias",
+    build: "npm install && prisma generate && tsc && tsc-alias",
     "vercel-build": "prisma generate && tsup src/entry.ts --format esm --platform node --out-dir api && mv api/entry.js api/index.js",
     start: "node dist/main.js",
     typecheck: "tsc --noEmit",
@@ -101,22 +101,6 @@ var package_default = {
   dependencies: {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    bcryptjs: "^3.0.3",
-    "cookie-parser": "^1.4.7",
-    cors: "^2.8.6",
-    "date-fns": "^4.1.0",
-    dotenv: "^17.4.2",
-    express: "^5.2.1",
-    helmet: "^8.1.0",
-    jsonwebtoken: "^9.0.3",
-    morgan: "^1.10.1",
-    pg: "^8.20.0",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    uuid: "^14.0.0",
-    zod: "^4.4.3"
-  },
-  devDependencies: {
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
@@ -127,14 +111,30 @@ var package_default = {
     "@types/pg": "^8.20.0",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    bcryptjs: "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    cors: "^2.8.6",
+    "date-fns": "^4.1.0",
+    dotenv: "^17.4.2",
+    express: "^5.2.1",
+    helmet: "^8.1.0",
+    jsonwebtoken: "^9.0.3",
+    morgan: "^1.10.1",
+    pg: "^8.20.0",
+    prisma: "^7.8.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "tsc-alias": "^1.8.17",
+    typescript: "^5.8.2",
+    uuid: "^14.0.0",
+    zod: "^4.4.3"
+  },
+  devDependencies: {
     esbuild: "^0.28.1",
     nodemon: "^3.1.14",
-    prisma: "^7.8.0",
     "ts-node": "^10.9.2",
-    "tsc-alias": "^1.8.17",
     tsup: "^8.5.1",
-    tsx: "^4.21.0",
-    typescript: "^5.8.2"
+    tsx: "^4.21.0"
   }
 };
 
@@ -312,7 +312,7 @@ var RBACService = class {
     }));
   }
   static async seedDefaults(tenantId, tx) {
-    const resources = ["leads", "deals", "contacts", "companies", "tasks", "proposals", "products", "users", "settings"];
+    const resources = ["leads", "deals", "contacts", "companies", "tasks", "proposals", "products", "users", "settings", "reports", "communications"];
     const actions = ["read", "create", "update", "delete", "export"];
     const permissionsData = [];
     for (const res of resources) {
@@ -342,7 +342,9 @@ var RBACService = class {
     await tx.rolePermission.createMany({
       data: allPermissions.map((p) => ({ roleId: adminRole.id, permissionId: p.id }))
     });
-    const managerPerms = allPermissions.filter((p) => p.resource !== "settings" || p.action === "read");
+    const managerPerms = allPermissions.filter(
+      (p) => p.resource !== "settings" && p.resource !== "reports" || p.action === "read"
+    );
     await tx.rolePermission.createMany({
       data: managerPerms.map((p) => ({ roleId: managerRole.id, permissionId: p.id }))
     });
@@ -393,6 +395,7 @@ async function seedDemoData() {
     await database_default.task.deleteMany({ where: { tenantId: tenant.id } });
     await database_default.communication.deleteMany({ where: { tenantId: tenant.id } });
     await database_default.lead.deleteMany({ where: { tenantId: tenant.id } });
+    await database_default.campaign.deleteMany({ where: { tenantId: tenant.id } });
     await database_default.deal.deleteMany({ where: { tenantId: tenant.id } });
     await database_default.contact.deleteMany({ where: { tenantId: tenant.id } });
     await database_default.company.deleteMany({ where: { tenantId: tenant.id } });
@@ -558,16 +561,38 @@ async function seedDemoData() {
     });
     products.push(prod);
   }
+  console.log("\u{1F331} Seeding campaigns...");
+  const campaignsData = [
+    { name: "Google Ads Search Q3", platform: "Google Ads", budget: 5e3, status: "active", startDate: subDays(/* @__PURE__ */ new Date(), 30), endDate: addDays(/* @__PURE__ */ new Date(), 30) },
+    { name: "Meta Core Retargeting", platform: "Meta Ads", budget: 3500, status: "active", startDate: subDays(/* @__PURE__ */ new Date(), 15), endDate: addDays(/* @__PURE__ */ new Date(), 45) },
+    { name: "Summer Coworking Email Blast", platform: "Email", budget: 800, status: "completed", startDate: subDays(/* @__PURE__ */ new Date(), 60), endDate: subDays(/* @__PURE__ */ new Date(), 30) },
+    { name: "Direct Inbound Organic", platform: "Landing Page", budget: 0, status: "active", startDate: subDays(/* @__PURE__ */ new Date(), 90) }
+  ];
+  const campaigns = [];
+  for (const c of campaignsData) {
+    const camp = await database_default.campaign.create({
+      data: {
+        tenantId: tenant.id,
+        name: c.name,
+        platform: c.platform,
+        budget: c.budget,
+        status: c.status,
+        startDate: c.startDate,
+        endDate: c.endDate
+      }
+    });
+    campaigns.push(camp);
+  }
   console.log("\u{1F331} Seeding companies...");
   const companiesData = [
-    { name: "Vortex AI Solutions", website: "https://vortexai.io", industry: "Technology", size: "11-50", revenue: 25e5, description: "Building next-generation generative AI agents for B2B enterprises." },
-    { name: "Summit Global Health", website: "https://summithealth.com", industry: "Healthcare", size: "201-500", revenue: 15e6, description: "Global healthcare provider specializing in clinical systems integration." },
-    { name: "Nexus Logistics Group", website: "https://nexuslogistics.com", industry: "Manufacturing", size: "51-200", revenue: 85e5, description: "Multinational supply chain and freight forwarding services." },
-    { name: "Starlight Creative Labs", website: "https://starlightcreative.co", industry: "Education", size: "1-10", revenue: 45e4, description: "Creative studio delivering interactive learning content and animation." },
-    { name: "Apex Wealth Capital", website: "https://apexwealth.com", industry: "Finance", size: "11-50", revenue: 62e5, description: "Boutique asset management and private equity firm." },
-    { name: "Nova Foods Corp", website: "https://novafoods.com", industry: "Manufacturing", size: "500+", revenue: 42e6, description: "Pioneers in high-protein plant-based meat alternatives." },
-    { name: "Pulse Media Digital", website: "https://pulsemedia.com", industry: "Technology", size: "51-200", revenue: 38e5, description: "Full stack digital marketing and programmatic advertising agency." },
-    { name: "Core Infrastructure Inc", website: "https://coreinfra.net", industry: "Manufacturing", size: "201-500", revenue: 11e6, description: "Leading structural engineering firm specializing in green buildings." }
+    { name: "Vortex AI Solutions", website: "https://vortexai.io", industry: "Technology", size: "11-50", revenue: 25e5, country: "India", city: "Bengaluru", state: "Karnataka", address: "Indiranagar, 100ft Road, Bengaluru", pincode: "560038", linkedinUrl: "https://linkedin.com/company/vortex-ai-solutions", description: "Building next-generation generative AI agents for B2B enterprises." },
+    { name: "Summit Global Health", website: "https://summithealth.com", industry: "Healthcare", size: "201-500", revenue: 15e6, country: "India", city: "Mumbai", state: "Maharashtra", address: "Bandra Kurla Complex, Mumbai", pincode: "400051", linkedinUrl: "https://linkedin.com/company/summit-global-health", description: "Global healthcare provider specializing in clinical systems integration." },
+    { name: "Nexus Logistics Group", website: "https://nexuslogistics.com", industry: "Manufacturing", size: "51-200", revenue: 85e5, country: "India", city: "Chennai", state: "Tamil Nadu", address: "Mount Road, Chennai", pincode: "600002", linkedinUrl: "https://linkedin.com/company/nexus-logistics-group", description: "Multinational supply chain and freight forwarding services." },
+    { name: "Starlight Creative Labs", website: "https://starlightcreative.co", industry: "Education", size: "1-10", revenue: 45e4, country: "United States", city: "New York", state: "New York", address: "123 Broadway, Suite 400, New York", pincode: "10006", linkedinUrl: "https://linkedin.com/company/starlight-creative-labs", description: "Creative studio delivering interactive learning content and animation." },
+    { name: "Apex Wealth Capital", website: "https://apexwealth.com", industry: "Finance", size: "11-50", revenue: 62e5, country: "Singapore", city: "Singapore", state: "Singapore", address: "1 Raffles Place, Singapore", pincode: "048616", linkedinUrl: "https://linkedin.com/company/apex-wealth-capital", description: "Boutique asset management and private equity firm." },
+    { name: "Nova Foods Corp", website: "https://novafoods.com", industry: "Manufacturing", size: "500+", revenue: 42e6, country: "India", city: "Pune", state: "Maharashtra", address: "Koregaon Park, Pune", pincode: "411001", linkedinUrl: "https://linkedin.com/company/nova-foods-corp", description: "Pioneers in high-protein plant-based meat alternatives." },
+    { name: "Pulse Media Digital", website: "https://pulsemedia.com", industry: "Technology", size: "51-200", revenue: 38e5, country: "India", city: "Gurugram", state: "Haryana", address: "DLF Cyber City, Gurugram", pincode: "122002", linkedinUrl: "https://linkedin.com/company/pulse-media-digital", description: "Full stack digital marketing and programmatic advertising agency." },
+    { name: "Core Infrastructure Inc", website: "https://coreinfra.net", industry: "Manufacturing", size: "201-500", revenue: 11e6, country: "India", city: "Hyderabad", state: "Telangana", address: "HITEC City, Hyderabad", pincode: "500081", linkedinUrl: "https://linkedin.com/company/core-infrastructure-inc", description: "Leading structural engineering firm specializing in green buildings." }
   ];
   const companies = [];
   for (const c of companiesData) {
@@ -579,6 +604,12 @@ async function seedDemoData() {
         industry: c.industry,
         size: c.size,
         annualRevenue: c.revenue,
+        country: c.country,
+        city: c.city,
+        state: c.state,
+        linkedinUrl: c.linkedinUrl,
+        address: c.address,
+        pincode: c.pincode,
         description: c.description,
         createdById: demoAdmin.id,
         tags: ["demo", c.industry.toLowerCase()]
@@ -588,16 +619,16 @@ async function seedDemoData() {
   }
   console.log("\u{1F331} Seeding contacts...");
   const contactsData = [
-    { first: "Sarah", last: "Connor", email: "sconnor@vortexai.io", phone: "+1-555-0199", company: "Vortex AI Solutions", designation: "Head of Operations" },
-    { first: "Marcus", last: "Vance", email: "mvance@vortexai.io", phone: "+1-555-0142", company: "Vortex AI Solutions", designation: "VP of Engineering" },
-    { first: "Elena", last: "Rostova", email: "erostova@summithealth.com", phone: "+1-555-0188", company: "Summit Global Health", designation: "Chief Facilities Officer" },
-    { first: "David", last: "Kim", email: "dkim@nexuslogistics.com", phone: "+1-555-0125", company: "Nexus Logistics Group", designation: "Procurement Director" },
-    { first: "Chloe", last: "Bennett", email: "chloe@starlightcreative.co", phone: "+1-555-0156", company: "Starlight Creative Labs", designation: "Founder & CD" },
-    { first: "Arthur", last: "Pendleton", email: "apendleton@apexwealth.com", phone: "+1-555-0177", company: "Apex Wealth Capital", designation: "Managing Partner" },
-    { first: "Rebecca", last: "Nunez", email: "rnunez@novafoods.com", phone: "+1-555-0111", company: "Nova Foods Corp", designation: "Director of HR" },
-    { first: "Julian", last: "Asher", email: "julian@pulsemedia.com", phone: "+1-555-0163", company: "Pulse Media Digital", designation: "CEO" },
-    { first: "Rachel", last: "Green", email: "rgreen@novafoods.com", phone: "+1-555-0100", company: "Nova Foods Corp", designation: "Office Manager" },
-    { first: "Liam", last: "Neeson", email: "lneeson@coreinfra.net", phone: "+1-555-0191", company: "Core Infrastructure Inc", designation: "Site Coordinator" }
+    { first: "Sarah", last: "Connor", email: "sconnor@vortexai.io", phone: "+1-555-0199", whatsapp: "+1-555-0199", company: "Vortex AI Solutions", designation: "Head of Operations", department: "Operations", linkedinUrl: "https://linkedin.com/in/sarah-connor-vortex", country: "India", city: "Bengaluru" },
+    { first: "Marcus", last: "Vance", email: "mvance@vortexai.io", phone: "+1-555-0142", whatsapp: "+1-555-0142", company: "Vortex AI Solutions", designation: "VP of Engineering", department: "Engineering", linkedinUrl: "https://linkedin.com/in/marcus-vance-vortex", country: "India", city: "Bengaluru" },
+    { first: "Elena", last: "Rostova", email: "erostova@summithealth.com", phone: "+1-555-0188", whatsapp: "+1-555-0188", company: "Summit Global Health", designation: "Chief Facilities Officer", department: "Facilities", linkedinUrl: "https://linkedin.com/in/elena-rostova-summit", country: "India", city: "Mumbai" },
+    { first: "David", last: "Kim", email: "dkim@nexuslogistics.com", phone: "+1-555-0125", whatsapp: "+1-555-0125", company: "Nexus Logistics Group", designation: "Procurement Director", department: "Procurement", linkedinUrl: "https://linkedin.com/in/david-kim-nexus", country: "India", city: "Chennai" },
+    { first: "Chloe", last: "Bennett", email: "chloe@starlightcreative.co", phone: "+1-555-0156", whatsapp: "+1-555-0156", company: "Starlight Creative Labs", designation: "Founder & CD", department: "Executive", linkedinUrl: "https://linkedin.com/in/chloe-bennett-starlight", country: "United States", city: "New York" },
+    { first: "Arthur", last: "Pendleton", email: "apendleton@apexwealth.com", phone: "+1-555-0177", whatsapp: "+1-555-0177", company: "Apex Wealth Capital", designation: "Managing Partner", department: "Executive", linkedinUrl: "https://linkedin.com/in/arthur-pendleton-apex", country: "Singapore", city: "Singapore" },
+    { first: "Rebecca", last: "Nunez", email: "rnunez@novafoods.com", phone: "+1-555-0111", whatsapp: "+1-555-0111", company: "Nova Foods Corp", designation: "Director of HR", department: "Human Resources", linkedinUrl: "https://linkedin.com/in/rebecca-nunez-nova", country: "India", city: "Pune" },
+    { first: "Julian", last: "Asher", email: "julian@pulsemedia.com", phone: "+1-555-0163", whatsapp: "+1-555-0163", company: "Pulse Media Digital", designation: "CEO", department: "Executive", linkedinUrl: "https://linkedin.com/in/julian-asher-pulse", country: "India", city: "Gurugram" },
+    { first: "Rachel", last: "Green", email: "rgreen@novafoods.com", phone: "+1-555-0100", whatsapp: "+1-555-0100", company: "Nova Foods Corp", designation: "Office Manager", department: "Administration", linkedinUrl: "https://linkedin.com/in/rachel-green-nova", country: "India", city: "Pune" },
+    { first: "Liam", last: "Neeson", email: "lneeson@coreinfra.net", phone: "+1-555-0191", whatsapp: "+1-555-0191", company: "Core Infrastructure Inc", designation: "Site Coordinator", department: "Operations", linkedinUrl: "https://linkedin.com/in/liam-neeson-coreinfra", country: "India", city: "Hyderabad" }
   ];
   const contacts = [];
   for (const c of contactsData) {
@@ -610,7 +641,12 @@ async function seedDemoData() {
         lastName: c.last,
         email: c.email,
         phone: c.phone,
+        whatsapp: c.whatsapp,
         designation: c.designation,
+        department: c.department,
+        linkedinUrl: c.linkedinUrl,
+        country: c.country,
+        city: c.city,
         createdById: demoAdmin.id,
         tags: ["lead-contact", "decision-maker"]
       }
@@ -619,14 +655,14 @@ async function seedDemoData() {
   }
   console.log("\u{1F331} Seeding leads...");
   const leadsData = [
-    { title: "Expansion Space Vortex AI", value: 12e3, stage: "Qualified", contact: "Sarah Connor", source: LeadSource.webForm, priority: LeadPriority.high },
-    { title: "Summit Health Remote Offices", value: 25e3, stage: "Contacted", contact: "Elena Rostova", source: LeadSource.referral, priority: LeadPriority.medium },
-    { title: "Nexus Logistics Hub Office", value: 8e3, stage: "New", contact: "David Kim", source: LeadSource.coldOutreach, priority: LeadPriority.low },
-    { title: "Starlight Creative Co-working", value: 1500, stage: "Nurturing", contact: "Chloe Bennett", source: LeadSource.socialMedia, priority: LeadPriority.low },
-    { title: "Nova Foods Hybrid Setup", value: 3e4, stage: "New", contact: "Rebecca Nunez", source: LeadSource.webForm, priority: LeadPriority.urgent },
-    { title: "Apex Wealth Corporate HQ", value: 18e3, stage: "Qualified", contact: "Arthur Pendleton", source: LeadSource.referral, priority: LeadPriority.high },
-    { title: "Pulse Media Extra Desks", value: 3500, stage: "Contacted", contact: "Julian Asher", source: LeadSource.manual, priority: LeadPriority.medium },
-    { title: "Core Infra Project Office", value: 9500, stage: "Nurturing", contact: "Liam Neeson", source: LeadSource.manual, priority: LeadPriority.medium }
+    { title: "Expansion Space Vortex AI", value: 12e3, stage: "Qualified", contact: "Sarah Connor", source: LeadSource.webForm, priority: LeadPriority.high, campaign: "Google Ads Search Q3" },
+    { title: "Summit Health Remote Offices", value: 25e3, stage: "Contacted", contact: "Elena Rostova", source: LeadSource.referral, priority: LeadPriority.medium, campaign: "Meta Core Retargeting" },
+    { title: "Nexus Logistics Hub Office", value: 8e3, stage: "New", contact: "David Kim", source: LeadSource.coldOutreach, priority: LeadPriority.low, campaign: "Google Ads Search Q3" },
+    { title: "Starlight Creative Co-working", value: 1500, stage: "Nurturing", contact: "Chloe Bennett", source: LeadSource.socialMedia, priority: LeadPriority.low, campaign: "Summer Coworking Email Blast" },
+    { title: "Nova Foods Hybrid Setup", value: 3e4, stage: "New", contact: "Rebecca Nunez", source: LeadSource.webForm, priority: LeadPriority.urgent, campaign: "Google Ads Search Q3" },
+    { title: "Apex Wealth Corporate HQ", value: 18e3, stage: "Qualified", contact: "Arthur Pendleton", source: LeadSource.referral, priority: LeadPriority.high, campaign: "Meta Core Retargeting" },
+    { title: "Pulse Media Extra Desks", value: 3500, stage: "Contacted", contact: "Julian Asher", source: LeadSource.manual, priority: LeadPriority.medium, campaign: "Direct Inbound Organic" },
+    { title: "Core Infra Project Office", value: 9500, stage: "Nurturing", contact: "Liam Neeson", source: LeadSource.manual, priority: LeadPriority.medium, campaign: "Direct Inbound Organic" }
   ];
   const leads = [];
   for (let i = 0; i < leadsData.length; i++) {
@@ -634,6 +670,7 @@ async function seedDemoData() {
     const contact = contacts.find((c) => `${c.firstName} ${c.lastName}` === l.contact);
     const stage = dbLeadStages.find((s) => s.name === l.stage);
     const rep = reps[i % reps.length];
+    const leadCampaign = campaigns.find((c) => c.name === l.campaign);
     const lead = await database_default.lead.create({
       data: {
         tenantId: tenant.id,
@@ -648,7 +685,8 @@ async function seedDemoData() {
         estimatedValue: l.value,
         currency: "USD",
         score: 60 + i * 5,
-        expectedCloseAt: addDays(/* @__PURE__ */ new Date(), 30 + i * 2)
+        expectedCloseAt: addDays(/* @__PURE__ */ new Date(), 30 + i * 2),
+        campaignId: leadCampaign?.id || null
       }
     });
     leads.push(lead);
@@ -1581,6 +1619,9 @@ var TenantService = class {
           }
         }
       });
+    }, {
+      maxWait: 1e4,
+      timeout: 2e4
     });
   }
   static async softDeleteUser(tenantId, userId, reassignToUserId) {
@@ -1615,6 +1656,9 @@ var TenantService = class {
         }
       });
       return { success: true, message: "User soft-deleted and records reassigned" };
+    }, {
+      maxWait: 1e4,
+      timeout: 2e4
     });
   }
 };
@@ -1672,12 +1716,11 @@ var deleteUserSchema = z5.object({
 // src/modules/tenants/tenant.routes.ts
 var router3 = Router3();
 router3.use(authGuard_default);
-router3.use(rbacGuard_default("settings", "update"));
 router3.get("/me", asyncHandler_default(TenantController.getMe));
-router3.patch("/me", validate_default(updateTenantSchema), asyncHandler_default(TenantController.updateMe));
 router3.get("/me/users", asyncHandler_default(TenantController.listUsers));
-router3.patch("/users/:id", validate_default(updateUserStatusRoleSchema), asyncHandler_default(TenantController.updateUser));
-router3.delete("/users/:id", validate_default(deleteUserSchema), asyncHandler_default(TenantController.deleteUser));
+router3.patch("/me", rbacGuard_default("settings", "update"), validate_default(updateTenantSchema), asyncHandler_default(TenantController.updateMe));
+router3.patch("/users/:id", rbacGuard_default("settings", "update"), validate_default(updateUserStatusRoleSchema), asyncHandler_default(TenantController.updateUser));
+router3.delete("/users/:id", rbacGuard_default("settings", "update"), validate_default(deleteUserSchema), asyncHandler_default(TenantController.deleteUser));
 var tenant_routes_default = router3;
 
 // src/modules/pipeline-stages/stage.routes.ts
@@ -2066,6 +2109,29 @@ var company_routes_default = router5;
 // src/modules/contacts/contact.routes.ts
 import { Router as Router6 } from "express";
 
+// src/utils/phone.ts
+var DEFAULT_COUNTRY_CODE = "91";
+function normalizePhone(phone) {
+  if (!phone || typeof phone !== "string") return null;
+  let cleaned = phone.trim();
+  if (cleaned.length === 0) return null;
+  const hasPlus = cleaned.startsWith("+");
+  const digitsOnly = cleaned.replace(/[^\d]/g, "");
+  if (digitsOnly.length === 0) return null;
+  let normalized;
+  if (hasPlus) {
+    normalized = "+" + digitsOnly;
+  } else {
+    normalized = "+" + DEFAULT_COUNTRY_CODE + digitsOnly;
+  }
+  return normalized;
+}
+function normalizePhoneForStorage(phone) {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return null;
+  return normalized.replace(/^\+/, "");
+}
+
 // src/modules/contacts/contact.service.ts
 var ContactService = class {
   static async listContacts(tenantId, filters) {
@@ -2101,21 +2167,40 @@ var ContactService = class {
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) }
     };
   }
+  /**
+   * Normalized phone matching: strips formatting and compares trailing digits.
+   * This catches "+91 98765 43210" matching "9876543210" or "+1 (555) 123-4567".
+   */
+  static buildPhoneCondition(phone) {
+    const normalized = normalizePhoneForStorage(phone);
+    if (!normalized) return null;
+    const last10 = normalized.slice(-10);
+    return { phone: { contains: last10 } };
+  }
   static async createContact(tenantId, userId, data, force = false) {
     if (!force) {
-      const duplicates = await database_default.contact.findMany({
-        where: {
-          tenantId,
-          deletedAt: null,
-          OR: [
-            ...data.email ? [{ email: data.email }] : [],
-            ...data.phone ? [{ phone: data.phone }] : []
-          ]
-        },
-        select: { id: true, firstName: true, lastName: true, email: true }
-      });
-      if (duplicates.length > 0) {
-        return { duplicates };
+      const conditions = [];
+      if (data.email) {
+        conditions.push({ email: data.email });
+      }
+      if (data.phone) {
+        const phoneCondition = this.buildPhoneCondition(data.phone);
+        if (phoneCondition) {
+          conditions.push(phoneCondition);
+        }
+      }
+      if (conditions.length > 0) {
+        const duplicates = await database_default.contact.findMany({
+          where: {
+            tenantId,
+            deletedAt: null,
+            OR: conditions
+          },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true }
+        });
+        if (duplicates.length > 0) {
+          return { duplicates };
+        }
       }
     }
     return await database_default.contact.create({
@@ -2127,15 +2212,22 @@ var ContactService = class {
     });
   }
   static async checkDuplicate(tenantId, email, phone) {
-    if (!email && !phone) return [];
+    const conditions = [];
+    if (email) {
+      conditions.push({ email });
+    }
+    if (phone) {
+      const phoneCondition = this.buildPhoneCondition(phone);
+      if (phoneCondition) {
+        conditions.push(phoneCondition);
+      }
+    }
+    if (conditions.length === 0) return [];
     return await database_default.contact.findMany({
       where: {
         tenantId,
         deletedAt: null,
-        OR: [
-          ...email ? [{ email }] : [],
-          ...phone ? [{ phone }] : []
-        ]
+        OR: conditions
       },
       select: { id: true, firstName: true, lastName: true, email: true, phone: true }
     });
@@ -2447,12 +2539,166 @@ var LeadScoringService = class {
   }
 };
 
+// src/modules/stage-transitions/stageTransition.service.ts
+var StageTransitionService = class {
+  /**
+   * Get the stage skip policy for a tenant
+   */
+  static async getStageSkipPolicy(tenantId) {
+    const tenant = await database_default.tenant.findUnique({ where: { id: tenantId } });
+    const settings = tenant?.settings || {};
+    return settings.stageSkipPolicy || { mode: "global", enabled: false };
+  }
+  /**
+   * Update stage skip policy for a tenant
+   */
+  static async updateStageSkipPolicy(tenantId, policy) {
+    const tenant = await database_default.tenant.findUnique({ where: { id: tenantId } });
+    const settings = tenant?.settings || {};
+    return await database_default.tenant.update({
+      where: { id: tenantId },
+      data: {
+        settings: {
+          ...settings,
+          stageSkipPolicy: policy
+        }
+      }
+    });
+  }
+  /**
+   * Validate whether a user is allowed to perform a stage transition
+   * Rules:
+   * - If stageSkipPolicy.enabled === false: all users must move sequentially (one stage at a time)
+   * - If stageSkipPolicy.enabled === true: admin + salesManager can skip; salesRep cannot
+   */
+  static async validateTransition(tenantId, userId, userRole, entityType, fromStageId, toStageId) {
+    const failure = (reason, message) => ({
+      allowed: false,
+      reason,
+      message: message || "Stage transition not allowed",
+      isSkipOverride: false,
+      skippedStages: []
+    });
+    if (fromStageId === toStageId) {
+      return failure("same_stage");
+    }
+    const [fromStage, toStage, policy] = await Promise.all([
+      database_default.pipelineStage.findUnique({ where: { id: fromStageId } }),
+      database_default.pipelineStage.findUnique({ where: { id: toStageId } }),
+      this.getStageSkipPolicy(tenantId)
+    ]);
+    if (!fromStage || !toStage) {
+      return failure("invalid_stage");
+    }
+    if (fromStage.type !== entityType || toStage.type !== entityType) {
+      return failure("stage_type_mismatch");
+    }
+    const positionDiff = toStage.position - fromStage.position;
+    const isSequential = positionDiff === 1;
+    if (isSequential) {
+      return { allowed: true, isSkipOverride: false, skippedStages: [], reason: void 0, message: void 0 };
+    }
+    const skipEnabled = policy.enabled;
+    if (!skipEnabled) {
+      return failure("stage_skip_disabled", "Stage skipping is disabled for this organization. Move leads one stage at a time.");
+    }
+    const canSkip = userRole === "admin" || userRole === "salesManager";
+    if (!canSkip) {
+      return failure("skip_not_permitted", "Only admins and sales managers can skip stages.");
+    }
+    const skippedStages = await database_default.pipelineStage.findMany({
+      where: {
+        tenantId,
+        type: entityType,
+        position: {
+          gt: fromStage.position,
+          lt: toStage.position
+        },
+        isArchived: false
+      },
+      orderBy: { position: "asc" },
+      select: { name: true }
+    });
+    return {
+      allowed: true,
+      isSkipOverride: true,
+      skippedStages: skippedStages.map((s) => s.name),
+      reason: void 0,
+      message: void 0
+    };
+  }
+  /**
+   * Log a stage transition (immutable)
+   */
+  static async logTransition(tenantId, data) {
+    return await database_default.stageTransition.create({
+      data: {
+        tenantId,
+        entityId: data.entityId,
+        entityType: data.entityType,
+        fromStageId: data.fromStageId,
+        toStageId: data.toStageId,
+        fromStageName: data.fromStageName,
+        toStageName: data.toStageName,
+        actorId: data.actorId,
+        isSkipOverride: data.isSkipOverride,
+        skippedStages: data.skippedStages,
+        metadata: data.metadata || {}
+      }
+    });
+  }
+  /**
+   * Get transitions for an entity (lead or deal)
+   */
+  static async getTransitions(tenantId, entityId) {
+    return await database_default.stageTransition.findMany({
+      where: { tenantId, entityId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        actor: { select: { id: true, firstName: true, lastName: true } },
+        toStage: { select: { id: true, name: true, color: true } }
+      }
+    });
+  }
+  /**
+   * Check if an entity has been fast-tracked (had a skip-override transition)
+   */
+  static async hasBeenFastTracked(tenantId, entityId) {
+    const count = await database_default.stageTransition.count({
+      where: { tenantId, entityId, isSkipOverride: true }
+    });
+    return count > 0;
+  }
+  /**
+   * Get the minimum position a user can move an entity to based on role + policy
+   * Used for frontend validation
+   */
+  static async getAllowedTargetStages(tenantId, userId, userRole, entityType, currentStageId) {
+    const [currentStage, policy] = await Promise.all([
+      database_default.pipelineStage.findUnique({ where: { id: currentStageId } }),
+      this.getStageSkipPolicy(tenantId)
+    ]);
+    if (!currentStage) return [];
+    const allStages = await database_default.pipelineStage.findMany({
+      where: { tenantId, type: entityType, isArchived: false, isActive: true },
+      orderBy: { position: "asc" }
+    });
+    const skipEnabled = policy.enabled;
+    const canSkip = userRole === "admin" || userRole === "salesManager";
+    if (!skipEnabled || !canSkip) {
+      return allStages.filter((s) => s.position === currentStage.position + 1 || s.position === currentStage.position);
+    }
+    return allStages;
+  }
+};
+
 // src/modules/leads/lead.service.ts
 var LeadService = class {
   static async listLeads(tenantId, filters) {
     const {
       stageId,
       assignedToId,
+      campaignId,
       priority,
       source,
       isConverted,
@@ -2472,6 +2718,7 @@ var LeadService = class {
       deletedAt: null,
       ...stageId ? { stageId } : {},
       ...assignedToId ? { assignedToId } : {},
+      ...campaignId ? { campaignId } : {},
       ...priority ? { priority } : {},
       ...source ? { source } : {},
       ...isConverted !== void 0 ? { isConverted: isConverted === "true" } : {},
@@ -2500,17 +2747,19 @@ var LeadService = class {
           contact: { select: { firstName: true, lastName: true, email: true } },
           company: { select: { name: true } },
           stage: { select: { name: true } },
-          assignedTo: { select: { firstName: true, lastName: true } }
+          assignedTo: { select: { firstName: true, lastName: true } },
+          campaign: { select: { name: true } }
         }
       }),
       database_default.lead.count({ where })
     ]);
     const tenant = await database_default.tenant.findUnique({ where: { id: tenantId } });
     const staleDays = tenant?.settings?.staleDaysThreshold || 14;
-    const enrichedData = data.map((lead) => ({
+    const enrichedData = await Promise.all(data.map(async (lead) => ({
       ...lead,
-      isStale: this.checkStale(lead.lastActivityAt, staleDays)
-    }));
+      isStale: this.checkStale(lead.lastActivityAt, staleDays),
+      isFastTracked: await StageTransitionService.hasBeenFastTracked(tenantId, lead.id)
+    })));
     return {
       data: enrichedData,
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) }
@@ -2544,7 +2793,7 @@ var LeadService = class {
   static async createLead(tenantId, userId, data) {
     const rules = await LeadScoringService.getRules(tenantId);
     const score = LeadScoringService.calculateScore(data, rules);
-    return await database_default.lead.create({
+    const lead = await database_default.lead.create({
       data: {
         ...data,
         tenantId,
@@ -2554,17 +2803,52 @@ var LeadService = class {
         lastActivityAt: /* @__PURE__ */ new Date()
       }
     });
+    if (data.contactId && data.source) {
+      this.logActivity(tenantId, userId, lead.id, "created", {
+        source: data.source,
+        campaignId: data.campaignId,
+        contactId: data.contactId
+      });
+    }
+    return lead;
   }
-  static async checkDuplicate(tenantId, title, contactId, companyId) {
+  static async checkDuplicate(tenantId, title, contactId, companyId, phone) {
+    const conditions = [];
+    if (title) {
+      conditions.push({ title: { contains: title, mode: "insensitive" } });
+    }
+    if (contactId) {
+      conditions.push({ contactId });
+    }
+    if (companyId) {
+      conditions.push({ companyId });
+    }
+    if (phone) {
+      const normalizedPhone = normalizePhoneForStorage(phone);
+      if (normalizedPhone) {
+        const contactsWithPhone = await database_default.contact.findMany({
+          where: {
+            tenantId,
+            deletedAt: null,
+            phone: { contains: normalizedPhone.slice(-10) }
+          },
+          select: { id: true }
+        });
+        if (contactsWithPhone.length > 0) {
+          conditions.push({
+            contactId: { in: contactsWithPhone.map((c) => c.id) }
+          });
+        }
+      }
+    }
+    if (conditions.length === 0) {
+      return [];
+    }
     return await database_default.lead.findMany({
       where: {
         tenantId,
         deletedAt: null,
-        OR: [
-          { title: { contains: title, mode: "insensitive" } },
-          ...contactId ? [{ contactId }] : [],
-          ...companyId ? [{ companyId }] : []
-        ]
+        OR: conditions
       },
       take: 5,
       select: { id: true, title: true, isConverted: true }
@@ -2578,6 +2862,7 @@ var LeadService = class {
         company: true,
         stage: true,
         assignedTo: { select: { id: true, firstName: true, lastName: true } },
+        campaign: { select: { id: true, name: true } },
         _count: {
           select: { tasks: true, communications: true }
         }
@@ -2589,6 +2874,7 @@ var LeadService = class {
     return {
       ...lead,
       isStale: this.checkStale(lead.lastActivityAt, staleDays),
+      isFastTracked: await StageTransitionService.hasBeenFastTracked(tenantId, id),
       taskCount: lead._count.tasks,
       communicationCount: lead._count.communications
     };
@@ -2604,9 +2890,40 @@ var LeadService = class {
         where: { id: data.stageId, tenantId, type: "lead" }
       });
       if (!newStage) throw { status: 400, message: "Invalid lead stage" };
+      const user = await database_default.user.findUnique({ where: { id: userId } });
+      const userRole = user?.role || "salesRep";
+      const validation = await StageTransitionService.validateTransition(
+        tenantId,
+        userId,
+        userRole,
+        "lead",
+        oldLead.stageId,
+        data.stageId
+      );
+      if (!validation.allowed) {
+        throw {
+          status: 403,
+          message: validation.message || "Stage transition not allowed",
+          code: validation.reason
+        };
+      }
+      await StageTransitionService.logTransition(tenantId, {
+        entityId: id,
+        entityType: "lead",
+        fromStageId: oldLead.stageId,
+        toStageId: data.stageId,
+        fromStageName: oldLead.stage?.name || null,
+        toStageName: newStage.name,
+        actorId: userId,
+        isSkipOverride: validation.isSkipOverride,
+        skippedStages: validation.skippedStages,
+        metadata: { updatePayload: data }
+      });
       this.logActivity(tenantId, userId, id, "stage_changed", {
         oldValue: { stageId: oldLead.stageId, stageName: oldLead.stage?.name },
-        newValue: { stageId: data.stageId, stageName: newStage.name }
+        newValue: { stageId: data.stageId, stageName: newStage.name },
+        isSkipOverride: validation.isSkipOverride,
+        skippedStages: validation.skippedStages
       });
       data.lastActivityAt = /* @__PURE__ */ new Date();
     }
@@ -2631,9 +2948,16 @@ var LeadService = class {
   static async convertToDeal(tenantId, id, data, userId) {
     const lead = await database_default.lead.findFirst({
       where: { id, tenantId, isConverted: false },
-      include: { contact: true, company: true }
+      include: { contact: true, company: true, campaign: true, stage: true }
     });
     if (!lead) throw { status: 404, message: "Lead not found or already converted" };
+    if (!lead.stage || lead.stage.position < 2) {
+      throw {
+        status: 403,
+        message: "Leads must be in Qualified stage or later before they can be converted to deals. Move the lead forward first.",
+        code: "CONVERSION_STAGE_GATE"
+      };
+    }
     const dealStage = await database_default.pipelineStage.findFirst({
       where: { id: data.dealStageId, tenantId, type: "deal" }
     });
@@ -2649,8 +2973,17 @@ var LeadService = class {
           contactId: lead.contactId,
           companyId: lead.companyId,
           assignedToId: lead.assignedToId,
-          createdById: userId
+          createdById: userId,
+          // §5.4: Store convertedFromLeadId FK for audit traceability
+          sourceLeadId: lead.id,
+          // §5.2: Carry over source + campaign for source-level ROI reporting
+          // Store source in tags or description for reporting continuity
+          tags: [...lead.tags || [], `converted_from_lead:${lead.id}`, `original_source:${lead.source}`]
         }
+      });
+      await tx.communication.updateMany({
+        where: { leadId: lead.id, tenantId },
+        data: { dealId: deal.id }
       });
       const updatedLead = await tx.lead.update({
         where: { id },
@@ -2702,8 +3035,8 @@ var LeadController = class {
     return success(res, result, "Leads fetched successfully");
   };
   static checkDuplicate = async (req, res) => {
-    const { title, contactId, companyId } = req.query;
-    const duplicates = await LeadService.checkDuplicate(req.user.tenantId, title, contactId, companyId);
+    const { title, contactId, companyId, phone } = req.query;
+    const duplicates = await LeadService.checkDuplicate(req.user.tenantId, title, contactId, companyId, phone);
     return res.json({ duplicates });
   };
   static getBoard = async (req, res) => {
@@ -2758,7 +3091,8 @@ var createLeadSchema = z9.object({
     assignedToId: z9.string().cuid().optional(),
     tags: z9.array(z9.string()).optional(),
     customFields: z9.record(z9.string(), z9.any()).optional(),
-    expectedCloseAt: z9.string().datetime().optional()
+    expectedCloseAt: z9.string().datetime().optional(),
+    campaignId: z9.string().cuid().or(z9.string().nullable()).optional()
   })
 });
 var updateLeadSchema = createLeadSchema.partial();
@@ -2774,6 +3108,7 @@ var leadFilterSchema = z9.object({
   query: z9.object({
     stageId: z9.string().optional(),
     assignedToId: z9.string().optional(),
+    campaignId: z9.string().optional(),
     priority: z9.string().optional(),
     source: z9.string().optional(),
     isConverted: z9.string().optional().transform((v) => v === "true"),
@@ -2969,9 +3304,41 @@ var DealService = class {
     if (!oldDeal) throw { status: 404, message: "Deal not found" };
     if (data.stageId && data.stageId !== oldDeal.stageId) {
       const newStage = await database_default.pipelineStage.findUnique({ where: { id: data.stageId, tenantId } });
+      if (!newStage) throw { status: 400, message: "Invalid deal stage" };
+      const user = await database_default.user.findUnique({ where: { id: userId } });
+      const userRole = user?.role || "salesRep";
+      const validation = await StageTransitionService.validateTransition(
+        tenantId,
+        userId,
+        userRole,
+        "deal",
+        oldDeal.stageId,
+        data.stageId
+      );
+      if (!validation.allowed) {
+        throw {
+          status: 403,
+          message: validation.message || "Stage transition not allowed",
+          code: validation.reason
+        };
+      }
+      await StageTransitionService.logTransition(tenantId, {
+        entityId: id,
+        entityType: "deal",
+        fromStageId: oldDeal.stageId,
+        toStageId: data.stageId,
+        fromStageName: oldDeal.stage.name || null,
+        toStageName: newStage.name,
+        actorId: userId,
+        isSkipOverride: validation.isSkipOverride,
+        skippedStages: validation.skippedStages,
+        metadata: { updatePayload: data }
+      });
       this.logActivity(tenantId, userId, id, "stage_changed", {
         oldValue: { stageId: oldDeal.stageId, stageName: oldDeal.stage.name },
-        newValue: { stageId: data.stageId, stageName: newStage?.name }
+        newValue: { stageId: data.stageId, stageName: newStage?.name },
+        isSkipOverride: validation.isSkipOverride,
+        skippedStages: validation.skippedStages
       });
       data.lastActivityAt = /* @__PURE__ */ new Date();
     }
@@ -4103,7 +4470,8 @@ import { Router as Router14 } from "express";
 
 // src/modules/analytics/analytics.service.ts
 import { subDays as subDays2, subMonths, startOfMonth, endOfMonth } from "date-fns";
-var getAnalyticsSummary = async (tenantId, period) => {
+var getAnalyticsSummary = async (tenantId, period, funnelMode) => {
+  const verifiedOnly = funnelMode === "verified";
   const now = /* @__PURE__ */ new Date();
   let startDate;
   switch (period) {
@@ -4124,19 +4492,28 @@ var getAnalyticsSummary = async (tenantId, period) => {
   }
   const thisMonthStart = startOfMonth(now);
   const thisMonthEnd = endOfMonth(now);
+  const skipOverrideLeadIds = verifiedOnly ? (await database_default.stageTransition.findMany({
+    where: { tenantId, entityType: "lead", isSkipOverride: true },
+    select: { entityId: true },
+    distinct: ["entityId"]
+  })).map((t) => t.entityId) : [];
+  const leadWhere = { tenantId };
+  if (verifiedOnly && skipOverrideLeadIds.length > 0) {
+    leadWhere.id = { notIn: skipOverrideLeadIds };
+  }
   const [totalLeads, newLeads, convertedLeads, leadsByStage, leadsBySource] = await Promise.all([
-    database_default.lead.count({ where: { tenantId } }),
-    database_default.lead.count({ where: { tenantId, createdAt: { gte: startDate } } }),
-    database_default.lead.count({ where: { tenantId, isConverted: true, convertedAt: { gte: startDate } } }),
+    database_default.lead.count({ where: { ...leadWhere } }),
+    database_default.lead.count({ where: { ...leadWhere, createdAt: { gte: startDate } } }),
+    database_default.lead.count({ where: { ...leadWhere, isConverted: true, convertedAt: { gte: startDate } } }),
     database_default.lead.groupBy({
       by: ["stageId"],
-      where: { tenantId },
+      where: { ...leadWhere },
       _count: { _all: true },
       _sum: { estimatedValue: true }
     }),
     database_default.lead.groupBy({
       by: ["source"],
-      where: { tenantId },
+      where: { ...leadWhere },
       _count: { _all: true }
     })
   ]);
@@ -4151,7 +4528,7 @@ var getAnalyticsSummary = async (tenantId, period) => {
     value: Number(item._sum.estimatedValue || 0)
   })).sort((a, b) => b.count - a.count);
   const convertedLeadsData = await database_default.lead.findMany({
-    where: { tenantId, isConverted: true, convertedAt: { gte: startDate } },
+    where: { ...leadWhere, isConverted: true, convertedAt: { gte: startDate } },
     select: { createdAt: true, convertedAt: true }
   });
   const totalDiff = convertedLeadsData.reduce((acc, lead) => {
@@ -4245,6 +4622,31 @@ var getAnalyticsSummary = async (tenantId, period) => {
     dealsWon: rep._count.assignedDeals,
     wonValue: rep.assignedDeals.reduce((acc, d) => acc + Number(d.value), 0)
   })).sort((a, b) => b.wonValue - a.wonValue);
+  const leadsWithDeals = await database_default.lead.findMany({
+    where: { tenantId, isConverted: true, convertedToDealId: { not: null } },
+    select: { source: true, convertedToDealId: true }
+  });
+  const leadDealIds = leadsWithDeals.filter((l) => l.convertedToDealId).map((l) => l.convertedToDealId);
+  const sourceROIMap = {};
+  for (const lead of leadsWithDeals) {
+    if (!sourceROIMap[lead.source]) {
+      sourceROIMap[lead.source] = { leadCount: 0, wonValue: 0 };
+    }
+    sourceROIMap[lead.source].leadCount++;
+  }
+  if (leadDealIds.length > 0) {
+    const wonDeals = await database_default.deal.findMany({
+      where: { id: { in: leadDealIds }, tenantId },
+      select: { id: true, value: true, tags: true }
+    });
+    for (const lead of leadsWithDeals) {
+      if (!lead.convertedToDealId) continue;
+      const deal = wonDeals.find((d) => d.id === lead.convertedToDealId);
+      if (deal && sourceROIMap[lead.source]) {
+        sourceROIMap[lead.source].wonValue += Number(deal.value || 0);
+      }
+    }
+  }
   return {
     leads: {
       total: totalLeads,
@@ -4252,6 +4654,13 @@ var getAnalyticsSummary = async (tenantId, period) => {
       converted: convertedLeads,
       byStage: leadsByStageEnriched,
       bySource: leadsBySource.map((s) => ({ source: s.source, count: s._count._all })),
+      sourceROI: Object.entries(sourceROIMap).map(([source, data]) => ({
+        source,
+        leadCount: data.leadCount,
+        wonValue: data.wonValue,
+        roiPerLead: data.leadCount > 0 ? data.wonValue / data.leadCount : 0
+      })).sort((a, b) => b.wonValue - a.wonValue),
+      funnelMode: funnelMode || "full",
       conversionRate: totalLeads > 0 ? convertedLeads / totalLeads * 100 : 0,
       avgTimeToConvert: avgTimeToConvertHours
     },
@@ -4304,7 +4713,8 @@ var getSummary = async (req, res) => {
   try {
     const { tenantId } = req.user;
     const period = req.query.period || "30d";
-    const summary = await getAnalyticsSummary(tenantId, period);
+    const funnelMode = req.query.funnel;
+    const summary = await getAnalyticsSummary(tenantId, period, funnelMode);
     return success(res, summary, "Analytics summary retrieved successfully");
   } catch (err) {
     console.error("Analytics Error:", err);
@@ -4508,6 +4918,1829 @@ router16.delete("/:id", asyncHandler_default(EmailTemplateController.deleteTempl
 router16.post("/:id/preview", asyncHandler_default(EmailTemplateController.previewTemplate));
 var emailTemplate_routes_default = router16;
 
+// src/modules/campaigns/campaign.routes.ts
+import { Router as Router17 } from "express";
+
+// src/modules/campaigns/campaign.service.ts
+var CampaignService = class {
+  static async listCampaigns(tenantId, filters) {
+    const { search, platform, status, page = 1, limit = 10 } = filters;
+    const limitNum = Number(limit);
+    const pageNum = Number(page);
+    const skip = (pageNum - 1) * limitNum;
+    const where = {
+      tenantId,
+      deletedAt: null,
+      ...search ? { name: { contains: search, mode: "insensitive" } } : {},
+      ...platform ? { platform } : {},
+      ...status ? { status } : {}
+    };
+    const [rawCampaigns, total] = await Promise.all([
+      database_default.campaign.findMany({
+        where,
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: "desc" },
+        include: {
+          _count: {
+            select: { leads: true }
+          },
+          leads: {
+            where: { isConverted: true },
+            select: { id: true }
+          }
+        }
+      }),
+      database_default.campaign.count({ where })
+    ]);
+    const campaigns = rawCampaigns.map((campaign) => {
+      const leadsCount = campaign._count.leads;
+      const convertedCount = campaign.leads.length;
+      const budget = Number(campaign.budget);
+      const costPerLead = leadsCount > 0 ? budget / leadsCount : 0;
+      const conversionRate = leadsCount > 0 ? convertedCount / leadsCount * 100 : 0;
+      const { leads, ...rest } = campaign;
+      return {
+        ...rest,
+        leadsCount,
+        costPerLead,
+        conversionRate
+      };
+    });
+    return {
+      data: campaigns,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  }
+  static async getCampaign(tenantId, id) {
+    const campaign = await database_default.campaign.findFirst({
+      where: { id, tenantId, deletedAt: null },
+      include: {
+        _count: {
+          select: { leads: true }
+        },
+        leads: {
+          where: { isConverted: true },
+          select: { id: true }
+        }
+      }
+    });
+    if (!campaign) {
+      throw { status: 404, message: "Campaign not found" };
+    }
+    const leadsCount = campaign._count.leads;
+    const convertedCount = campaign.leads.length;
+    const budget = Number(campaign.budget);
+    const costPerLead = leadsCount > 0 ? budget / leadsCount : 0;
+    const conversionRate = leadsCount > 0 ? convertedCount / leadsCount * 100 : 0;
+    const { leads, ...rest } = campaign;
+    return {
+      ...rest,
+      leadsCount,
+      costPerLead,
+      conversionRate
+    };
+  }
+  static async createCampaign(tenantId, data) {
+    return await database_default.campaign.create({
+      data: {
+        ...data,
+        tenantId
+      }
+    });
+  }
+  static async updateCampaign(tenantId, id, data) {
+    const campaign = await database_default.campaign.findFirst({
+      where: { id, tenantId, deletedAt: null }
+    });
+    if (!campaign) {
+      throw { status: 404, message: "Campaign not found" };
+    }
+    return await database_default.campaign.update({
+      where: { id },
+      data
+    });
+  }
+  static async deleteCampaign(tenantId, id) {
+    const campaign = await database_default.campaign.findFirst({
+      where: { id, tenantId, deletedAt: null }
+    });
+    if (!campaign) {
+      throw { status: 404, message: "Campaign not found" };
+    }
+    return await database_default.campaign.update({
+      where: { id },
+      data: { deletedAt: /* @__PURE__ */ new Date() }
+    });
+  }
+};
+
+// src/modules/campaigns/campaign.controller.ts
+var CampaignController = class {
+  static list = async (req, res) => {
+    const result = await CampaignService.listCampaigns(req.user.tenantId, req.query);
+    return success(res, result, "Campaigns fetched successfully");
+  };
+  static get = async (req, res) => {
+    const campaign = await CampaignService.getCampaign(req.user.tenantId, req.params.id);
+    return success(res, campaign, "Campaign details fetched successfully");
+  };
+  static create = async (req, res) => {
+    const campaign = await CampaignService.createCampaign(req.user.tenantId, req.body);
+    return success(res, campaign, "Campaign created successfully", 201);
+  };
+  static update = async (req, res) => {
+    const campaign = await CampaignService.updateCampaign(req.user.tenantId, req.params.id, req.body);
+    return success(res, campaign, "Campaign updated successfully");
+  };
+  static delete = async (req, res) => {
+    await CampaignService.deleteCampaign(req.user.tenantId, req.params.id);
+    return success(res, null, "Campaign deleted successfully");
+  };
+};
+
+// src/modules/campaigns/campaign.schemas.ts
+import { z as z15 } from "zod";
+var createCampaignSchema = z15.object({
+  body: z15.object({
+    name: z15.string().min(1, "Name is required"),
+    platform: z15.string().min(1, "Platform is required"),
+    budget: z15.number().min(0, "Budget must be positive or zero"),
+    status: z15.enum(["draft", "active", "paused", "completed"]).optional(),
+    startDate: z15.string().datetime().or(z15.string().nullable()).optional(),
+    endDate: z15.string().datetime().or(z15.string().nullable()).optional()
+  })
+});
+var updateCampaignSchema = createCampaignSchema.partial();
+var campaignFilterSchema = z15.object({
+  query: z15.object({
+    search: z15.string().optional(),
+    platform: z15.string().optional(),
+    status: z15.string().optional(),
+    page: z15.string().optional().transform((val) => val ? Number(val) : void 0),
+    limit: z15.string().optional().transform((val) => val ? Number(val) : void 0)
+  })
+});
+
+// src/modules/campaigns/campaign.routes.ts
+var router17 = Router17();
+router17.use(authGuard_default);
+router17.get("/", validate_default(campaignFilterSchema), asyncHandler_default(CampaignController.list));
+router17.post("/", validate_default(createCampaignSchema), asyncHandler_default(CampaignController.create));
+router17.get("/:id", asyncHandler_default(CampaignController.get));
+router17.patch("/:id", validate_default(updateCampaignSchema), asyncHandler_default(CampaignController.update));
+router17.delete("/:id", asyncHandler_default(CampaignController.delete));
+var campaign_routes_default = router17;
+
+// src/modules/sla/sla.routes.ts
+import { Router as Router18 } from "express";
+
+// src/modules/sla/sla.service.ts
+var SLAService = class {
+  /**
+   * Get SLA config for a tenant
+   */
+  static async getConfig(tenantId) {
+    const tenant = await database_default.tenant.findUnique({ where: { id: tenantId } });
+    const settings = tenant?.settings || {};
+    return settings.slaConfig || { thresholdHours: 24, fallbackStrategy: "roundRobin" };
+  }
+  /**
+   * Update SLA config for a tenant
+   */
+  static async updateConfig(tenantId, config) {
+    const tenant = await database_default.tenant.findUnique({ where: { id: tenantId } });
+    const settings = tenant?.settings || {};
+    const current = settings.slaConfig || { thresholdHours: 24, fallbackStrategy: "roundRobin" };
+    return await database_default.tenant.update({
+      where: { id: tenantId },
+      data: {
+        settings: {
+          ...settings,
+          slaConfig: { ...current, ...config }
+        }
+      }
+    });
+  }
+  /**
+   * Check all leads for SLA breaches and auto-reassign if needed.
+   * Definition of "untouched": no logged interaction (call, email, WhatsApp, note, stage change)
+   * in the configured threshold period. Simply viewing a lead does NOT count as touched.
+   *
+   * This should be called by a cron/scheduled job.
+   */
+  static async checkAndReassign(tenantId) {
+    const config = await this.getConfig(tenantId);
+    const thresholdDate = new Date(Date.now() - config.thresholdHours * 60 * 60 * 1e3);
+    const systemUser = await this.getSystemUser(tenantId);
+    const staleLeads = await database_default.lead.findMany({
+      where: {
+        tenantId,
+        deletedAt: null,
+        isConverted: false,
+        assignedToId: { not: null },
+        lastActivityAt: { lt: thresholdDate }
+      },
+      select: {
+        id: true,
+        title: true,
+        assignedToId: true,
+        lastActivityAt: true,
+        stageId: true
+      },
+      take: 50
+    });
+    if (staleLeads.length === 0) return { reassigned: 0, total: 0 };
+    const activeReps = await database_default.user.findMany({
+      where: {
+        tenantId,
+        status: "active",
+        role: { in: ["salesRep", "salesManager"] }
+      },
+      select: { id: true, firstName: true, lastName: true }
+    });
+    if (activeReps.length === 0) return { reassigned: 0, total: staleLeads.length };
+    let reassignedCount = 0;
+    for (let i = 0; i < staleLeads.length; i++) {
+      const lead = staleLeads[i];
+      const recentActivity = await database_default.activityLog.count({
+        where: {
+          tenantId,
+          leadId: lead.id,
+          createdAt: { gte: thresholdDate }
+        }
+      });
+      if (recentActivity > 0) continue;
+      const candidatePool = activeReps.filter((r) => r.id !== lead.assignedToId);
+      if (candidatePool.length === 0) continue;
+      const newAssignee = candidatePool[i % candidatePool.length];
+      await database_default.$transaction(async (tx) => {
+        await tx.lead.update({
+          where: { id: lead.id },
+          data: {
+            assignedToId: newAssignee.id,
+            lastActivityAt: /* @__PURE__ */ new Date()
+          }
+        });
+        await tx.activityLog.create({
+          data: {
+            tenantId,
+            userId: systemUser?.id || newAssignee.id,
+            entityId: lead.id,
+            entityType: "lead",
+            leadId: lead.id,
+            action: "auto_reassigned",
+            metadata: {
+              fromUserId: lead.assignedToId,
+              toUserId: newAssignee.id,
+              reason: "SLA_breach",
+              thresholdHours: config.thresholdHours,
+              lastActivityAt: lead.lastActivityAt,
+              message: `Auto-reassigned from previous owner \u2014 ${config.thresholdHours}h SLA breach`
+            }
+          }
+        });
+      });
+      reassignedCount++;
+    }
+    return { reassigned: reassignedCount, total: staleLeads.length };
+  }
+  /**
+   * Get the count of leads currently at risk of SLA breach
+   */
+  static async getAtRiskCount(tenantId) {
+    const config = await this.getConfig(tenantId);
+    const thresholdDate = new Date(Date.now() - config.thresholdHours * 60 * 60 * 1e3);
+    return await database_default.lead.count({
+      where: {
+        tenantId,
+        deletedAt: null,
+        isConverted: false,
+        assignedToId: { not: null },
+        lastActivityAt: { lt: thresholdDate }
+      }
+    });
+  }
+  /**
+   * Grace period config endpoint: returns the configured threshold for display
+   */
+  static async getThreshold(tenantId) {
+    const config = await this.getConfig(tenantId);
+    return { thresholdHours: config.thresholdHours, fallbackStrategy: config.fallbackStrategy };
+  }
+  static async getSystemUser(tenantId) {
+    const system = await database_default.user.findFirst({
+      where: { tenantId, role: "admin", status: "active" },
+      select: { id: true, firstName: true, lastName: true }
+    });
+    return system;
+  }
+};
+
+// src/modules/sla/sla.controller.ts
+var SLAController = class {
+  static getConfig = async (req, res) => {
+    const config = await SLAService.getConfig(req.user.tenantId);
+    return success(res, config, "SLA config fetched");
+  };
+  static updateConfig = async (req, res) => {
+    const config = await SLAService.updateConfig(req.user.tenantId, req.body);
+    return success(res, config, "SLA config updated");
+  };
+  static runCheck = async (req, res) => {
+    const result = await SLAService.checkAndReassign(req.user.tenantId);
+    return success(res, result, "SLA check complete");
+  };
+  static getAtRisk = async (req, res) => {
+    const count = await SLAService.getAtRiskCount(req.user.tenantId);
+    return success(res, { atRiskCount: count }, "At-risk count fetched");
+  };
+};
+
+// src/modules/sla/sla.routes.ts
+var router18 = Router18();
+router18.use(authGuard_default);
+router18.get("/config", asyncHandler_default(SLAController.getConfig));
+router18.patch("/config", asyncHandler_default(SLAController.updateConfig));
+router18.post("/check", asyncHandler_default(SLAController.runCheck));
+router18.get("/at-risk", asyncHandler_default(SLAController.getAtRisk));
+var sla_routes_default = router18;
+
+// src/modules/stage-transitions/stageTransition.routes.ts
+import { Router as Router19 } from "express";
+
+// src/modules/stage-transitions/stageTransition.controller.ts
+var StageTransitionController = class {
+  static getPolicy = async (req, res) => {
+    const policy = await StageTransitionService.getStageSkipPolicy(req.user.tenantId);
+    return success(res, policy, "Stage skip policy fetched");
+  };
+  static updatePolicy = async (req, res) => {
+    const { enabled, mode } = req.body;
+    const policy = await StageTransitionService.updateStageSkipPolicy(req.user.tenantId, {
+      mode: mode || "global",
+      enabled: enabled ?? false
+    });
+    return success(res, policy, "Stage skip policy updated");
+  };
+  static getTransitions = async (req, res) => {
+    const entityId = req.params.entityId;
+    const transitions = await StageTransitionService.getTransitions(req.user.tenantId, entityId);
+    return success(res, transitions, "Transitions fetched");
+  };
+  static validateTransition = async (req, res) => {
+    const { fromStageId, toStageId } = req.body;
+    const rawType = String(req.body.entityType || "lead");
+    const entityType = rawType === "deal" ? "deal" : "lead";
+    const result = await StageTransitionService.validateTransition(
+      req.user.tenantId,
+      req.user.id,
+      req.user.role,
+      entityType,
+      fromStageId,
+      toStageId
+    );
+    return success(res, result, "Transition validation complete");
+  };
+};
+
+// src/modules/stage-transitions/stageTransition.routes.ts
+var router19 = Router19();
+router19.use(authGuard_default);
+router19.get("/policy", asyncHandler_default(StageTransitionController.getPolicy));
+router19.patch("/policy", asyncHandler_default(StageTransitionController.updatePolicy));
+router19.post("/validate", asyncHandler_default(StageTransitionController.validateTransition));
+router19.get("/:entityId", asyncHandler_default(StageTransitionController.getTransitions));
+var stageTransition_routes_default = router19;
+
+// src/modules/notifications/notification.routes.ts
+import { Router as Router20 } from "express";
+
+// src/modules/notifications/notification.service.ts
+var NotificationService = class {
+  /**
+   * Create a notification for a user
+   */
+  static async notify(params) {
+    return await database_default.notification.create({
+      data: {
+        tenantId: params.tenantId,
+        userId: params.userId,
+        type: params.type,
+        title: params.title,
+        body: params.body,
+        link: params.link,
+        entityType: params.entityType || null,
+        entityId: params.entityId || null,
+        channel: params.channel || "in_app",
+        metadata: params.metadata || void 0
+      }
+    });
+  }
+  /**
+   * Notify multiple users at once
+   */
+  static async notifyMany(params, userIds) {
+    const notifications = userIds.map((userId) => ({
+      tenantId: params.tenantId,
+      userId,
+      type: params.type,
+      title: params.title,
+      body: params.body,
+      link: params.link,
+      entityType: params.entityType || null,
+      entityId: params.entityId || null,
+      channel: params.channel || "in_app",
+      metadata: params.metadata || void 0
+    }));
+    if (notifications.length === 0) return [];
+    return await database_default.notification.createMany({
+      data: notifications
+    });
+  }
+  /**
+   * Get notifications for a user with pagination
+   */
+  static async list(tenantId, userId, filters) {
+    const page = filters.page || 1;
+    const limit = Math.min(filters.limit || 20, 100);
+    const skip = (page - 1) * limit;
+    const where = {
+      tenantId,
+      userId,
+      isArchived: false
+    };
+    if (filters.isRead !== void 0) {
+      where.isRead = filters.isRead;
+    }
+    if (filters.type) {
+      where.type = filters.type;
+    }
+    const [data, total] = await Promise.all([
+      database_default.notification.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" }
+      }),
+      database_default.notification.count({ where })
+    ]);
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+  }
+  /**
+   * Get unread notification count
+   */
+  static async getUnreadCount(tenantId, userId) {
+    return await database_default.notification.count({
+      where: {
+        tenantId,
+        userId,
+        isRead: false,
+        isArchived: false
+      }
+    });
+  }
+  /**
+   * Mark notifications as read
+   */
+  static async markAsRead(tenantId, userId, ids) {
+    return await database_default.notification.updateMany({
+      where: {
+        id: { in: ids },
+        tenantId,
+        userId
+      },
+      data: {
+        isRead: true,
+        readAt: /* @__PURE__ */ new Date()
+      }
+    });
+  }
+  /**
+   * Mark all notifications as read for a user
+   */
+  static async markAllAsRead(tenantId, userId) {
+    return await database_default.notification.updateMany({
+      where: {
+        tenantId,
+        userId,
+        isRead: false,
+        isArchived: false
+      },
+      data: {
+        isRead: true,
+        readAt: /* @__PURE__ */ new Date()
+      }
+    });
+  }
+  /**
+   * Archive a notification
+   */
+  static async archive(tenantId, userId, id) {
+    return await database_default.notification.updateMany({
+      where: {
+        id,
+        tenantId,
+        userId
+      },
+      data: { isArchived: true }
+    });
+  }
+  /**
+   * Send SLA breach notifications
+   */
+  static async notifySLABreach(params) {
+    const { tenantId, leadId, leadTitle, oldAssigneeId, newAssigneeId, slaThresholdHours } = params;
+    await this.notify({
+      tenantId,
+      userId: oldAssigneeId,
+      type: "auto_reassignment",
+      title: "Lead reassigned due to SLA breach",
+      body: `${leadTitle} was auto-reassigned after exceeding the ${slaThresholdHours}h SLA.`,
+      link: `/leads?id=${leadId}`,
+      entityType: "lead",
+      entityId: leadId,
+      channel: "both",
+      metadata: { slaThresholdHours, reassignedTo: newAssigneeId }
+    });
+    await this.notify({
+      tenantId,
+      userId: newAssigneeId,
+      type: "auto_reassignment",
+      title: "New lead assigned to you (SLA)",
+      body: `${leadTitle} has been assigned to you due to SLA auto-reassignment.`,
+      link: `/leads?id=${leadId}`,
+      entityType: "lead",
+      entityId: leadId,
+      channel: "both",
+      metadata: { slaThresholdHours, reassignedFrom: oldAssigneeId }
+    });
+  }
+  /**
+   * Notify task due reminders
+   */
+  static async notifyTaskDue(params) {
+    return await this.notify({
+      tenantId: params.tenantId,
+      userId: params.userId,
+      type: "task_due",
+      title: `Task due: ${params.taskTitle}`,
+      body: `Your task "${params.taskTitle}" is due ${params.dueAt.toISOString()}.`,
+      link: `/tasks?id=${params.taskId}`,
+      entityType: "task",
+      entityId: params.taskId,
+      channel: "in_app",
+      metadata: { dueAt: params.dueAt.toISOString() }
+    });
+  }
+};
+
+// src/modules/notifications/notification.schemas.ts
+import { z as z16 } from "zod";
+var notificationQuerySchema = z16.object({
+  page: z16.coerce.number().optional().default(1),
+  limit: z16.coerce.number().optional().default(20),
+  isRead: z16.coerce.boolean().optional(),
+  type: z16.string().optional()
+});
+var markReadSchema = z16.object({
+  ids: z16.array(z16.string()).min(1, "At least one notification ID required")
+});
+var notificationSettingsSchema = z16.object({
+  emailDigest: z16.enum(["none", "daily", "weekly"]).optional(),
+  notifySlaBreach: z16.boolean().optional(),
+  notifyTaskDue: z16.boolean().optional(),
+  notifyDealWon: z16.boolean().optional(),
+  notifyMentions: z16.boolean().optional()
+});
+
+// src/modules/notifications/notification.controller.ts
+var listNotifications = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const filters = notificationQuerySchema.parse(req.query);
+  const result = await NotificationService.list(tenantId, userId, filters);
+  return success(res, result, "Notifications fetched");
+});
+var getUnreadCount = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const count = await NotificationService.getUnreadCount(tenantId, userId);
+  return success(res, { count }, "Unread count fetched");
+});
+var markAsRead = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const { ids } = markReadSchema.parse(req.body);
+  const result = await NotificationService.markAsRead(tenantId, userId, ids);
+  return success(res, { count: result.count }, "Notifications marked as read");
+});
+var markAllAsRead = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const result = await NotificationService.markAllAsRead(tenantId, userId);
+  return success(res, { count: result.count }, "All notifications marked as read");
+});
+var archiveNotification = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const id = req.params.id;
+  await NotificationService.archive(tenantId, userId, id);
+  return success(res, null, "Notification archived");
+});
+
+// src/modules/notifications/notification.routes.ts
+var router20 = Router20();
+router20.use(authGuard_default);
+router20.use(tenantResolver_default);
+router20.get("/", listNotifications);
+router20.get("/unread-count", getUnreadCount);
+router20.patch("/mark-read", markAsRead);
+router20.patch("/mark-all-read", markAllAsRead);
+router20.delete("/:id", archiveNotification);
+var notification_routes_default = router20;
+
+// src/modules/integrations/integration.routes.ts
+import { Router as Router21 } from "express";
+
+// src/modules/integrations/integration.service.ts
+var IntegrationService = class {
+  /**
+   * Get integration config for a tenant
+   */
+  static async getConfig(tenantId) {
+    const tenant = await database_default.tenant.findUnique({
+      where: { id: tenantId },
+      select: { settings: true }
+    });
+    const settings = tenant?.settings || {};
+    return {
+      whatsapp: settings.integrations?.whatsapp || { enabled: false },
+      googleCalendar: settings.integrations?.googleCalendar || { enabled: false },
+      emailSync: settings.integrations?.emailSync || { enabled: false, provider: "none" }
+    };
+  }
+  /**
+   * Update integration config
+   */
+  static async updateConfig(tenantId, updates) {
+    const tenant = await database_default.tenant.findUnique({
+      where: { id: tenantId },
+      select: { settings: true }
+    });
+    const settings = tenant?.settings || {};
+    const integrations = settings.integrations || {};
+    if (updates.whatsapp) {
+      integrations.whatsapp = { ...integrations.whatsapp, ...updates.whatsapp };
+    }
+    if (updates.googleCalendar) {
+      integrations.googleCalendar = { ...integrations.googleCalendar, ...updates.googleCalendar };
+    }
+    if (updates.emailSync) {
+      integrations.emailSync = { ...integrations.emailSync, ...updates.emailSync };
+    }
+    await database_default.tenant.update({
+      where: { id: tenantId },
+      data: { settings: { ...settings, integrations } }
+    });
+    return integrations;
+  }
+  /**
+   * Verify WhatsApp webhook (stub — real webhook verification would call Meta API)
+   */
+  static async verifyWhatsAppWebhook(tenantId, verificationToken) {
+    if (verificationToken === process.env.WHATSAPP_VERIFY_TOKEN) {
+      await this.updateConfig(tenantId, {
+        whatsapp: { enabled: true, webhookVerified: true }
+      });
+      return true;
+    }
+    return false;
+  }
+  /**
+   * Connect Google Calendar (stub — real flow uses OAuth2)
+   */
+  static async connectGoogleCalendar(tenantId, code) {
+    await this.updateConfig(tenantId, {
+      googleCalendar: {
+        enabled: true,
+        connectedEmail: "user@example.com",
+        accessToken: "stub_token",
+        refreshToken: "stub_refresh"
+      }
+    });
+    return { connected: true };
+  }
+  /**
+   * Sync WhatsApp messages for a contact
+   */
+  static async syncWhatsAppMessages(tenantId, contactPhone) {
+    return {
+      synced: true,
+      messageCount: 0,
+      message: "WhatsApp sync requires real Meta API credentials. Configure in Integrations settings."
+    };
+  }
+  /**
+   * Log an incoming WhatsApp message as a communication
+   */
+  static async logIncomingWhatsApp(params) {
+    return await database_default.communication.create({
+      data: {
+        tenantId: params.tenantId,
+        userId: params.contactId,
+        // placeholder — system user in production
+        contactId: params.contactId,
+        leadId: params.leadId || null,
+        dealId: params.dealId || null,
+        type: "whatsapp",
+        direction: "inbound",
+        sourceType: "system",
+        subject: `WhatsApp from ${params.from}`,
+        body: params.body,
+        summary: "Auto-logged via WhatsApp integration",
+        occurredAt: /* @__PURE__ */ new Date()
+      }
+    });
+  }
+};
+
+// src/modules/integrations/integration.controller.ts
+var getIntegrations = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const config = await IntegrationService.getConfig(tenantId);
+  return success(res, config, "Integration config fetched");
+});
+var updateIntegrations = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const { whatsapp, googleCalendar, emailSync } = req.body;
+  const result = await IntegrationService.updateConfig(tenantId, { whatsapp, googleCalendar, emailSync });
+  return success(res, result, "Integration config updated");
+});
+var verifyWhatsApp = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const { verificationToken } = req.body;
+  const verified = await IntegrationService.verifyWhatsAppWebhook(tenantId, verificationToken);
+  return success(res, { verified }, verified ? "WhatsApp webhook verified" : "Verification failed");
+});
+var connectCalendar = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const { code } = req.body;
+  const result = await IntegrationService.connectGoogleCalendar(tenantId, code);
+  return success(res, result, "Calendar connected");
+});
+var syncWhatsApp = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const { contactPhone } = req.body;
+  const result = await IntegrationService.syncWhatsAppMessages(tenantId, contactPhone);
+  return success(res, result, "WhatsApp sync completed");
+});
+
+// src/modules/integrations/integration.routes.ts
+var router21 = Router21();
+router21.use(authGuard_default);
+router21.use(tenantResolver_default);
+router21.get("/", getIntegrations);
+router21.patch("/", updateIntegrations);
+router21.post("/whatsapp/verify", verifyWhatsApp);
+router21.post("/calendar/connect", connectCalendar);
+router21.post("/whatsapp/sync", syncWhatsApp);
+var integration_routes_default = router21;
+
+// src/modules/billing/billing.routes.ts
+import { Router as Router22 } from "express";
+
+// src/modules/billing/billing.service.ts
+var PLANS = [
+  {
+    id: "free",
+    name: "Free",
+    price: 0,
+    currency: "USD",
+    interval: "monthly",
+    features: {
+      maxUsers: 2,
+      maxLeads: 100,
+      maxDeals: 50,
+      maxStorage: "100 MB",
+      aiFeatures: false,
+      apiAccess: false,
+      customFields: false,
+      advancedReporting: false,
+      integrations: false,
+      slaManagement: false,
+      prioritySupport: false
+    }
+  },
+  {
+    id: "starter",
+    name: "Starter",
+    price: 29,
+    currency: "USD",
+    interval: "monthly",
+    features: {
+      maxUsers: 5,
+      maxLeads: 1e3,
+      maxDeals: 500,
+      maxStorage: "1 GB",
+      aiFeatures: true,
+      apiAccess: false,
+      customFields: true,
+      advancedReporting: false,
+      integrations: true,
+      slaManagement: true,
+      prioritySupport: false
+    }
+  },
+  {
+    id: "growth",
+    name: "Growth",
+    price: 79,
+    currency: "USD",
+    interval: "monthly",
+    features: {
+      maxUsers: 25,
+      maxLeads: 1e4,
+      maxDeals: 5e3,
+      maxStorage: "10 GB",
+      aiFeatures: true,
+      apiAccess: true,
+      customFields: true,
+      advancedReporting: true,
+      integrations: true,
+      slaManagement: true,
+      prioritySupport: true
+    }
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    price: 249,
+    currency: "USD",
+    interval: "monthly",
+    features: {
+      maxUsers: 999,
+      maxLeads: 999999,
+      maxDeals: 999999,
+      maxStorage: "Unlimited",
+      aiFeatures: true,
+      apiAccess: true,
+      customFields: true,
+      advancedReporting: true,
+      integrations: true,
+      slaManagement: true,
+      prioritySupport: true
+    }
+  }
+];
+var BillingService = class {
+  static getPlans() {
+    return PLANS;
+  }
+  static getPlan(planId) {
+    return PLANS.find((p) => p.id === planId);
+  }
+  static async getCurrentSubscription(tenantId) {
+    const tenant = await database_default.tenant.findUnique({
+      where: { id: tenantId },
+      select: {
+        id: true,
+        name: true,
+        plan: true,
+        status: true,
+        trialEndsAt: true,
+        billingEmail: true,
+        createdAt: true,
+        _count: {
+          select: {
+            users: true,
+            leads: true,
+            deals: true
+          }
+        }
+      }
+    });
+    if (!tenant) throw { status: 404, message: "Tenant not found" };
+    const planConfig = this.getPlan(tenant.plan);
+    return {
+      tenantId: tenant.id,
+      name: tenant.name,
+      plan: tenant.plan,
+      planName: planConfig?.name || "Unknown",
+      status: tenant.status,
+      trialEndsAt: tenant.trialEndsAt,
+      billingEmail: tenant.billingEmail,
+      usage: {
+        users: tenant._count.users,
+        leads: tenant._count.leads,
+        deals: tenant._count.deals
+      },
+      limits: planConfig?.features || null,
+      price: planConfig?.price || 0,
+      currency: planConfig?.currency || "USD"
+    };
+  }
+  static async changePlan(tenantId, newPlan) {
+    const tenant = await database_default.tenant.findUnique({
+      where: { id: tenantId }
+    });
+    if (!tenant) throw { status: 404, message: "Tenant not found" };
+    const planConfig = this.getPlan(newPlan);
+    if (!planConfig) throw { status: 400, message: "Invalid plan" };
+    const usage = await database_default.tenant.findUnique({
+      where: { id: tenantId },
+      select: {
+        _count: {
+          select: { users: true, leads: true, deals: true }
+        }
+      }
+    });
+    if (usage) {
+      if (usage._count.users > planConfig.features.maxUsers) {
+        throw {
+          status: 400,
+          message: `Cannot downgrade: ${usage._count.users} active users exceeds ${planConfig.features.maxUsers} limit for ${planConfig.name} plan`,
+          code: "USAGE_EXCEEDS_LIMIT"
+        };
+      }
+    }
+    await database_default.tenant.update({
+      where: { id: tenantId },
+      data: { plan: newPlan }
+    });
+    return { plan: newPlan, planName: planConfig.name };
+  }
+  static async updateBillingEmail(tenantId, billingEmail) {
+    return await database_default.tenant.update({
+      where: { id: tenantId },
+      data: { billingEmail }
+    });
+  }
+  static async checkUsageLimits(tenantId) {
+    const tenant = await database_default.tenant.findUnique({
+      where: { id: tenantId },
+      include: {
+        _count: { select: { users: true, leads: true, deals: true } }
+      }
+    });
+    if (!tenant) throw { status: 404, message: "Tenant not found" };
+    const planConfig = this.getPlan(tenant.plan);
+    if (!planConfig) return { withinLimits: true, warnings: [] };
+    const warnings = [];
+    if (tenant._count.users > planConfig.features.maxUsers) {
+      warnings.push(`You have ${tenant._count.users} users (limit: ${planConfig.features.maxUsers})`);
+    }
+    if (tenant._count.leads > planConfig.features.maxLeads) {
+      warnings.push(`You have ${tenant._count.leads} leads (limit: ${planConfig.features.maxLeads})`);
+    }
+    if (tenant._count.deals > planConfig.features.maxDeals) {
+      warnings.push(`You have ${tenant._count.deals} deals (limit: ${planConfig.features.maxDeals})`);
+    }
+    return {
+      withinLimits: warnings.length === 0,
+      warnings
+    };
+  }
+};
+
+// src/modules/billing/billing.controller.ts
+var getPlans = asyncHandler_default(async (req, res) => {
+  const plans = BillingService.getPlans();
+  return success(res, plans, "Plans fetched");
+});
+var getSubscription = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const subscription = await BillingService.getCurrentSubscription(tenantId);
+  return success(res, subscription, "Subscription fetched");
+});
+var changePlan = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const { plan } = req.body;
+  if (!plan) {
+    return res.status(400).json({ success: false, message: "Plan is required" });
+  }
+  const result = await BillingService.changePlan(tenantId, plan);
+  return success(res, result, "Plan changed");
+});
+var updateBillingEmail = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const { email } = req.body;
+  await BillingService.updateBillingEmail(tenantId, email);
+  return success(res, { email }, "Billing email updated");
+});
+var checkUsage = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const limits = await BillingService.checkUsageLimits(tenantId);
+  return success(res, limits, "Usage limits checked");
+});
+
+// src/modules/billing/billing.routes.ts
+var router22 = Router22();
+router22.use(authGuard_default);
+router22.use(tenantResolver_default);
+router22.get("/plans", getPlans);
+router22.get("/subscription", getSubscription);
+router22.post("/change-plan", rbacGuard_default("settings", "update"), changePlan);
+router22.patch("/billing-email", updateBillingEmail);
+router22.get("/usage", checkUsage);
+var billing_routes_default = router22;
+
+// src/modules/predictions/prediction.routes.ts
+import { Router as Router23 } from "express";
+
+// src/modules/predictions/prediction.service.ts
+var PredictionService = class {
+  /**
+   * Get win probability for a specific deal using heuristic scoring
+   * (In production, this would use a trained ML model)
+   */
+  static async predictDealWin(dealId) {
+    const deal = await database_default.deal.findUnique({
+      where: { id: dealId },
+      include: {
+        stage: true,
+        tasks: { where: { deletedAt: null } },
+        communications: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: "desc" },
+          take: 10
+        },
+        contact: true,
+        company: true
+      }
+    });
+    if (!deal) throw { status: 404, message: "Deal not found" };
+    let score = deal.probability;
+    const riskFactors = [];
+    const positiveIndicators = [];
+    const recentComms = deal.communications.filter(
+      (c) => c.createdAt > new Date(Date.now() - 7 * 24 * 60 * 60 * 1e3)
+    );
+    if (recentComms.length >= 3) {
+      score += 10;
+      positiveIndicators.push("High recent engagement (3+ communications this week)");
+    } else if (recentComms.length === 0) {
+      score -= 15;
+      riskFactors.push("No communication in the last 7 days");
+    }
+    if (deal.stage && deal.stage.position >= 3) {
+      score += 10;
+      positiveIndicators.push(`In advanced stage "${deal.stage.name}"`);
+    } else if (deal.stage && deal.stage.position <= 1) {
+      score -= 5;
+    }
+    const overdueTasks = deal.tasks.filter(
+      (t) => t.status !== "completed" && t.status !== "cancelled" && t.dueAt && t.dueAt < /* @__PURE__ */ new Date()
+    );
+    if (overdueTasks.length > 0) {
+      score -= 10;
+      riskFactors.push(`${overdueTasks.length} overdue task(s) need attention`);
+    }
+    const outboundCount = deal.communications.filter((c) => c.direction === "outbound").length;
+    const inboundCount = deal.communications.filter((c) => c.direction === "inbound").length;
+    const totalComms = outboundCount + inboundCount;
+    if (totalComms > 0) {
+      const inboundRatio = inboundCount / totalComms;
+      if (inboundRatio > 0.4) {
+        score += 8;
+        positiveIndicators.push("Contact is responsive (high inbound communication ratio)");
+      } else if (inboundRatio < 0.1 && totalComms > 5) {
+        score -= 8;
+        riskFactors.push("Low contact responsiveness \u2014 mostly outbound communications");
+      }
+    }
+    const avgDealValue = await database_default.deal.aggregate({
+      where: { tenantId: deal.tenantId, status: "won" },
+      _avg: { value: true }
+    });
+    const dealValue = Number(deal.value);
+    const avgValue = avgDealValue._avg.value ? Number(avgDealValue._avg.value) : 0;
+    if (avgValue > 0 && dealValue > avgValue * 1.5) {
+      score -= 5;
+      riskFactors.push("Deal value is significantly above average \u2014 may face budget scrutiny");
+    }
+    const daysInStage = Math.floor(
+      (Date.now() - new Date(deal.updatedAt).getTime()) / (1e3 * 60 * 60 * 24)
+    );
+    if (daysInStage > 30 && deal.stage && deal.stage.position < 3) {
+      score -= 10;
+      riskFactors.push(`Stuck in "${deal.stage.name}" for ${daysInStage} days`);
+    }
+    score = Math.max(0, Math.min(100, score));
+    let nextBestAction = "Continue nurturing the relationship.";
+    if (recentComms.length === 0) {
+      nextBestAction = "\u{1F4DE} Reach out to the contact \u2014 no communication detected this week.";
+    } else if (overdueTasks.length > 0) {
+      nextBestAction = `\u2705 Complete ${overdueTasks.length} overdue task(s) to keep the deal moving.`;
+    } else if (deal.stage && deal.stage.position < 2) {
+      nextBestAction = "\u{1F4CA} Schedule a demo or discovery call to advance the deal.";
+    } else if (deal.stage && deal.stage.position >= 3) {
+      nextBestAction = "\u270D\uFE0F Prepare and send a proposal to close the deal.";
+    }
+    let predictedCloseDate = null;
+    if (deal.expectedCloseAt) {
+      predictedCloseDate = deal.expectedCloseAt.toISOString();
+    } else {
+      const avgDaysInStage = await this.getAvgDaysInStage(deal.stageId);
+      const predictedDate = /* @__PURE__ */ new Date();
+      predictedDate.setDate(predictedDate.getDate() + avgDaysInStage);
+      predictedCloseDate = predictedDate.toISOString();
+    }
+    return {
+      dealId: deal.id,
+      dealTitle: deal.title,
+      currentStage: deal.stage?.name || "Unknown",
+      winProbability: score,
+      predictedCloseDate,
+      nextBestAction,
+      riskFactors,
+      positiveIndicators
+    };
+  }
+  /**
+   * Get pipeline predictions for all open deals
+   */
+  static async predictPipeline(tenantId) {
+    const deals = await database_default.deal.findMany({
+      where: { tenantId, status: "open", deletedAt: null },
+      include: { stage: true },
+      orderBy: { value: "desc" }
+    });
+    const predictions = await Promise.all(
+      deals.map((d) => this.predictDealWin(d.id))
+    );
+    const summary = {
+      totalDeals: predictions.length,
+      totalValue: deals.reduce((sum, d) => sum + Number(d.value), 0),
+      weightedValue: predictions.reduce((sum, p) => {
+        const deal = deals.find((d) => d.id === p.dealId);
+        return sum + p.winProbability / 100 * Number(deal?.value || 0);
+      }, 0),
+      highConfidence: predictions.filter((p) => p.winProbability >= 70).length,
+      mediumConfidence: predictions.filter((p) => p.winProbability >= 40 && p.winProbability < 70).length,
+      lowConfidence: predictions.filter((p) => p.winProbability < 40).length,
+      atRisk: predictions.filter((p) => p.riskFactors.length > 2).length
+    };
+    return { summary, predictions };
+  }
+  /**
+   * Get next best actions for a user's deals and leads
+   */
+  static async getNextBestActions(tenantId, userId) {
+    const userDeals = await database_default.deal.findMany({
+      where: { tenantId, assignedToId: userId, status: "open", deletedAt: null },
+      include: { stage: true },
+      orderBy: { value: "desc" },
+      take: 10
+    });
+    const userLeads = await database_default.lead.findMany({
+      where: { tenantId, assignedToId: userId, isConverted: false, deletedAt: null },
+      include: { stage: true },
+      orderBy: { lastActivityAt: "asc" },
+      take: 10
+    });
+    const dealActions = userDeals.map((d) => ({
+      type: "deal",
+      entityId: d.id,
+      title: d.title,
+      stage: d.stage?.name || "Unknown",
+      action: this.getDealNextAction(d),
+      priority: this.calculatePriority(Number(d.value), d.stage?.position || 0)
+    }));
+    const leadActions = userLeads.map((l) => ({
+      type: "lead",
+      entityId: l.id,
+      title: l.title,
+      stage: l.stage?.name || "Unknown",
+      action: this.getLeadNextAction(l),
+      priority: this.calculatePriority(Number(l.estimatedValue || 0), l.stage?.position || 0)
+    }));
+    return [...dealActions, ...leadActions].sort((a, b) => b.priority - a.priority).slice(0, 10);
+  }
+  static getDealNextAction(deal) {
+    if (!deal.lastActivityAt || new Date(deal.lastActivityAt) < new Date(Date.now() - 7 * 24 * 60 * 60 * 1e3)) {
+      return "\u{1F4DE} Re-engage \u2014 no activity in over a week";
+    }
+    if (deal.stage?.position === 0) {
+      return "\u{1F50D} Qualify the deal by scheduling a discovery call";
+    }
+    if (deal.stage?.position === 1) {
+      return "\u{1F4CA} Present product demo and gather requirements";
+    }
+    if (deal.stage?.position === 2) {
+      return "\u{1F4CB} Send a tailored proposal with pricing";
+    }
+    if (deal.stage?.position >= 3) {
+      return "\u{1F91D} Follow up on proposal and negotiate terms";
+    }
+    return "\u{1F4C8} Continue nurturing the relationship";
+  }
+  static getLeadNextAction(lead) {
+    const daysSinceActivity = Math.floor(
+      (Date.now() - new Date(lead.lastActivityAt).getTime()) / (1e3 * 60 * 60 * 24)
+    );
+    if (daysSinceActivity > 7) {
+      return "\u{1F4DE} Stale lead \u2014 reach out within 24 hours";
+    }
+    if (lead.stage?.position === 0) {
+      return "\u{1F4DD} Gather contact details and qualify";
+    }
+    if (lead.stage?.position === 1) {
+      return "\u{1F4CA} Schedule discovery call or demo";
+    }
+    if (lead.stage?.position >= 2) {
+      return "\u{1F504} Ready for conversion to deal \u2014 start the process";
+    }
+    return "\u{1F4C8} Continue building relationship";
+  }
+  static calculatePriority(value, position) {
+    const valueScore = Math.min(value / 1e4, 10);
+    const stageScore = position * 2;
+    return valueScore + stageScore;
+  }
+  static async getAvgDaysInStage(stageId) {
+    const stage = await database_default.pipelineStage.findUnique({
+      where: { id: stageId }
+    });
+    if (!stage) return 14;
+    const transitions = await database_default.stageTransition.findMany({
+      where: { toStageId: stageId },
+      orderBy: { createdAt: "desc" },
+      take: 50
+    });
+    if (transitions.length === 0) return 14;
+    return 14;
+  }
+};
+
+// src/modules/predictions/prediction.controller.ts
+var predictDeal = asyncHandler_default(async (req, res) => {
+  const id = req.params.id;
+  const prediction = await PredictionService.predictDealWin(id);
+  return success(res, prediction, "Deal prediction generated");
+});
+var predictPipeline = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const prediction = await PredictionService.predictPipeline(tenantId);
+  return success(res, prediction, "Pipeline prediction generated");
+});
+var getActions = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const actions = await PredictionService.getNextBestActions(tenantId, userId);
+  return success(res, actions, "Next best actions fetched");
+});
+
+// src/modules/predictions/prediction.routes.ts
+var router23 = Router23();
+router23.use(authGuard_default);
+router23.use(tenantResolver_default);
+router23.get("/pipeline", predictPipeline);
+router23.get("/actions", getActions);
+router23.get("/deal/:id", predictDeal);
+var prediction_routes_default = router23;
+
+// src/modules/gamification/gamification.routes.ts
+import { Router as Router24 } from "express";
+
+// src/modules/gamification/gamification.service.ts
+var ACHIEVEMENTS = [
+  { id: "first_deal", key: "first_deal", name: "First Deal Closed", description: "Close your first deal", icon: "\u{1F3AF}", criteria: { type: "deals_won", threshold: 1 } },
+  { id: "rising_star", key: "rising_star", name: "Rising Star", description: "Close 5 deals", icon: "\u{1F31F}", criteria: { type: "deals_won", threshold: 5 } },
+  { id: "deal_machine", key: "deal_machine", name: "Deal Machine", description: "Close 25 deals", icon: "\u{1F3C6}", criteria: { type: "deals_won", threshold: 25 } },
+  { id: "rainmaker", key: "rainmaker", name: "Rainmaker", description: "Close 100 deals", icon: "\u{1F451}", criteria: { type: "deals_won", threshold: 100 } },
+  { id: "first_million", key: "first_million", name: "First Million", description: "Generate $1M in revenue", icon: "\u{1F48E}", criteria: { type: "revenue", threshold: 1e6 } },
+  { id: "lead_generator", key: "lead_generator", name: "Lead Generator", description: "Create 50 leads", icon: "\u{1F4CB}", criteria: { type: "leads_created", threshold: 50 } },
+  { id: "pro_communicator", key: "pro_communicator", name: "Pro Communicator", description: "Log 100 communications", icon: "\u{1F4AC}", criteria: { type: "communications", threshold: 100 } },
+  { id: "streak_7", key: "streak_7", name: "Week Warrior", description: "Log activity 7 days in a row", icon: "\u{1F525}", criteria: { type: "streak", threshold: 7 } },
+  { id: "streak_30", key: "streak_30", name: "Monthly Master", description: "Log activity 30 days in a row", icon: "\u26A1", criteria: { type: "streak", threshold: 30 } },
+  { id: "speedy_closer", key: "speedy_closer", name: "Speedy Closer", description: "Close a deal within 7 days of creation", icon: "\u23F1\uFE0F", criteria: { type: "fast_close", threshold: 1 } },
+  { id: "team_player", key: "team_player", name: "Team Player", description: "Complete 50 tasks", icon: "\u{1F91D}", criteria: { type: "tasks_completed", threshold: 50 } },
+  { id: "sla_hero", key: "sla_hero", name: "SLA Hero", description: "Respond to all leads within 24 hours for 30 days", icon: "\u{1F9B8}", criteria: { type: "sla_responded", threshold: 30 } }
+];
+var GamificationService = class {
+  static getAchievements() {
+    return ACHIEVEMENTS;
+  }
+  /**
+   * Get user's earned achievements with progress
+   */
+  static async getUserAchievements(tenantId, userId) {
+    const user = await database_default.user.findUnique({
+      where: { id: userId },
+      include: {
+        _count: {
+          select: {
+            communications: true,
+            assignedTasks: { where: { status: "completed" } },
+            createdLeads: true
+          }
+        },
+        assignedDeals: {
+          where: { status: "won" },
+          select: { value: true, createdAt: true, closedAt: true }
+        }
+      }
+    });
+    if (!user) return { earned: [], available: [] };
+    const dealsWon = user.assignedDeals.length;
+    const revenue = user.assignedDeals.reduce((sum, d) => sum + Number(d.value), 0);
+    const leadsCreated = user._count.createdLeads;
+    const comms = user._count.communications;
+    const tasksCompleted = user._count.assignedTasks;
+    const fastCloses = user.assignedDeals.filter((d) => {
+      if (!d.closedAt) return false;
+      const days = (d.closedAt.getTime() - d.createdAt.getTime()) / (1e3 * 60 * 60 * 24);
+      return days <= 7;
+    }).length;
+    const last30Days = await database_default.activityLog.count({
+      where: {
+        userId,
+        tenantId,
+        createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1e3) }
+      }
+    });
+    const earnedAchievements = ACHIEVEMENTS.filter((a) => {
+      switch (a.criteria.type) {
+        case "deals_won":
+          return dealsWon >= a.criteria.threshold;
+        case "revenue":
+          return revenue >= a.criteria.threshold;
+        case "leads_created":
+          return leadsCreated >= a.criteria.threshold;
+        case "communications":
+          return comms >= a.criteria.threshold;
+        case "tasks_completed":
+          return tasksCompleted >= a.criteria.threshold;
+        case "fast_close":
+          return fastCloses >= a.criteria.threshold;
+        case "streak":
+          return last30Days >= a.criteria.threshold;
+        case "sla_responded":
+          return last30Days >= a.criteria.threshold;
+        // proxy
+        default:
+          return false;
+      }
+    });
+    const availableAchievements = ACHIEVEMENTS.filter((a) => !earnedAchievements.find((e) => e.id === a.id));
+    const progress = ACHIEVEMENTS.map((a) => {
+      let current = 0;
+      switch (a.criteria.type) {
+        case "deals_won":
+          current = dealsWon;
+          break;
+        case "revenue":
+          current = revenue;
+          break;
+        case "leads_created":
+          current = leadsCreated;
+          break;
+        case "communications":
+          current = comms;
+          break;
+        case "tasks_completed":
+          current = tasksCompleted;
+          break;
+        case "fast_close":
+          current = fastCloses;
+          break;
+        case "streak":
+          current = last30Days;
+          break;
+        case "sla_responded":
+          current = last30Days;
+          break;
+      }
+      return { ...a, current, target: a.criteria.threshold, earned: current >= a.criteria.threshold };
+    });
+    return { earned: earnedAchievements, available: availableAchievements, progress };
+  }
+  /**
+   * Get team leaderboard
+   */
+  static async getLeaderboard(tenantId) {
+    const users = await database_default.user.findMany({
+      where: { tenantId, status: "active" },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        avatarUrl: true,
+        _count: {
+          select: {
+            assignedDeals: { where: { status: "won" } },
+            communications: true,
+            assignedTasks: { where: { status: "completed" } }
+          }
+        },
+        assignedDeals: {
+          where: { status: "won" },
+          select: { value: true }
+        }
+      }
+    });
+    const leaderboard = users.map((u) => {
+      const revenue = u.assignedDeals.reduce((sum, d) => sum + Number(d.value), 0);
+      const dealsWon = u._count.assignedDeals;
+      const comms = u._count.communications;
+      const tasksDone = u._count.assignedTasks;
+      const score = dealsWon * 100 + revenue / 1e3 + comms * 2 + tasksDone * 5;
+      return {
+        userId: u.id,
+        name: `${u.firstName} ${u.lastName}`,
+        avatarUrl: u.avatarUrl,
+        score: Math.round(score),
+        dealsWon,
+        revenue,
+        communications: comms,
+        tasksCompleted: tasksDone
+      };
+    }).sort((a, b) => b.score - a.score).map((u, i) => ({ ...u, rank: i + 1 }));
+    return leaderboard;
+  }
+  /**
+   * Check and award new achievements
+   */
+  static async checkAchievements(tenantId, userId) {
+    const result = await this.getUserAchievements(tenantId, userId);
+    return result.earned;
+  }
+  /**
+   * Get streak info
+   */
+  static async getStreak(tenantId, userId) {
+    const recentActivity = await database_default.activityLog.findMany({
+      where: {
+        userId,
+        tenantId,
+        createdAt: { gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1e3) }
+      },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true }
+    });
+    let streak = 0;
+    const today = /* @__PURE__ */ new Date();
+    today.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 60; i++) {
+      const day = new Date(today);
+      day.setDate(day.getDate() - i);
+      const hasActivity = recentActivity.some((a) => {
+        const actDay = new Date(a.createdAt);
+        actDay.setHours(0, 0, 0, 0);
+        return actDay.getTime() === day.getTime();
+      });
+      if (hasActivity) {
+        streak++;
+      } else if (i === 0) {
+        break;
+      } else {
+        break;
+      }
+    }
+    let longestStreak = streak;
+    let currentRun = 0;
+    for (let i = 0; i < 60; i++) {
+      const day = new Date(today);
+      day.setDate(day.getDate() - i);
+      const hasActivity = recentActivity.some((a) => {
+        const actDay = new Date(a.createdAt);
+        actDay.setHours(0, 0, 0, 0);
+        return actDay.getTime() === day.getTime();
+      });
+      if (hasActivity) {
+        currentRun++;
+        longestStreak = Math.max(longestStreak, currentRun);
+      } else {
+        currentRun = 0;
+      }
+    }
+    return { currentStreak: streak, longestStreak, hasActivityToday: streak > 0 };
+  }
+};
+
+// src/modules/gamification/gamification.controller.ts
+var getMyAchievements = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const achievements = await GamificationService.getUserAchievements(tenantId, userId);
+  return success(res, achievements, "Achievements fetched");
+});
+var getLeaderboard = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const leaderboard = await GamificationService.getLeaderboard(tenantId);
+  return success(res, leaderboard, "Leaderboard fetched");
+});
+var getStreak = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const streak = await GamificationService.getStreak(tenantId, userId);
+  return success(res, streak, "Streak fetched");
+});
+var getAchievementDefs = asyncHandler_default(async (req, res) => {
+  const achievements = GamificationService.getAchievements();
+  return success(res, achievements, "Achievement definitions fetched");
+});
+
+// src/modules/gamification/gamification.routes.ts
+var router24 = Router24();
+router24.use(authGuard_default);
+router24.use(tenantResolver_default);
+router24.get("/achievements", getMyAchievements);
+router24.get("/achievements/definitions", getAchievementDefs);
+router24.get("/leaderboard", getLeaderboard);
+router24.get("/streak", getStreak);
+var gamification_routes_default = router24;
+
+// src/modules/comments/comment.routes.ts
+import { Router as Router25 } from "express";
+
+// src/modules/comments/comment.service.ts
+var CommentService = class {
+  /**
+   * Add a comment to an entity
+   */
+  static async addComment(params) {
+    const comment = await database_default.activityLog.create({
+      data: {
+        tenantId: params.tenantId,
+        userId: params.userId,
+        entityType: params.entityType,
+        entityId: params.entityId,
+        action: "comment",
+        newValue: { body: params.body, mentions: params.mentions || [] },
+        metadata: { isComment: true, mentions: params.mentions || [] }
+      }
+    });
+    if (params.mentions && params.mentions.length > 0) {
+      const mentionedUsers = await database_default.user.findMany({
+        where: {
+          id: { in: params.mentions },
+          tenantId: params.tenantId,
+          status: "active"
+        },
+        select: { id: true }
+      });
+      const commentingUser = await database_default.user.findUnique({
+        where: { id: params.userId },
+        select: { firstName: true, lastName: true }
+      });
+      const notifications = mentionedUsers.map((u) => ({
+        tenantId: params.tenantId,
+        userId: u.id,
+        type: "mention",
+        title: `${commentingUser?.firstName || "Someone"} mentioned you`,
+        body: params.body.length > 100 ? params.body.substring(0, 100) + "..." : params.body,
+        link: `/${params.entityType}s?id=${params.entityId}`,
+        entityType: params.entityType,
+        entityId: params.entityId,
+        channel: "in_app",
+        metadata: { commentId: comment.id, mentionerId: params.userId }
+      }));
+      if (notifications.length > 0) {
+        await database_default.notification.createMany({ data: notifications });
+      }
+    }
+    return comment;
+  }
+  /**
+   * Get comments for an entity
+   */
+  static async getComments(tenantId, entityType, entityId) {
+    const comments = await database_default.activityLog.findMany({
+      where: {
+        tenantId,
+        entityType,
+        entityId,
+        action: "comment"
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, avatarUrl: true }
+        }
+      }
+    });
+    return comments.map((c) => ({
+      id: c.id,
+      body: c.newValue?.body || "",
+      mentions: c.newValue?.mentions || [],
+      user: c.user,
+      createdAt: c.createdAt
+    }));
+  }
+};
+
+// src/modules/comments/comment.controller.ts
+var addComment = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const userId = req.user.id;
+  const { entityType, entityId, body, mentions } = req.body;
+  if (!entityType || !entityId || !body) {
+    return res.status(400).json({ success: false, message: "entityType, entityId, and body are required" });
+  }
+  const comment = await CommentService.addComment({ tenantId, userId, entityType, entityId, body, mentions });
+  return success(res, comment, "Comment added");
+});
+var getComments = asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const entityType = req.params.entityType;
+  const entityId = req.params.entityId;
+  const comments = await CommentService.getComments(tenantId, entityType, entityId);
+  return success(res, comments, "Comments fetched");
+});
+
+// src/modules/comments/comment.routes.ts
+var router25 = Router25();
+router25.use(authGuard_default);
+router25.use(tenantResolver_default);
+router25.post("/", addComment);
+router25.get("/:entityType/:entityId", getComments);
+var comment_routes_default = router25;
+
+// src/modules/digests/digest.routes.ts
+import { Router as Router26 } from "express";
+
+// src/modules/digests/digest.service.ts
+var DigestService = class {
+  /**
+   * Generate monthly lost-leads digest for all active users
+   */
+  static async generateMonthlyLostLeadsDigest() {
+    const now = /* @__PURE__ */ new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const tenants = await database_default.tenant.findMany({
+      where: { status: "active" },
+      select: { id: true }
+    });
+    for (const tenant of tenants) {
+      try {
+        await this.generateTenantLostLeadsDigest(tenant.id, firstOfLastMonth, firstOfMonth);
+      } catch (err) {
+        console.error(`[Digest] Failed for tenant ${tenant.id}:`, err);
+      }
+    }
+  }
+  /**
+   * Generate lost-leads digest for a single tenant
+   */
+  static async generateTenantLostLeadsDigest(tenantId, startDate, endDate) {
+    const lostDealIds = await database_default.deal.findMany({
+      where: { tenantId, status: "lost" },
+      select: { sourceLeadId: true }
+    });
+    const convertedLostLeadIds = lostDealIds.map((d) => d.sourceLeadId).filter((id) => id !== null);
+    const finalStageIds = await database_default.pipelineStage.findMany({
+      where: { tenantId, isFinal: true, type: "lead" },
+      select: { id: true }
+    });
+    const finalStageIdSet = new Set(finalStageIds.map((s) => s.id));
+    const allLeads = await database_default.lead.findMany({
+      where: {
+        tenantId,
+        deletedAt: null,
+        OR: [
+          { id: { in: convertedLostLeadIds } },
+          { stageId: { in: Array.from(finalStageIdSet) } }
+        ]
+      },
+      include: {
+        stage: true,
+        assignedTo: { select: { id: true, firstName: true, lastName: true } },
+        contact: { select: { firstName: true, lastName: true, email: true, phone: true } }
+      }
+    });
+    if (allLeads.length === 0) return;
+    const activeUsers = await database_default.user.findMany({
+      where: {
+        tenantId,
+        status: "active",
+        OR: [
+          { role: "salesRep" },
+          { role: "salesManager" },
+          { role: "admin" }
+        ]
+      },
+      select: { id: true }
+    });
+    if (activeUsers.length === 0) return;
+    const summary = allLeads.map((l) => ({
+      title: l.title,
+      contact: l.contact ? `${l.contact.firstName} ${l.contact.lastName || ""}` : "Unknown",
+      email: l.contact?.email || null,
+      phone: l.contact?.phone || null,
+      stage: l.stage?.name || "Unknown",
+      assignedTo: l.assignedTo ? `${l.assignedTo.firstName} ${l.assignedTo.lastName}` : "Unassigned",
+      lostDate: l.updatedAt.toISOString()
+    }));
+    const body = `Monthly Lost Leads Digest (${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()})
+
+${allLeads.length} lead(s) were marked as lost.
+
+` + summary.map((s) => `\u2022 ${s.title} (${s.contact}) \u2014 ${s.stage} \u2014 ${s.assignedTo}`).join("\n") + "\n\nReview these for possible re-engagement.";
+    for (const user of activeUsers) {
+      await NotificationService.notify({
+        tenantId,
+        userId: user.id,
+        type: "digest",
+        title: `\u{1F4CA} Monthly Lost Leads Digest \u2014 ${allLeads.length} leads lost`,
+        body,
+        link: "/reports",
+        entityType: "lead",
+        metadata: { digestType: "monthly_lost_leads", count: allLeads.length, summary }
+      });
+    }
+    console.log(`[Digest] Lost leads digest sent to ${activeUsers.length} users in tenant ${tenantId}: ${allLeads.length} leads`);
+    return { tenantId, lostLeadsCount: allLeads.length, notifiedUsers: activeUsers.length };
+  }
+  /**
+   * Generate weekly activity digest
+   */
+  static async generateWeeklyDigest() {
+    const now = /* @__PURE__ */ new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1e3);
+    const tenants = await database_default.tenant.findMany({
+      where: { status: "active" },
+      select: { id: true }
+    });
+    for (const tenant of tenants) {
+      try {
+        await this.generateTenantWeeklyDigest(tenant.id, sevenDaysAgo, now);
+      } catch (err) {
+        console.error(`[Digest] Weekly digest failed for tenant ${tenant.id}:`, err);
+      }
+    }
+  }
+  static async generateTenantWeeklyDigest(tenantId, startDate, endDate) {
+    const activeUsers = await database_default.user.findMany({
+      where: {
+        tenantId,
+        status: "active",
+        role: { in: ["salesRep", "salesManager", "admin"] }
+      },
+      select: { id: true, firstName: true, lastName: true }
+    });
+    for (const user of activeUsers) {
+      const [dealsWon, leadsCreated, tasksCompleted, commsLogged] = await Promise.all([
+        database_default.deal.count({ where: { tenantId, assignedToId: user.id, status: "won", closedAt: { gte: startDate } } }),
+        database_default.lead.count({ where: { tenantId, createdById: user.id, createdAt: { gte: startDate } } }),
+        database_default.task.count({ where: { tenantId, assignedToId: user.id, status: "completed", completedAt: { gte: startDate } } }),
+        database_default.communication.count({ where: { tenantId, userId: user.id, createdAt: { gte: startDate } } })
+      ]);
+      const body = `\u{1F4C8} Your Weekly Activity Digest
+
+Period: ${startDate.toLocaleDateString()} \u2014 ${endDate.toLocaleDateString()}
+
+\u2705 Deals Won: ${dealsWon}
+\u{1F4CB} Leads Created: ${leadsCreated}
+\u{1F4DD} Tasks Completed: ${tasksCompleted}
+\u{1F4AC} Communications Logged: ${commsLogged}
+
+Keep up the great work! \u{1F680}`;
+      await NotificationService.notify({
+        tenantId,
+        userId: user.id,
+        type: "digest",
+        title: `\u{1F4C8} Your Weekly Activity Summary`,
+        body,
+        link: "/reports",
+        metadata: {
+          digestType: "weekly",
+          stats: { dealsWon, leadsCreated, tasksCompleted, commsLogged }
+        }
+      });
+    }
+  }
+};
+
+// src/modules/digests/digest.routes.ts
+var router26 = Router26();
+router26.use(authGuard_default);
+router26.use(tenantResolver_default);
+router26.post("/lost-leads", rbacGuard_default("reports", "read"), asyncHandler_default(async (req, res) => {
+  const tenantId = req.user.tenantId;
+  const now = /* @__PURE__ */ new Date();
+  const startOfMonth2 = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const endOfMonth2 = new Date(now.getFullYear(), now.getMonth(), 1);
+  const result = await DigestService.generateTenantLostLeadsDigest(tenantId, startOfMonth2, endOfMonth2);
+  return success(res, result || { notified: false, reason: "No lost leads found" }, "Lost leads digest generated");
+}));
+var digest_routes_default = router26;
+
 // src/express-app.ts
 var app = express();
 app.use(helmet());
@@ -4517,7 +6750,12 @@ app.use(cookieParser());
 var allowedOrigins = [env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174"];
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".vercel.app") || origin.startsWith("http://localhost:");
+    if (isAllowed) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -4531,22 +6769,59 @@ app.get("/health", (req, res) => {
 });
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swagger_default));
 app.use("/api/auth", auth_routes_default);
+app.use("/auth", auth_routes_default);
 app.use("/api/rbac", rbac_routes_default);
+app.use("/rbac", rbac_routes_default);
 app.use("/api/tenants", tenant_routes_default);
+app.use("/tenants", tenant_routes_default);
 app.use("/api/pipeline-stages", stage_routes_default);
+app.use("/pipeline-stages", stage_routes_default);
 app.use("/api/companies", company_routes_default);
+app.use("/companies", company_routes_default);
 app.use("/api/contacts", contact_routes_default);
+app.use("/contacts", contact_routes_default);
 app.use("/api/leads", lead_routes_default);
+app.use("/leads", lead_routes_default);
 app.use("/api/deals", deal_routes_default);
+app.use("/deals", deal_routes_default);
 app.use("/api/tasks", task_routes_default);
+app.use("/tasks", task_routes_default);
 app.use("/api/communications", communication_routes_default);
+app.use("/communications", communication_routes_default);
 app.use("/api/products", product_routes_default);
+app.use("/products", product_routes_default);
 app.use("/api/activities", activity_routes_default);
+app.use("/activities", activity_routes_default);
 app.use("/api/proposals", router13);
+app.use("/proposals", router13);
 app.use("/api/public/proposals", publicRouter);
+app.use("/public/proposals", publicRouter);
 app.use("/api/analytics", analytics_routes_default);
+app.use("/analytics", analytics_routes_default);
 app.use("/api/lead-scoring", leadScoring_routes_default);
+app.use("/lead-scoring", leadScoring_routes_default);
 app.use("/api/email-templates", emailTemplate_routes_default);
+app.use("/email-templates", emailTemplate_routes_default);
+app.use("/api/campaigns", campaign_routes_default);
+app.use("/campaigns", campaign_routes_default);
+app.use("/api/stage-transitions", stageTransition_routes_default);
+app.use("/stage-transitions", stageTransition_routes_default);
+app.use("/api/sla", sla_routes_default);
+app.use("/sla", sla_routes_default);
+app.use("/api/notifications", notification_routes_default);
+app.use("/notifications", notification_routes_default);
+app.use("/api/integrations", integration_routes_default);
+app.use("/integrations", integration_routes_default);
+app.use("/api/billing", billing_routes_default);
+app.use("/billing", billing_routes_default);
+app.use("/api/predictions", prediction_routes_default);
+app.use("/predictions", prediction_routes_default);
+app.use("/api/gamification", gamification_routes_default);
+app.use("/gamification", gamification_routes_default);
+app.use("/api/comments", comment_routes_default);
+app.use("/comments", comment_routes_default);
+app.use("/api/digests", digest_routes_default);
+app.use("/digests", digest_routes_default);
 app.use(notFound_default);
 app.use(errorHandler_default);
 var express_app_default = app;

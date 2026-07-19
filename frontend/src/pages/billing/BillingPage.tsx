@@ -162,7 +162,7 @@ export default function BillingPage() {
                       <X className="h-4 w-4 text-slate-300 dark:text-slate-600 shrink-0" />
                     )}
                     <span className={value ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-muted)]'}>
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim()}: <span className="font-black">{typeof value === 'string' ? value : value ? '✓' : '✗'}</span>
+                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, (s: string) => s.toUpperCase()).trim()}: <span className="font-black">{typeof value === 'string' ? value : value ? '✓' : '✗'}</span>
                     </span>
                   </li>
                 ))}
