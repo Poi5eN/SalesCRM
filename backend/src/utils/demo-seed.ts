@@ -263,14 +263,14 @@ export async function seedDemoData() {
   // 7. Create Companies
   console.log('🌱 Seeding companies...');
   const companiesData = [
-    { name: 'Vortex AI Solutions', website: 'https://vortexai.io', industry: 'Technology', size: '11-50', revenue: 2500000, description: 'Building next-generation generative AI agents for B2B enterprises.' },
-    { name: 'Summit Global Health', website: 'https://summithealth.com', industry: 'Healthcare', size: '201-500', revenue: 15000000, description: 'Global healthcare provider specializing in clinical systems integration.' },
-    { name: 'Nexus Logistics Group', website: 'https://nexuslogistics.com', industry: 'Manufacturing', size: '51-200', revenue: 8500000, description: 'Multinational supply chain and freight forwarding services.' },
-    { name: 'Starlight Creative Labs', website: 'https://starlightcreative.co', industry: 'Education', size: '1-10', revenue: 450000, description: 'Creative studio delivering interactive learning content and animation.' },
-    { name: 'Apex Wealth Capital', website: 'https://apexwealth.com', industry: 'Finance', size: '11-50', revenue: 6200000, description: 'Boutique asset management and private equity firm.' },
-    { name: 'Nova Foods Corp', website: 'https://novafoods.com', industry: 'Manufacturing', size: '500+', revenue: 42000000, description: 'Pioneers in high-protein plant-based meat alternatives.' },
-    { name: 'Pulse Media Digital', website: 'https://pulsemedia.com', industry: 'Technology', size: '51-200', revenue: 3800000, description: 'Full stack digital marketing and programmatic advertising agency.' },
-    { name: 'Core Infrastructure Inc', website: 'https://coreinfra.net', industry: 'Manufacturing', size: '201-500', revenue: 11000000, description: 'Leading structural engineering firm specializing in green buildings.' }
+    { name: 'Vortex AI Solutions', website: 'https://vortexai.io', industry: 'Technology', size: '11-50', revenue: 2500000, country: 'India', city: 'Bengaluru', state: 'Karnataka', address: 'Indiranagar, 100ft Road, Bengaluru', pincode: '560038', linkedinUrl: 'https://linkedin.com/company/vortex-ai-solutions', description: 'Building next-generation generative AI agents for B2B enterprises.' },
+    { name: 'Summit Global Health', website: 'https://summithealth.com', industry: 'Healthcare', size: '201-500', revenue: 15000000, country: 'India', city: 'Mumbai', state: 'Maharashtra', address: 'Bandra Kurla Complex, Mumbai', pincode: '400051', linkedinUrl: 'https://linkedin.com/company/summit-global-health', description: 'Global healthcare provider specializing in clinical systems integration.' },
+    { name: 'Nexus Logistics Group', website: 'https://nexuslogistics.com', industry: 'Manufacturing', size: '51-200', revenue: 8500000, country: 'India', city: 'Chennai', state: 'Tamil Nadu', address: 'Mount Road, Chennai', pincode: '600002', linkedinUrl: 'https://linkedin.com/company/nexus-logistics-group', description: 'Multinational supply chain and freight forwarding services.' },
+    { name: 'Starlight Creative Labs', website: 'https://starlightcreative.co', industry: 'Education', size: '1-10', revenue: 450000, country: 'United States', city: 'New York', state: 'New York', address: '123 Broadway, Suite 400, New York', pincode: '10006', linkedinUrl: 'https://linkedin.com/company/starlight-creative-labs', description: 'Creative studio delivering interactive learning content and animation.' },
+    { name: 'Apex Wealth Capital', website: 'https://apexwealth.com', industry: 'Finance', size: '11-50', revenue: 6200000, country: 'Singapore', city: 'Singapore', state: 'Singapore', address: '1 Raffles Place, Singapore', pincode: '048616', linkedinUrl: 'https://linkedin.com/company/apex-wealth-capital', description: 'Boutique asset management and private equity firm.' },
+    { name: 'Nova Foods Corp', website: 'https://novafoods.com', industry: 'Manufacturing', size: '500+', revenue: 42000000, country: 'India', city: 'Pune', state: 'Maharashtra', address: 'Koregaon Park, Pune', pincode: '411001', linkedinUrl: 'https://linkedin.com/company/nova-foods-corp', description: 'Pioneers in high-protein plant-based meat alternatives.' },
+    { name: 'Pulse Media Digital', website: 'https://pulsemedia.com', industry: 'Technology', size: '51-200', revenue: 3800000, country: 'India', city: 'Gurugram', state: 'Haryana', address: 'DLF Cyber City, Gurugram', pincode: '122002', linkedinUrl: 'https://linkedin.com/company/pulse-media-digital', description: 'Full stack digital marketing and programmatic advertising agency.' },
+    { name: 'Core Infrastructure Inc', website: 'https://coreinfra.net', industry: 'Manufacturing', size: '201-500', revenue: 11000000, country: 'India', city: 'Hyderabad', state: 'Telangana', address: 'HITEC City, Hyderabad', pincode: '500081', linkedinUrl: 'https://linkedin.com/company/core-infrastructure-inc', description: 'Leading structural engineering firm specializing in green buildings.' }
   ];
 
   const companies = [];
@@ -283,6 +283,12 @@ export async function seedDemoData() {
         industry: c.industry,
         size: c.size,
         annualRevenue: c.revenue,
+        country: c.country,
+        city: c.city,
+        state: c.state,
+        linkedinUrl: c.linkedinUrl,
+        address: c.address,
+        pincode: c.pincode,
         description: c.description,
         createdById: demoAdmin.id,
         tags: ['demo', c.industry.toLowerCase()]
@@ -294,16 +300,16 @@ export async function seedDemoData() {
   // 8. Create Contacts
   console.log('🌱 Seeding contacts...');
   const contactsData = [
-    { first: 'Sarah', last: 'Connor', email: 'sconnor@vortexai.io', phone: '+1-555-0199', company: 'Vortex AI Solutions', designation: 'Head of Operations' },
-    { first: 'Marcus', last: 'Vance', email: 'mvance@vortexai.io', phone: '+1-555-0142', company: 'Vortex AI Solutions', designation: 'VP of Engineering' },
-    { first: 'Elena', last: 'Rostova', email: 'erostova@summithealth.com', phone: '+1-555-0188', company: 'Summit Global Health', designation: 'Chief Facilities Officer' },
-    { first: 'David', last: 'Kim', email: 'dkim@nexuslogistics.com', phone: '+1-555-0125', company: 'Nexus Logistics Group', designation: 'Procurement Director' },
-    { first: 'Chloe', last: 'Bennett', email: 'chloe@starlightcreative.co', phone: '+1-555-0156', company: 'Starlight Creative Labs', designation: 'Founder & CD' },
-    { first: 'Arthur', last: 'Pendleton', email: 'apendleton@apexwealth.com', phone: '+1-555-0177', company: 'Apex Wealth Capital', designation: 'Managing Partner' },
-    { first: 'Rebecca', last: 'Nunez', email: 'rnunez@novafoods.com', phone: '+1-555-0111', company: 'Nova Foods Corp', designation: 'Director of HR' },
-    { first: 'Julian', last: 'Asher', email: 'julian@pulsemedia.com', phone: '+1-555-0163', company: 'Pulse Media Digital', designation: 'CEO' },
-    { first: 'Rachel', last: 'Green', email: 'rgreen@novafoods.com', phone: '+1-555-0100', company: 'Nova Foods Corp', designation: 'Office Manager' },
-    { first: 'Liam', last: 'Neeson', email: 'lneeson@coreinfra.net', phone: '+1-555-0191', company: 'Core Infrastructure Inc', designation: 'Site Coordinator' }
+    { first: 'Sarah', last: 'Connor', email: 'sconnor@vortexai.io', phone: '+1-555-0199', whatsapp: '+1-555-0199', company: 'Vortex AI Solutions', designation: 'Head of Operations', department: 'Operations', linkedinUrl: 'https://linkedin.com/in/sarah-connor-vortex', country: 'India', city: 'Bengaluru' },
+    { first: 'Marcus', last: 'Vance', email: 'mvance@vortexai.io', phone: '+1-555-0142', whatsapp: '+1-555-0142', company: 'Vortex AI Solutions', designation: 'VP of Engineering', department: 'Engineering', linkedinUrl: 'https://linkedin.com/in/marcus-vance-vortex', country: 'India', city: 'Bengaluru' },
+    { first: 'Elena', last: 'Rostova', email: 'erostova@summithealth.com', phone: '+1-555-0188', whatsapp: '+1-555-0188', company: 'Summit Global Health', designation: 'Chief Facilities Officer', department: 'Facilities', linkedinUrl: 'https://linkedin.com/in/elena-rostova-summit', country: 'India', city: 'Mumbai' },
+    { first: 'David', last: 'Kim', email: 'dkim@nexuslogistics.com', phone: '+1-555-0125', whatsapp: '+1-555-0125', company: 'Nexus Logistics Group', designation: 'Procurement Director', department: 'Procurement', linkedinUrl: 'https://linkedin.com/in/david-kim-nexus', country: 'India', city: 'Chennai' },
+    { first: 'Chloe', last: 'Bennett', email: 'chloe@starlightcreative.co', phone: '+1-555-0156', whatsapp: '+1-555-0156', company: 'Starlight Creative Labs', designation: 'Founder & CD', department: 'Executive', linkedinUrl: 'https://linkedin.com/in/chloe-bennett-starlight', country: 'United States', city: 'New York' },
+    { first: 'Arthur', last: 'Pendleton', email: 'apendleton@apexwealth.com', phone: '+1-555-0177', whatsapp: '+1-555-0177', company: 'Apex Wealth Capital', designation: 'Managing Partner', department: 'Executive', linkedinUrl: 'https://linkedin.com/in/arthur-pendleton-apex', country: 'Singapore', city: 'Singapore' },
+    { first: 'Rebecca', last: 'Nunez', email: 'rnunez@novafoods.com', phone: '+1-555-0111', whatsapp: '+1-555-0111', company: 'Nova Foods Corp', designation: 'Director of HR', department: 'Human Resources', linkedinUrl: 'https://linkedin.com/in/rebecca-nunez-nova', country: 'India', city: 'Pune' },
+    { first: 'Julian', last: 'Asher', email: 'julian@pulsemedia.com', phone: '+1-555-0163', whatsapp: '+1-555-0163', company: 'Pulse Media Digital', designation: 'CEO', department: 'Executive', linkedinUrl: 'https://linkedin.com/in/julian-asher-pulse', country: 'India', city: 'Gurugram' },
+    { first: 'Rachel', last: 'Green', email: 'rgreen@novafoods.com', phone: '+1-555-0100', whatsapp: '+1-555-0100', company: 'Nova Foods Corp', designation: 'Office Manager', department: 'Administration', linkedinUrl: 'https://linkedin.com/in/rachel-green-nova', country: 'India', city: 'Pune' },
+    { first: 'Liam', last: 'Neeson', email: 'lneeson@coreinfra.net', phone: '+1-555-0191', whatsapp: '+1-555-0191', company: 'Core Infrastructure Inc', designation: 'Site Coordinator', department: 'Operations', linkedinUrl: 'https://linkedin.com/in/liam-neeson-coreinfra', country: 'India', city: 'Hyderabad' }
   ];
 
   const contacts = [];
@@ -317,7 +323,12 @@ export async function seedDemoData() {
         lastName: c.last,
         email: c.email,
         phone: c.phone,
+        whatsapp: c.whatsapp,
         designation: c.designation,
+        department: c.department,
+        linkedinUrl: c.linkedinUrl,
+        country: c.country,
+        city: c.city,
         createdById: demoAdmin.id,
         tags: ['lead-contact', 'decision-maker']
       }

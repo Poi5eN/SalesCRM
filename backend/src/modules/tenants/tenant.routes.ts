@@ -13,13 +13,14 @@ import {
 const router = Router();
 
 router.use(authGuard);
-router.use(rbacGuard('settings', 'update'));
 
+// Read endpoints — no RBAC gating needed
 router.get('/me', asyncHandler(TenantController.getMe));
-router.patch('/me', validate(updateTenantSchema), asyncHandler(TenantController.updateMe));
-
 router.get('/me/users', asyncHandler(TenantController.listUsers));
-router.patch('/users/:id', validate(updateUserStatusRoleSchema), asyncHandler(TenantController.updateUser));
-router.delete('/users/:id', validate(deleteUserSchema), asyncHandler(TenantController.deleteUser));
+
+// Write endpoints — require settings:update permission
+router.patch('/me', rbacGuard('settings', 'update'), validate(updateTenantSchema), asyncHandler(TenantController.updateMe));
+router.patch('/users/:id', rbacGuard('settings', 'update'), validate(updateUserStatusRoleSchema), asyncHandler(TenantController.updateUser));
+router.delete('/users/:id', rbacGuard('settings', 'update'), validate(deleteUserSchema), asyncHandler(TenantController.deleteUser));
 
 export default router;

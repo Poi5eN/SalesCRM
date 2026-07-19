@@ -18,13 +18,12 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  GripVertical, Plus, Trash2, Edit2, Check, X,
-  GitBranch, ArrowRightLeft, AlertCircle, Info
+  GripVertical, Plus, Trash2, Edit2, Check, X, Zap,
+  GitBranch, ArrowRightLeft, AlertCircle, Info, Shield
 } from 'lucide-react';
 import * as pipelineApi from '@/api/pipeline.api.ts';
 import { Button } from '@/components/ui/Button.tsx';
 import { useUIStore } from '@/store/ui.store.ts';
-
 const COLORS = [
   '#6366f1', // Indigo
   '#3b82f6', // Blue
@@ -35,6 +34,19 @@ const COLORS = [
   '#ec4899', // Pink
   '#8b5cf6'  // Violet
 ];
+
+function useStageSkipPolicy() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['stage-skip-policy'],
+    queryFn: async () => {
+      const res = await fetch('/api/stage-transitions/policy', { credentials: 'include' });
+      if (!res.ok) return { mode: 'global', enabled: false };
+      const json = await res.json();
+      return json.data || { mode: 'global', enabled: false };
+    },
+  });
+  return { policy: data, isLoading };
+}
 
 export function PipelineStagesSettings() {
   const [type, setType] = useState<'lead' | 'deal'>('lead');
@@ -48,6 +60,19 @@ export function PipelineStagesSettings() {
   const { data: stagesData, isLoading } = useQuery({
     queryKey: ['pipeline-stages', type],
     queryFn: () => pipelineApi.getStages({ type }),
+  });
+
+  const { policy: skipPolicy } = useStageSkipPolicy();
+
+  const updateSkipPolicyMutation = useMutation({
+    mutationFn: (enabled: boolean) =>
+      fetch('/api/stage-transitions/policy', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ enabled, mode: 'global' }),
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['stage-skip-policy'] }),
   });
 
   const stages = (stagesData?.data || []).sort((a, b) => a.position - b.position);
@@ -125,7 +150,7 @@ export function PipelineStagesSettings() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8 space-y-8">
       <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
         <div className="flex items-center gap-3">
           <div className="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
@@ -134,6 +159,44 @@ export function PipelineStagesSettings() {
           <div>
             <h2 className="text-xl font-bold text-slate-900">Pipeline Stages</h2>
             <p className="text-sm text-slate-500">Configure your sales workflow and deal progression.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stage-skip toggle */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+              <Zap className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Allow Stage Skipping</h3>
+              <p className="text-sm text-slate-500 mt-1 max-w-xl leading-relaxed">
+                When enabled, admins and sales managers can move leads/deals non-sequentially between stages. 
+                Sales reps will always move one stage at a time regardless of this setting.
+              </p>
+              <div className="flex items-center gap-4 mt-4">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={skipPolicy?.enabled ?? false}
+                    onChange={e => updateSkipPolicyMutation.mutate(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+                <span className={`text-sm font-bold ${skipPolicy?.enabled ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {skipPolicy?.enabled ? 'Enabled' : 'Disabled'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="hidden lg:flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
+            <Shield className="h-4 w-4 text-indigo-500" />
+            <span className="text-xs font-semibold text-slate-600">
+              {skipPolicy?.enabled ? 'Admin & Manager only' : 'Sequential only'}
+            </span>
           </div>
         </div>
       </div>

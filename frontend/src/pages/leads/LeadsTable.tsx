@@ -194,7 +194,8 @@ export function LeadsTable({ leads, stages, isLoading, pagination, sort, onRowCl
       emptyState={{
         title: "No leads found",
         description: "Adjust your filters or create a new lead to get started.",
-        variant: 'leads'
+        variant: 'leads',
+        imageUrl: '/illustrations/leads.png'
       }}
     />
   );

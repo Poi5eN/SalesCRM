@@ -1,7 +1,8 @@
 import prisma from '@/config/database.js';
 import { subDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 
-export const getAnalyticsSummary = async (tenantId: string, period: string) => {
+export const getAnalyticsSummary = async (tenantId: string, period: string, funnelMode?: string) => {
+  const verifiedOnly = funnelMode === 'verified';
   const now = new Date();
   let startDate: Date;
 
@@ -25,20 +26,34 @@ export const getAnalyticsSummary = async (tenantId: string, period: string) => {
   const thisMonthStart = startOfMonth(now);
   const thisMonthEnd = endOfMonth(now);
 
+  // For Verified Funnel mode: exclude leads that had skip-override transitions
+  const skipOverrideLeadIds = verifiedOnly
+    ? (await prisma.stageTransition.findMany({
+        where: { tenantId, entityType: 'lead', isSkipOverride: true },
+        select: { entityId: true },
+        distinct: ['entityId'],
+      })).map(t => t.entityId)
+    : [];
+
+  const leadWhere: any = { tenantId };
+  if (verifiedOnly && skipOverrideLeadIds.length > 0) {
+    leadWhere.id = { notIn: skipOverrideLeadIds };
+  }
+
   // 1. Leads Data
   const [totalLeads, newLeads, convertedLeads, leadsByStage, leadsBySource] = await Promise.all([
-    prisma.lead.count({ where: { tenantId } }),
-    prisma.lead.count({ where: { tenantId, createdAt: { gte: startDate } } }),
-    prisma.lead.count({ where: { tenantId, isConverted: true, convertedAt: { gte: startDate } } }),
+    prisma.lead.count({ where: { ...leadWhere } }),
+    prisma.lead.count({ where: { ...leadWhere, createdAt: { gte: startDate } } }),
+    prisma.lead.count({ where: { ...leadWhere, isConverted: true, convertedAt: { gte: startDate } } }),
     prisma.lead.groupBy({
       by: ['stageId'],
-      where: { tenantId },
+      where: { ...leadWhere },
       _count: { _all: true },
       _sum: { estimatedValue: true },
     }),
     prisma.lead.groupBy({
       by: ['source'],
-      where: { tenantId },
+      where: { ...leadWhere },
       _count: { _all: true },
     }),
   ]);
@@ -58,7 +73,7 @@ export const getAnalyticsSummary = async (tenantId: string, period: string) => {
 
   // More accurate avg time to convert using manual calc
   const convertedLeadsData = await prisma.lead.findMany({
-    where: { tenantId, isConverted: true, convertedAt: { gte: startDate } },
+    where: { ...leadWhere, isConverted: true, convertedAt: { gte: startDate } },
     select: { createdAt: true, convertedAt: true },
   });
   const totalDiff = convertedLeadsData.reduce((acc, lead) => {
@@ -170,6 +185,39 @@ export const getAnalyticsSummary = async (tenantId: string, period: string) => {
     wonValue: rep.assignedDeals.reduce((acc, d) => acc + Number(d.value), 0),
   })).sort((a, b) => b.wonValue - a.wonValue);
 
+  // §6.1: Source-level ROI — calculate won revenue per acquisition source
+  const leadsWithDeals = await prisma.lead.findMany({
+    where: { tenantId, isConverted: true, convertedToDealId: { not: null } },
+    select: { source: true, convertedToDealId: true },
+  });
+  const leadDealIds = leadsWithDeals.filter(l => l.convertedToDealId).map(l => l.convertedToDealId!);
+
+  // Calculate ROI by tracing through sourceLeadId or tags
+  const sourceROIMap: Record<string, { leadCount: number; wonValue: number }> = {};
+  for (const lead of leadsWithDeals) {
+    if (!sourceROIMap[lead.source]) {
+      sourceROIMap[lead.source] = { leadCount: 0, wonValue: 0 };
+    }
+    sourceROIMap[lead.source].leadCount++;
+  }
+
+  // Get the actual won deal values for these converted leads
+  if (leadDealIds.length > 0) {
+    const wonDeals = await prisma.deal.findMany({
+      where: { id: { in: leadDealIds }, tenantId },
+      select: { id: true, value: true, tags: true },
+    });
+
+    // Match deals back to leads via sourceLeadId or source tags
+    for (const lead of leadsWithDeals) {
+      if (!lead.convertedToDealId) continue;
+      const deal = wonDeals.find(d => d.id === lead.convertedToDealId);
+      if (deal && sourceROIMap[lead.source]) {
+        sourceROIMap[lead.source].wonValue += Number(deal.value || 0);
+      }
+    }
+  }
+
   return {
     leads: {
       total: totalLeads,
@@ -177,6 +225,13 @@ export const getAnalyticsSummary = async (tenantId: string, period: string) => {
       converted: convertedLeads,
       byStage: leadsByStageEnriched,
       bySource: leadsBySource.map(s => ({ source: s.source, count: s._count._all })),
+      sourceROI: Object.entries(sourceROIMap).map(([source, data]) => ({
+        source,
+        leadCount: data.leadCount,
+        wonValue: data.wonValue,
+        roiPerLead: data.leadCount > 0 ? data.wonValue / data.leadCount : 0,
+      })).sort((a, b) => b.wonValue - a.wonValue),
+      funnelMode: funnelMode || 'full',
       conversionRate: totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0,
       avgTimeToConvert: avgTimeToConvertHours,
     },

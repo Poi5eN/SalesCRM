@@ -39,6 +39,7 @@ interface TableProps<T> {
     title: string;
     description: string;
     variant?: 'general' | 'search' | 'tasks' | 'leads' | 'deals';
+    imageUrl?: string;
   };
 }
 
@@ -129,6 +130,7 @@ export function Table<T extends { id?: string | number }>({
                       variant={emptyState?.variant || 'general'}
                       title={emptyState?.title || "No data available"}
                       description={emptyState?.description || "There are no records to display at the moment."}
+                      imageUrl={emptyState?.imageUrl}
                     />
                   </td>
                 </tr>

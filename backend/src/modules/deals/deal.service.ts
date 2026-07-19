@@ -1,5 +1,6 @@
 import prisma from '@/config/database.js';
 import { Prisma } from '@prisma/client';
+import { StageTransitionService } from '../stage-transitions/stageTransition.service.js';
 
 export class DealService {
   static async listDeals(tenantId: string, filters: any) {
@@ -171,9 +172,44 @@ export class DealService {
 
     if (data.stageId && data.stageId !== oldDeal.stageId) {
       const newStage = await prisma.pipelineStage.findUnique({ where: { id: data.stageId, tenantId } });
+      if (!newStage) throw { status: 400, message: 'Invalid deal stage' };
+
+      // Fetch user role for validation
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      const userRole = user?.role || 'salesRep';
+
+      // Validate transition against stage-skip policy
+      const validation = await StageTransitionService.validateTransition(
+        tenantId, userId, userRole, 'deal', oldDeal.stageId, data.stageId
+      );
+
+      if (!validation.allowed) {
+        throw {
+          status: 403,
+          message: validation.message || 'Stage transition not allowed',
+          code: validation.reason,
+        };
+      }
+
+      // Log stage transition (immutable audit trail)
+      await StageTransitionService.logTransition(tenantId, {
+        entityId: id,
+        entityType: 'deal',
+        fromStageId: oldDeal.stageId,
+        toStageId: data.stageId,
+        fromStageName: oldDeal.stage.name || null,
+        toStageName: newStage.name,
+        actorId: userId,
+        isSkipOverride: validation.isSkipOverride,
+        skippedStages: validation.skippedStages,
+        metadata: { updatePayload: data },
+      });
+
       this.logActivity(tenantId, userId, id, 'stage_changed', {
         oldValue: { stageId: oldDeal.stageId, stageName: oldDeal.stage.name },
-        newValue: { stageId: data.stageId, stageName: newStage?.name }
+        newValue: { stageId: data.stageId, stageName: newStage?.name },
+        isSkipOverride: validation.isSkipOverride,
+        skippedStages: validation.skippedStages,
       });
       data.lastActivityAt = new Date();
     }

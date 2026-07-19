@@ -372,6 +372,7 @@ export default function CampaignsPage() {
           actionText="Create Campaign"
           onAction={() => handleOpenForm()}
           icon={Plus}
+          imageUrl="/illustrations/campaigns.png"
         />
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

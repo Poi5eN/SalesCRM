@@ -6,6 +6,9 @@ import { TeamSettings } from './TeamSettings.tsx';
 import { RolesSettings } from './RolesSettings.tsx';
 import { LeadScoringSettings } from './LeadScoringSettings.tsx';
 import { EmailTemplateSettings } from './EmailTemplateSettings.tsx';
+import NotificationsPage from '@/pages/notifications/NotificationsPage.tsx';
+import IntegrationsPage from '@/pages/integrations/IntegrationsPage.tsx';
+import BillingPage from '@/pages/billing/BillingPage.tsx';
 
 type SettingsTab = 'organization' | 'pipeline' | 'leadScoring' | 'emailTemplates' | 'team' | 'roles' | 'notifications' | 'integrations' | 'billing';
 
@@ -16,20 +19,10 @@ const NAV_ITEMS: { id: SettingsTab; label: string; icon: React.ComponentType<{ c
   { id: 'emailTemplates', label: 'Email Templates', icon: Mail },
   { id: 'team', label: 'Team Members', icon: Users },
   { id: 'roles', label: 'Roles & Permissions', icon: Shield },
-  { id: 'notifications', label: 'Notifications', icon: Bell, placeholder: true },
-  { id: 'integrations', label: 'Integrations', icon: Plug, placeholder: true },
-  { id: 'billing', label: 'Billing', icon: CreditCard, placeholder: true },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'integrations', label: 'Integrations', icon: Plug },
+  { id: 'billing', label: 'Billing', icon: CreditCard },
 ];
-
-function PlaceholderTab({ title, icon: Icon }: { title: string; icon: React.ComponentType<{ className?: string }> }) {
-  return (
-    <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-      <Icon className="h-14 w-14 mb-4 text-slate-200" />
-      <p className="text-lg font-semibold text-slate-500">{title}</p>
-      <p className="text-sm mt-1 text-slate-400">Coming soon in a future release.</p>
-    </div>
-  );
-}
 
 export default function SettingsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -46,10 +39,10 @@ export default function SettingsPage() {
         <p className="text-slate-500 text-sm mt-1">Manage your organization, team, and preferences.</p>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex flex-col md:flex-row gap-8">
         {/* Sidebar Nav */}
-        <aside className="w-52 shrink-0">
-          <nav className="space-y-1">
+        <aside className="w-full md:w-52 shrink-0">
+          <nav className="flex flex-row overflow-x-auto gap-2 pb-2 md:flex-col md:overflow-visible md:pb-0 scrollbar-none">
             {NAV_ITEMS.map(item => {
               const Icon = item.icon;
               const isActive = tab === item.id;
@@ -57,15 +50,15 @@ export default function SettingsPage() {
                 <button
                   key={item.id}
                   onClick={() => setTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left ${isActive
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all text-left whitespace-nowrap shrink-0 ${isActive
                     ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 bg-slate-50 dark:bg-slate-900/50 md:bg-transparent'
                     }`}
                 >
                   <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-indigo-200' : 'text-slate-400'}`} />
                   {item.label}
                   {item.placeholder && (
-                    <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded">Soon</span>
+                    <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded hidden md:inline">Soon</span>
                   )}
                 </button>
               );
@@ -74,7 +67,7 @@ export default function SettingsPage() {
         </aside>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           {tab === 'organization' && <TenantSettings />}
           {tab === 'pipeline' && <PipelineStagesSettings />}
           {tab === 'team' && <TeamSettings />}
@@ -89,9 +82,9 @@ export default function SettingsPage() {
               <EmailTemplateSettings />
             </div>
           )}
-          {tab === 'notifications' && <PlaceholderTab title="Notification Preferences" icon={Bell} />}
-          {tab === 'integrations' && <PlaceholderTab title="Integrations & Apps" icon={Plug} />}
-          {tab === 'billing' && <PlaceholderTab title="Billing & Plans" icon={CreditCard} />}
+          {tab === 'notifications' && <NotificationsPage />}
+          {tab === 'integrations' && <IntegrationsPage />}
+          {tab === 'billing' && <BillingPage />}
         </div>
       </div>
     </div>

@@ -57,8 +57,8 @@ interface UIState {
   addRecentItem: (item: { id: string; type: 'lead' | 'deal'; title: string }) => void;
 
   // Badge Counts
-  badgeCounts: { leads: number; deals: number; tasks: number };
-  setBadgeCounts: (counts: { leads?: number; deals?: number; tasks?: number }) => void;
+  badgeCounts: { leads: number; deals: number; tasks: number; notifications: number };
+  setBadgeCounts: (counts: { leads?: number; deals?: number; tasks?: number; notifications?: number }) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -119,7 +119,7 @@ export const useUIStore = create<UIState>()(
         });
       },
 
-      badgeCounts: { leads: 0, deals: 0, tasks: 0 },
+      badgeCounts: { leads: 0, deals: 0, tasks: 0, notifications: 0 },
       setBadgeCounts: (counts) => set((state) => ({ 
         badgeCounts: { ...state.badgeCounts, ...counts } 
       })),

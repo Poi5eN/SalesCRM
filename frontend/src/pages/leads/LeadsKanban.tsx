@@ -27,7 +27,7 @@ interface LeadsKanbanProps {
   currency?: string;
 }
 
-export function LeadsKanban({ columns, onCardClick, onAddLead, currency = 'INR' }: LeadsKanbanProps) {
+export function LeadsKanban({ columns, onCardClick, onAddLead, currency = 'USD' }: LeadsKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [localColumns, setLocalColumns] = useState(columns);
   const qc = useQueryClient();

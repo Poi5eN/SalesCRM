@@ -150,7 +150,7 @@ export function RolesSettings() {
       </div>
 
       {/* Right: Permission Matrix */}
-      <div className="flex-1 p-8 overflow-y-auto">
+      <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
         {!selectedRole ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-400">
             <ShieldCheck className="h-16 w-16 mb-4 text-slate-100" />

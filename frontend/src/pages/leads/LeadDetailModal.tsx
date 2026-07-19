@@ -80,6 +80,7 @@ export function LeadDetailModal({ lead, onClose, onEdit, onConvert }: Props) {
   const timeline: any[] = timelineData?.data ?? [];
   const score = currentLead.score ?? 0;
   const stale = (currentLead as any).isStale;
+  const isFastTracked = (currentLead as any).isFastTracked;
 
   const TABS: { id: Tab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
@@ -97,6 +98,7 @@ export function LeadDetailModal({ lead, onClose, onEdit, onConvert }: Props) {
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
+                {isFastTracked && <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">⚡ Fast-tracked</span>}
                 {stale && <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">STALE</span>}
                 {currentLead.isConverted && <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">CONVERTED</span>}
               </div>

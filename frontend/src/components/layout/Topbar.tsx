@@ -1,13 +1,28 @@
 import { Search, Bell, Moon, Sun, ChevronDown, User, LogOut, Settings as SettingsIcon, Menu } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store.ts';
 import { useUIStore } from '@/store/ui.store.ts';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import * as notificationsApi from '@/api/notifications.api.ts';
 
 export function Topbar() {
   const { user, tenant, clearAuth } = useAuthStore();
   const { theme, setTheme, setCommandPaletteOpen, toggleMobileSidebar } = useUIStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const res = await notificationsApi.getUnreadCount();
+        setUnreadCount(res?.data?.count || 0);
+      } catch { /* ignore */ }
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light');
 
@@ -55,13 +70,18 @@ export function Topbar() {
         </button>
 
         {/* Notifications */}
-        <button 
+        <Link 
+          to="/settings?tab=notifications"
           className="p-2.5 text-[var(--text-secondary)] hover:bg-[var(--sidebar-item-active-bg)] rounded-xl transition-all relative"
           title="Notifications"
         >
           <Bell className="h-5 w-5 text-[var(--text-secondary)]" />
-          <span className="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full border-2 border-[var(--card-bg)]" />
-        </button>
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 h-5 w-5 bg-red-500 rounded-full border-2 border-[var(--card-bg)] flex items-center justify-center text-white text-[9px] font-black">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </Link>
 
         <div className="h-6 w-px bg-[var(--border)] mx-1" />
 
@@ -88,7 +108,7 @@ export function Topbar() {
                   <p className="text-sm font-black text-slate-900 dark:text-white truncate">{user?.firstName} {user?.lastName}</p>
                   <p className="text-xs text-slate-500 truncate mt-0.5">{user?.email}</p>
                 </div>
-                <Link to="/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
+                <Link to="/settings?tab=organization" className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
                   <User className="h-4 w-4 text-slate-400" /> My Profile
                 </Link>
                 <Link to="/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">

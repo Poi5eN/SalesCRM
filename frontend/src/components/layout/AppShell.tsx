@@ -14,6 +14,7 @@ import { CommandPalette } from '@/components/ui/CommandPalette.tsx';
 import { queryKeys } from '@/lib/queryKeys.ts';
 import * as leadsApi from '@/api/leads.api.ts';
 import * as dealsApi from '@/api/deals.api.ts';
+import * as notificationsApi from '@/api/notifications.api.ts';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -49,16 +50,18 @@ export const AppShell = ({ children }: AppShellProps) => {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const [leads, deals, overdue] = await Promise.all([
+        const [leads, deals, overdue, notifications] = await Promise.all([
           leadsApi.getLeads({ limit: 1 }),
           dealsApi.getDeals({ status: 'open', limit: 1 }),
           tasksApi.getOverdueTasks(),
+          notificationsApi.getUnreadCount().catch(() => ({ data: { count: 0 } })),
         ]);
         
         setBadgeCounts({
           leads: leads.data?.meta?.total || 0,
           deals: deals.data?.meta?.total || 0,
           tasks: overdue.data?.length || 0,
+          notifications: notifications?.data?.count || 0,
         });
       } catch (error) {
         console.error('Failed to fetch global counts', error);

@@ -116,7 +116,7 @@ export class RBACService {
   }
 
   static async seedDefaults(tenantId: string, tx: Prisma.TransactionClient) {
-    const resources = ['leads', 'deals', 'contacts', 'companies', 'tasks', 'proposals', 'products', 'users', 'settings'];
+    const resources = ['leads', 'deals', 'contacts', 'companies', 'tasks', 'proposals', 'products', 'users', 'settings', 'reports', 'communications'];
     const actions = ['read', 'create', 'update', 'delete', 'export'];
 
     // 1. Create Permissions
@@ -157,8 +157,10 @@ export class RBACService {
       data: allPermissions.map(p => ({ roleId: adminRole.id, permissionId: p.id }))
     });
 
-    // Manager gets most things
-    const managerPerms = allPermissions.filter(p => p.resource !== 'settings' || p.action === 'read');
+    // Manager gets most things (settings + reports are read-only)
+    const managerPerms = allPermissions.filter(p => 
+      (p.resource !== 'settings' && p.resource !== 'reports') || p.action === 'read'
+    );
     await tx.rolePermission.createMany({
       data: managerPerms.map(p => ({ roleId: managerRole.id, permissionId: p.id }))
     });

@@ -9,8 +9,13 @@ export class LeadController {
   };
 
   static checkDuplicate = async (req: Request, res: Response) => {
-    const { title, contactId, companyId } = req.query as { title: string; contactId?: string; companyId?: string };
-    const duplicates = await LeadService.checkDuplicate(req.user!.tenantId, title, contactId, companyId);
+    const { title, contactId, companyId, phone } = req.query as { 
+      title: string; 
+      contactId?: string; 
+      companyId?: string;
+      phone?: string;
+    };
+    const duplicates = await LeadService.checkDuplicate(req.user!.tenantId, title, contactId, companyId, phone);
     return res.json({ duplicates });
   };
 

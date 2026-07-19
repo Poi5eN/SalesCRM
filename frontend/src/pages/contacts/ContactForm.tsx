@@ -143,7 +143,7 @@ export function ContactForm({ contact, onClose, onSuccess, onUseExisting, prefil
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-slate-800 rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between p-8 border-b border-slate-100 dark:border-slate-700 shrink-0">
-          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{contact ? 'Modify Entity' : 'New Contact Entry'}</h2>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{contact ? 'Edit Contact' : 'Create Contact'}</h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors">
             <X className="h-5 w-5 text-slate-500" />
           </button>
@@ -174,7 +174,7 @@ export function ContactForm({ contact, onClose, onSuccess, onUseExisting, prefil
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Identifier</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email</label>
               <input
                 type="email"
                 value={form.email}
@@ -202,10 +202,10 @@ export function ContactForm({ contact, onClose, onSuccess, onUseExisting, prefil
               </div>
               <div className="flex-1 space-y-4">
                 <div>
-                  <h4 className="text-sm font-black text-amber-900 dark:text-amber-400 uppercase tracking-tight">Intelligence Match Found</h4>
+                  <h4 className="text-sm font-black text-amber-900 dark:text-amber-400 uppercase tracking-tight">Similar Contact Detected</h4>
                   <p className="text-[11px] font-bold text-amber-700 dark:text-amber-500/80 mt-1 leading-relaxed">
-                    We've detected {duplicates.length} existing record{duplicates.length > 1 ? 's' : ''} with similar credentials. 
-                    Redundancy degrades system integrity.
+                    We've detected {duplicates.length} existing record{duplicates.length > 1 ? 's' : ''} with similar details. 
+                    Please review to avoid duplicates.
                   </p>
                 </div>
                 
@@ -221,7 +221,7 @@ export function ContactForm({ contact, onClose, onSuccess, onUseExisting, prefil
                         onClick={() => { onClose(); onUseExisting?.(dup); }}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-500 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-100 transition-colors"
                       >
-                        Merge/View <ArrowRight className="h-3 w-3" />
+                        Use Existing <ArrowRight className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
@@ -243,8 +243,7 @@ export function ContactForm({ contact, onClose, onSuccess, onUseExisting, prefil
             </div>
           )}
 
-          <div ref={compRef} className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Affiliated Company</label>
+          <div ref={compRef} className="space-y-1.5">              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company</label>
             {selectedCompany ? (
               <div className="flex items-center justify-between px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-900">
                 <div className="flex items-center space-x-3">
@@ -308,8 +307,7 @@ export function ContactForm({ contact, onClose, onSuccess, onUseExisting, prefil
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Strategic Notes</label>
+          <div className="space-y-1.5">              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Notes</label>
             <textarea
               rows={3}
               value={form.notes}
@@ -320,14 +318,14 @@ export function ContactForm({ contact, onClose, onSuccess, onUseExisting, prefil
           </div>
 
           <div className="flex items-center justify-end space-x-4 pt-4">
-            <Button type="button" variant="ghost" onClick={onClose} className="font-black uppercase tracking-widest text-[10px]">Abandon</Button>
+            <Button type="button" variant="ghost" onClick={onClose} className="font-black uppercase tracking-widest text-[10px]">Cancel</Button>
             <Button 
               type="submit" 
               isLoading={isSaving} 
               disabled={duplicates.length > 0 && !confirmNew}
               className="px-8 rounded-2xl shadow-lg shadow-indigo-500/20"
             >
-              {contact ? 'Commit Changes' : 'Initialize Contact'}
+              {contact ? 'Save Changes' : 'Save Contact'}
             </Button>
           </div>
         </form>

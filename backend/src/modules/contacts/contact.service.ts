@@ -1,4 +1,5 @@
 import prisma from '@/config/database.js';
+import { normalizePhoneForStorage } from '@/utils/phone.js';
 
 export class ContactService {
   static async listContacts(tenantId: string, filters: any) {
@@ -38,23 +39,47 @@ export class ContactService {
     };
   }
 
-  static async createContact(tenantId: string, userId: string, data: any, force = false) {
-    // Duplicate detection
-    if (!force) {
-      const duplicates = await prisma.contact.findMany({
-        where: {
-          tenantId,
-          deletedAt: null,
-          OR: [
-            ...(data.email ? [{ email: data.email }] : []),
-            ...(data.phone ? [{ phone: data.phone }] : []),
-          ]
-        },
-        select: { id: true, firstName: true, lastName: true, email: true }
-      });
+  /**
+   * Normalized phone matching: strips formatting and compares trailing digits.
+   * This catches "+91 98765 43210" matching "9876543210" or "+1 (555) 123-4567".
+   */
+  private static buildPhoneCondition(phone: string) {
+    const normalized = normalizePhoneForStorage(phone);
+    if (!normalized) return null;
+    // Use the last 10 digits for fuzzy matching — catches most formatting differences
+    const last10 = normalized.slice(-10);
+    return { phone: { contains: last10 } };
+  }
 
-      if (duplicates.length > 0) {
-        return { duplicates };
+  static async createContact(tenantId: string, userId: string, data: any, force = false) {
+    // Duplicate detection with normalized phone matching
+    if (!force) {
+      const conditions: any[] = [];
+
+      if (data.email) {
+        conditions.push({ email: data.email });
+      }
+
+      if (data.phone) {
+        const phoneCondition = this.buildPhoneCondition(data.phone);
+        if (phoneCondition) {
+          conditions.push(phoneCondition);
+        }
+      }
+
+      if (conditions.length > 0) {
+        const duplicates = await prisma.contact.findMany({
+          where: {
+            tenantId,
+            deletedAt: null,
+            OR: conditions,
+          },
+          select: { id: true, firstName: true, lastName: true, email: true, phone: true }
+        });
+
+        if (duplicates.length > 0) {
+          return { duplicates };
+        }
       }
     }
 
@@ -68,15 +93,26 @@ export class ContactService {
   }
 
   static async checkDuplicate(tenantId: string, email?: string, phone?: string) {
-    if (!email && !phone) return [];
+    const conditions: any[] = [];
+
+    if (email) {
+      conditions.push({ email });
+    }
+
+    if (phone) {
+      const phoneCondition = this.buildPhoneCondition(phone);
+      if (phoneCondition) {
+        conditions.push(phoneCondition);
+      }
+    }
+
+    if (conditions.length === 0) return [];
+
     return await prisma.contact.findMany({
       where: {
         tenantId,
         deletedAt: null,
-        OR: [
-          ...(email ? [{ email }] : []),
-          ...(phone ? [{ phone }] : []),
-        ],
+        OR: conditions,
       },
       select: { id: true, firstName: true, lastName: true, email: true, phone: true }
     });

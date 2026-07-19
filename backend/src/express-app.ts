@@ -26,6 +26,15 @@ import analyticsRoutes from '@/modules/analytics/analytics.routes.js';
 import leadScoringRoutes from '@/modules/leadScoring/leadScoring.routes.js';
 import emailTemplateRoutes from '@/modules/emailTemplates/emailTemplate.routes.js';
 import campaignRoutes from '@/modules/campaigns/campaign.routes.js';
+import slaRoutes from '@/modules/sla/sla.routes.js';
+import stageTransitionRoutes from '@/modules/stage-transitions/stageTransition.routes.js';
+import notificationRoutes from '@/modules/notifications/notification.routes.js';
+import integrationRoutes from '@/modules/integrations/integration.routes.js';
+import billingRoutes from '@/modules/billing/billing.routes.js';
+import predictionRoutes from '@/modules/predictions/prediction.routes.js';
+import gamificationRoutes from '@/modules/gamification/gamification.routes.js';
+import commentRoutes from '@/modules/comments/comment.routes.js';
+import digestRoutes from '@/modules/digests/digest.routes.js';
 
 const app = express();
 
@@ -121,6 +130,33 @@ app.use('/email-templates', emailTemplateRoutes);
 
 app.use('/api/campaigns', campaignRoutes);
 app.use('/campaigns', campaignRoutes);
+
+app.use('/api/stage-transitions', stageTransitionRoutes);
+app.use('/stage-transitions', stageTransitionRoutes);
+
+app.use('/api/sla', slaRoutes);
+app.use('/sla', slaRoutes);
+
+app.use('/api/notifications', notificationRoutes);
+app.use('/notifications', notificationRoutes);
+
+app.use('/api/integrations', integrationRoutes);
+app.use('/integrations', integrationRoutes);
+
+app.use('/api/billing', billingRoutes);
+app.use('/billing', billingRoutes);
+
+app.use('/api/predictions', predictionRoutes);
+app.use('/predictions', predictionRoutes);
+
+app.use('/api/gamification', gamificationRoutes);
+app.use('/gamification', gamificationRoutes);
+
+app.use('/api/comments', commentRoutes);
+app.use('/comments', commentRoutes);
+
+app.use('/api/digests', digestRoutes);
+app.use('/digests', digestRoutes);
 
 // Error Handling
 app.use(notFound);

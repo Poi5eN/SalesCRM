@@ -65,7 +65,7 @@ export function TenantSettings() {
   if (isLoading) return <div className="p-8 text-center text-slate-500">Loading settings...</div>;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-6">
         <div className="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm">
           <Building2 className="h-6 w-6" />

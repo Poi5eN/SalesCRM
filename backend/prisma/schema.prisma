@@ -191,9 +191,11 @@ model Tenant {
   communications  Communication[]
   products        Product[]
   proposals       Proposal[]
-  activities      ActivityLog[]
-  stageMigrations StageMigration[]
-  emailTemplates  EmailTemplate[]
+  activities        ActivityLog[]
+  stageMigrations   StageMigration[]
+  stageTransitions  StageTransition[]
+  emailTemplates    EmailTemplate[]
+  notifications     Notification[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -243,7 +245,9 @@ model User {
   activities      ActivityLog[]
   createdContacts Contact[]
   createdCompanies Company[]
-  emailTemplates   EmailTemplate[]
+  emailTemplates    EmailTemplate[]
+  stageTransitions  StageTransition[] @relation("TransitionActor")
+  notifications     Notification[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -347,8 +351,10 @@ model PipelineStage {
   tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   leads       Lead[]
   deals       Deal[]
-  migratedFrom StageMigration[] @relation("MigrationSource")
-  migratedTo   StageMigration[] @relation("MigrationTarget")
+  migratedFrom    StageMigration[]  @relation("MigrationSource")
+  migratedTo      StageMigration[]  @relation("MigrationTarget")
+  transitionsFrom StageTransition[] @relation("TransitionFrom")
+  transitionsTo   StageTransition[] @relation("TransitionTo")
 
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -826,6 +832,60 @@ model ProposalItem {
 }
 
 // =============================================================================
+// NOTIFICATIONS (in-app notification system)
+// =============================================================================
+
+enum NotificationType {
+  sla_breach
+  auto_reassignment
+  task_due
+  task_overdue
+  lead_assigned
+  deal_won
+  deal_lost
+  mention
+  comment
+  achievement
+  digest
+  system
+}
+
+enum NotificationChannel {
+  in_app
+  email
+  both
+}
+
+model Notification {
+  id              String             @id @default(cuid())
+  tenantId        String
+  userId          String             // who receives the notification
+  type            NotificationType
+  channel         NotificationChannel @default(in_app)
+  title           String
+  body            String?            @db.Text
+  link            String?            // deep link to the relevant record
+  entityType      String?            // "lead" | "deal" | "task" | etc.
+  entityId        String?            // ID of the related record
+  metadata        Json?              // extra context
+  isRead          Boolean            @default(false)
+  isArchived      Boolean            @default(false)
+  readAt          DateTime?
+  sentAt          DateTime?          // when notification was dispatched (for email)
+
+  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([tenantId, userId, isRead])
+  @@index([tenantId, userId, createdAt])
+  @@index([tenantId, userId, type])
+  @@map("notifications")
+}
+
+// =============================================================================
 // ACTIVITY LOG (immutable audit trail — never update, never delete)
 // =============================================================================
 
@@ -857,6 +917,38 @@ model ActivityLog {
   @@index([tenantId, createdAt])
   @@map("activity_logs")
 }
+// =============================================================================
+// STAGE TRANSITION LOG (immutable — source of truth for funnel/conversion reporting)
+// Individual lead/deal stage transitions, separate from admin bulk migrations.
+// =============================================================================
+
+model StageTransition {
+  id              String   @id @default(cuid())
+  tenantId        String
+  entityId        String   // lead_id or deal_id
+  entityType      String   // "lead" | "deal"
+  fromStageId     String?
+  toStageId       String
+  fromStageName   String?
+  toStageName     String
+  actorId         String   // user who performed the transition
+  isSkipOverride  Boolean  @default(false)  // true when stages were skipped (non-sequential)
+  skippedStages   String[] @default([])     // names of stages that were skipped
+  metadata        Json?    // additional context
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fromStage       PipelineStage? @relation("TransitionFrom", fields: [fromStageId], references: [id], onDelete: Restrict)
+  toStage         PipelineStage  @relation("TransitionTo", fields: [toStageId], references: [id], onDelete: Restrict)
+  actor           User     @relation("TransitionActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId, entityId])
+  @@index([tenantId, entityType, createdAt])
+  @@index([entityId])
+  @@map("stage_transitions")
+}
+
 // =============================================================================
 // EMAIL TEMPLATES
 // =============================================================================

@@ -174,7 +174,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-slate-800 rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between p-8 border-b border-slate-100 dark:border-slate-700">
-          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{lead ? 'Modify Intelligence' : 'New Lead Entry'}</h2>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{lead ? 'Edit Lead' : 'Create Lead'}</h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors">
             <X className="h-5 w-5 text-slate-500" />
           </button>
@@ -183,7 +183,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
         <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6">
           {/* Title */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Title Entry</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Lead Title</label>
             <input
               {...register('title')}
               placeholder="e.g. Enterprise Expansion — Acme Corp"
@@ -202,8 +202,8 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
                 <div>
                   <h4 className="text-sm font-black text-amber-900 dark:text-amber-400 uppercase tracking-tight">Similar Lead Detected</h4>
                   <p className="text-[11px] font-bold text-amber-700 dark:text-amber-500/80 mt-1 leading-relaxed">
-                    A similar intelligence record exists: <span className="font-black italic">"{duplicates[0].title}"</span>. 
-                    Avoid pipeline fragmentation.
+                    A similar lead already exists: <span className="font-black italic">"{duplicates[0].title}"</span>. 
+                    Review to avoid duplicates.
                   </p>
                 </div>
                 
@@ -216,7 +216,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
                     {confirmNew && <Check className="h-3 w-3 text-white stroke-[4px]" />}
                   </button>
                   <span className="text-[10px] font-black text-amber-700 dark:text-amber-500 uppercase tracking-widest cursor-pointer select-none" onClick={() => setConfirmNew(!confirmNew)}>
-                    I confirm this is a new opportunity
+                    I confirm this is a new lead
                   </span>
                 </div>
               </div>
@@ -237,7 +237,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
             </div>
             {/* Priority */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Urgency Level</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Priority</label>
               <select
                 {...register('priority')}
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
@@ -323,7 +323,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Acquisition Source</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Source</label>
               <select
                 {...register('source')}
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
@@ -332,7 +332,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Owner Assignment</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Assigned To</label>
               <select
                 {...register('assignedToId')}
                 className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
@@ -346,7 +346,7 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Intelligence Summary</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Notes</label>
             <textarea
               rows={3}
               {...register('description')}
@@ -380,14 +380,14 @@ export function LeadForm({ lead, defaultStageId, onClose, onSuccess }: LeadFormP
           </div>
 
           <div className="flex items-center justify-end space-x-4 pt-4">
-            <Button type="button" variant="ghost" onClick={onClose} className="font-black uppercase tracking-widest text-[10px]">Abandon</Button>
+            <Button type="button" variant="ghost" onClick={onClose} className="font-black uppercase tracking-widest text-[10px]">Cancel</Button>
             <Button 
               type="submit" 
               isLoading={isSaving} 
               disabled={duplicates.length > 0 && !confirmNew}
               className="px-8 rounded-2xl shadow-lg shadow-indigo-500/20"
             >
-              {lead ? 'Commit Changes' : 'Initialize Lead'}
+              {lead ? 'Save Changes' : 'Create Lead'}
             </Button>
           </div>
         </form>

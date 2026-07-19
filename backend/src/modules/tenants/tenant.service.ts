@@ -79,6 +79,9 @@ export class TenantService {
           },
         },
       });
+    }, {
+      maxWait: 10000,
+      timeout: 20000,
     });
   }
 
@@ -126,6 +129,9 @@ export class TenantService {
       });
 
       return { success: true, message: 'User soft-deleted and records reassigned' };
+    }, {
+      maxWait: 10000,
+      timeout: 20000,
     });
   }
 }

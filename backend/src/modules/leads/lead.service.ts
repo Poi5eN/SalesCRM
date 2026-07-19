@@ -1,5 +1,7 @@
 import prisma from '@/config/database.js';
 import { LeadScoringService } from '../leadScoring/leadScoring.service.js';
+import { StageTransitionService } from '../stage-transitions/stageTransition.service.js';
+import { normalizePhone, normalizePhoneForStorage } from '@/utils/phone.js';
 
 export class LeadService {
   static async listLeads(tenantId: string, filters: any) {
@@ -53,14 +55,15 @@ export class LeadService {
       prisma.lead.count({ where }),
     ]);
 
-    // Attach isStale dynamically
+    // Attach isStale and isFastTracked dynamically
     const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
     const staleDays = (tenant?.settings as any)?.staleDaysThreshold || 14;
 
-    const enrichedData = data.map(lead => ({
+    const enrichedData = await Promise.all(data.map(async (lead) => ({
       ...lead,
-      isStale: this.checkStale(lead.lastActivityAt, staleDays)
-    }));
+      isStale: this.checkStale(lead.lastActivityAt, staleDays),
+      isFastTracked: await StageTransitionService.hasBeenFastTracked(tenantId, lead.id)
+    })));
 
     return {
       data: enrichedData,
@@ -99,7 +102,7 @@ export class LeadService {
   static async createLead(tenantId: string, userId: string, data: any) {
     const rules = await LeadScoringService.getRules(tenantId);
     const score = LeadScoringService.calculateScore(data, rules);
-    return await prisma.lead.create({
+    const lead = await prisma.lead.create({
       data: {
         ...data,
         tenantId,
@@ -109,18 +112,64 @@ export class LeadService {
         lastActivityAt: new Date()
       }
     });
+
+    // Log a touchpoint activity if this lead matched an existing contact's phone
+    // (duplicate detection happens via checkDuplicate endpoint on the frontend)
+    if (data.contactId && data.source) {
+      this.logActivity(tenantId, userId, lead.id, 'created', {
+        source: data.source,
+        campaignId: data.campaignId,
+        contactId: data.contactId,
+      });
+    }
+
+    return lead;
   }
 
-  static async checkDuplicate(tenantId: string, title: string, contactId?: string, companyId?: string) {
+  static async checkDuplicate(tenantId: string, title: string, contactId?: string, companyId?: string, phone?: string) {
+    const conditions: any[] = [];
+
+    if (title) {
+      conditions.push({ title: { contains: title, mode: 'insensitive' } });
+    }
+    if (contactId) {
+      conditions.push({ contactId });
+    }
+    if (companyId) {
+      conditions.push({ companyId });
+    }
+
+    // Phone-based dedup with normalization
+    if (phone) {
+      const normalizedPhone = normalizePhoneForStorage(phone);
+      if (normalizedPhone) {
+        // Search for leads linked to contacts with matching phone
+        const contactsWithPhone = await prisma.contact.findMany({
+          where: {
+            tenantId,
+            deletedAt: null,
+            phone: { contains: normalizedPhone.slice(-10) },
+          },
+          select: { id: true }
+        });
+        
+        if (contactsWithPhone.length > 0) {
+          conditions.push({
+            contactId: { in: contactsWithPhone.map(c => c.id) }
+          });
+        }
+      }
+    }
+
+    if (conditions.length === 0) {
+      return [];
+    }
+
     return await prisma.lead.findMany({
       where: {
         tenantId,
         deletedAt: null,
-        OR: [
-          { title: { contains: title, mode: 'insensitive' } },
-          ...(contactId ? [{ contactId }] : []),
-          ...(companyId ? [{ companyId }] : []),
-        ],
+        OR: conditions,
       },
       take: 5,
       select: { id: true, title: true, isConverted: true }
@@ -150,6 +199,7 @@ export class LeadService {
     return {
       ...lead,
       isStale: this.checkStale(lead.lastActivityAt, staleDays),
+      isFastTracked: await StageTransitionService.hasBeenFastTracked(tenantId, id),
       taskCount: lead._count.tasks,
       communicationCount: lead._count.communications
     };
@@ -162,17 +212,50 @@ export class LeadService {
     });
     if (!oldLead) throw { status: 404, message: 'Lead not found' };
 
-    // Validation for stage change
+    // Stage change validation with stage-skip logic
     if (data.stageId && data.stageId !== oldLead.stageId) {
       const newStage = await prisma.pipelineStage.findFirst({
         where: { id: data.stageId, tenantId, type: 'lead' }
       });
       if (!newStage) throw { status: 400, message: 'Invalid lead stage' };
 
+      // Fetch user role from the request context
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      const userRole = user?.role || 'salesRep';
+
+      // Validate transition against stage-skip policy
+      const validation = await StageTransitionService.validateTransition(
+        tenantId, userId, userRole, 'lead', oldLead.stageId, data.stageId
+      );
+
+      if (!validation.allowed) {
+        throw {
+          status: 403,
+          message: validation.message || 'Stage transition not allowed',
+          code: validation.reason,
+        };
+      }
+
+      // Log stage transition (immutable audit trail)
+      await StageTransitionService.logTransition(tenantId, {
+        entityId: id,
+        entityType: 'lead',
+        fromStageId: oldLead.stageId,
+        toStageId: data.stageId,
+        fromStageName: oldLead.stage?.name || null,
+        toStageName: newStage.name,
+        actorId: userId,
+        isSkipOverride: validation.isSkipOverride,
+        skippedStages: validation.skippedStages,
+        metadata: { updatePayload: data },
+      });
+
       // Log activity (fire-and-forget)
       this.logActivity(tenantId, userId, id, 'stage_changed', {
         oldValue: { stageId: oldLead.stageId, stageName: oldLead.stage?.name },
-        newValue: { stageId: data.stageId, stageName: newStage.name }
+        newValue: { stageId: data.stageId, stageName: newStage.name },
+        isSkipOverride: validation.isSkipOverride,
+        skippedStages: validation.skippedStages,
       });
       
       data.lastActivityAt = new Date();
@@ -205,10 +288,19 @@ export class LeadService {
   static async convertToDeal(tenantId: string, id: string, data: any, userId: string) {
     const lead = await prisma.lead.findFirst({
       where: { id, tenantId, isConverted: false },
-      include: { contact: true, company: true }
+      include: { contact: true, company: true, campaign: true, stage: true }
     });
 
     if (!lead) throw { status: 404, message: 'Lead not found or already converted' };
+
+    // §5.1: Gating — only allow conversion from Qualified stage (position >= 2) or later
+    if (!lead.stage || lead.stage.position < 2) {
+      throw {
+        status: 403,
+        message: 'Leads must be in Qualified stage or later before they can be converted to deals. Move the lead forward first.',
+        code: 'CONVERSION_STAGE_GATE',
+      };
+    }
 
     // Validate deal stage
     const dealStage = await prisma.pipelineStage.findFirst({
@@ -228,7 +320,18 @@ export class LeadService {
           companyId: lead.companyId,
           assignedToId: lead.assignedToId,
           createdById: userId,
+          // §5.4: Store convertedFromLeadId FK for audit traceability
+          sourceLeadId: lead.id,
+          // §5.2: Carry over source + campaign for source-level ROI reporting
+          // Store source in tags or description for reporting continuity
+          tags: [...(lead.tags || []), `converted_from_lead:${lead.id}`, `original_source:${lead.source}`],
         }
+      });
+
+      // Also link communications to the new deal for cross-visibility
+      await tx.communication.updateMany({
+        where: { leadId: lead.id, tenantId },
+        data: { dealId: deal.id },
       });
 
       const updatedLead = await tx.lead.update({

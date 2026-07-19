@@ -141,49 +141,49 @@ export function DealForm({ deal, defaultStageId, onClose, onSuccess, prefill }: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-900">{deal ? 'Edit Deal' : 'New Deal'}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+      <div className="bg-white dark:bg-slate-800 rounded-[32px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between p-8 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{deal ? 'Edit Deal' : 'Create Deal'}</h2>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors">
             <X className="h-5 w-5 text-slate-500" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
           {/* Title */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Title <span className="text-red-500">*</span></label>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Deal Title</label>
             <input
               required
               value={form.title}
               onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              placeholder="e.g. Enterprise License - Q4"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+              placeholder="e.g. Enterprise License — Q4 Renewal"
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             {/* Stage */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Stage <span className="text-red-500">*</span></label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Pipeline Stage</label>
               <select
                 required
                 value={form.stageId}
                 onChange={e => setForm(f => ({ ...f, stageId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
               >
-                <option value="">Select stage</option>
+                <option value="">Select Stage</option>
                 {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             {/* Status */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Status <span className="text-red-500">*</span></label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Deal Status</label>
               <select
                 required
                 value={form.status}
                 onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
               >
                 {DEAL_STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
@@ -191,42 +191,43 @@ export function DealForm({ deal, defaultStageId, onClose, onSuccess, prefill }: 
           </div>
 
           {/* Contact searchable select */}
-          <div ref={contactRef}>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Contact</label>
+          <div ref={contactRef} className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Linked Contact</label>
             {selectedContact ? (
-              <div className="flex items-center justify-between px-3 py-2 border border-slate-200 rounded-lg bg-slate-50">
-                <div className="flex items-center space-x-2">
-                  <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-[10px] font-bold">
+              <div className="flex items-center justify-between px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-900">
+                <div className="flex items-center space-x-3">
+                  <div className="h-8 w-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-[10px] font-black">
                     {selectedContact.firstName.charAt(0)}
                   </div>
-                  <span className="text-sm font-medium text-slate-800">{selectedContact.firstName} {selectedContact.lastName}</span>
-                  <span className="text-xs text-slate-500">{selectedContact.email}</span>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedContact.firstName} {selectedContact.lastName}</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{selectedContact.email}</p>
+                  </div>
                 </div>
-                <button type="button" onClick={() => { setSelectedContact(null); setForm(f => ({ ...f, contactId: '' })); }} className="text-slate-400 hover:text-red-500">
+                <button type="button" onClick={() => { setSelectedContact(null); setForm(f => ({ ...f, contactId: '' })); }} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 rounded-xl transition-colors">
                   <X className="h-4 w-4" />
                 </button>
               </div>
             ) : (
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   value={contactSearch}
                   onChange={e => { setContactSearch(e.target.value); setShowContactDD(true); }}
-                  onFocus={() => contactSearch.length >= 2 && setShowContactDD(true)}
-                  placeholder="Search contacts..."
-                  className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+                  placeholder="Type to search people..."
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
                 {showContactDD && contacts.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 z-20 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl max-h-48 overflow-y-auto custom-scrollbar p-1">
                     {contacts.map(c => (
                       <button key={c.id} type="button" onClick={() => handleContactSelect(c)}
-                        className="w-full flex items-center space-x-3 px-4 py-2.5 hover:bg-slate-50 text-left">
-                        <div className="h-7 w-7 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-xs font-bold">
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 rounded-xl text-left transition-colors">
+                        <div className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 text-[10px] font-black">
                           {c.firstName.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-800">{c.firstName} {c.lastName}</p>
-                          <p className="text-xs text-slate-500">{c.email ?? c.company?.name}</p>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{c.firstName} {c.lastName}</p>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{c.email ?? c.company?.name}</p>
                         </div>
                       </button>
                     ))}
@@ -236,15 +237,15 @@ export function DealForm({ deal, defaultStageId, onClose, onSuccess, prefill }: 
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Value */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Value</label>
-              <div className="flex">
+          <div className="grid grid-cols-2 gap-6">
+            {/* Deal Value */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Deal Value</label>
+              <div className="flex gap-2">
                 <select
                   value={form.currency}
                   onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
-                  className="border border-r-0 border-slate-200 rounded-l-lg px-2 text-sm bg-slate-50 focus:outline-none"
+                  className="w-24 px-3 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                   <option>USD</option><option>INR</option><option>EUR</option><option>GBP</option>
                 </select>
@@ -252,45 +253,45 @@ export function DealForm({ deal, defaultStageId, onClose, onSuccess, prefill }: 
                   type="number"
                   value={form.value}
                   onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
-                  placeholder="0"
-                  className="flex-1 px-3 py-2 border border-slate-200 rounded-r-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+                  placeholder="0.00"
+                  className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
             </div>
-            {/* Probability */}
-            <div>
-              <div className="flex justify-between mb-1.5">
-                <label className="block text-sm font-semibold text-slate-700">Probability</label>
-                <span className="text-sm font-bold text-slate-900">{form.probability}%</span>
+            {/* Win Probability */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Win Probability</label>
+                <span className="text-sm font-bold text-slate-900 dark:text-white">{form.probability}%</span>
               </div>
               <input
                 type="range" min="0" max="100" step="5"
                 value={form.probability}
                 onChange={e => setForm(f => ({ ...f, probability: e.target.value }))}
-                className="w-full accent-indigo-600 cursor-pointer mt-1"
+                className="w-full accent-indigo-600 cursor-pointer h-2 rounded-full appearance-none bg-slate-200 dark:bg-slate-700"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             {/* Expected Close */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Expected Close <span className="text-red-500">*</span></label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Expected Close Date</label>
               <input
                 required
                 type="date"
                 value={form.expectedCloseAt}
                 onChange={e => setForm(f => ({ ...f, expectedCloseAt: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               />
             </div>
             {/* Assigned To */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Assigned To</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Assigned To</label>
               <select
                 value={form.assignedToId}
                 onChange={e => setForm(f => ({ ...f, assignedToId: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
               >
                 <option value="">Unassigned</option>
                 {users.map((u: any) => (
@@ -301,12 +302,12 @@ export function DealForm({ deal, defaultStageId, onClose, onSuccess, prefill }: 
           </div>
 
           {form.status === 'lost' && (
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Lost Reason</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Lost Reason</label>
               <select
                 value={form.lostReason}
                 onChange={e => setForm(f => ({ ...f, lostReason: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none"
               >
                 <option value="">Select a reason...</option>
                 <option value="price">Price</option>
@@ -320,38 +321,40 @@ export function DealForm({ deal, defaultStageId, onClose, onSuccess, prefill }: 
           )}
 
           {/* Description */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Description</label>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Notes</label>
             <textarea
               rows={3}
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="Add notes or context..."
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50 resize-none"
+              placeholder="Strategic context, key stakeholders, and next steps..."
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
             />
           </div>
 
           {/* Tags */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tags <span className="text-slate-400 font-normal">(comma separated)</span></label>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tags <span className="font-normal lowercase tracking-normal">(comma separated)</span></label>
             <input
               value={form.tags}
               onChange={e => setForm(f => ({ ...f, tags: e.target.value }))}
-              placeholder="e.g. enterprise, renewal"
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-slate-50"
+              placeholder="e.g. enterprise, q4-target, renewal"
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
 
           {/* Error */}
           {(createMutation.isError || updateMutation.isError) && (
-            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
-              {(createMutation.error || updateMutation.error as any)?.message ?? 'Something went wrong'}
-            </p>
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-2xl">
+              <p className="text-sm font-bold text-red-700 dark:text-red-400">
+                {(createMutation.error || updateMutation.error as any)?.message ?? 'Something went wrong'}
+              </p>
+            </div>
           )}
 
-          <div className="flex items-center justify-end space-x-3 pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" isLoading={isSaving}>
+          <div className="flex items-center justify-end space-x-4 pt-4">
+            <Button type="button" variant="ghost" onClick={onClose} className="font-black uppercase tracking-widest text-[10px]">Cancel</Button>
+            <Button type="submit" isLoading={isSaving} className="px-8 rounded-2xl shadow-lg shadow-indigo-500/20">
               {deal ? 'Save Changes' : 'Create Deal'}
             </Button>
           </div>

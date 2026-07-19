@@ -162,7 +162,8 @@ export function DealsTable({ deals, stages, isLoading, pagination, sort, onRowCl
       emptyState={{
         title: "No deals found",
         description: "Adjust your filters or create a new deal to track your opportunities.",
-        variant: 'deals'
+        variant: 'deals',
+        imageUrl: '/illustrations/handshake.png'
       }}
     />
   );

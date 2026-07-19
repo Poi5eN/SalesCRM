@@ -1,11 +1,19 @@
 import app from "./express-app.js";
 import { env } from "@/config/env.js";
 import prisma from "@/config/database.js";
+import { startSLAScheduler, stopSLAScheduler } from "@/modules/sla/slaScheduler.js";
+import { startDigestScheduler, stopDigestScheduler } from "@/modules/digests/digestScheduler.js";
 
 const port = env.PORT || 4000;
 
 const server = app.listen(port, () => {
   console.log(`🚀 Server running in ${env.NODE_ENV} mode on port ${port}`);
+
+  // Start the SLA auto-reassignment scheduler (runs hourly)
+  startSLAScheduler();
+
+  // Start the digest scheduler (weekly + monthly)
+  startDigestScheduler();
 
   // Hourly Task Overdue Job
   setInterval(async () => {
@@ -30,6 +38,10 @@ const server = app.listen(port, () => {
 // Graceful Shutdown
 const shutdown = async () => {
   console.log('🛑 Shutting down gracefully...');
+
+  // Stop the SLA scheduler first (no more DB queries)
+  stopSLAScheduler();
+  stopDigestScheduler();
   
   server.close(async () => {
     console.log('HTTP server closed.');

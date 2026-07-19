@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { 
   LayoutDashboard, Users, Briefcase, Building2, CheckSquare, 
   MessageSquare, Package, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
-  Search, TrendingUp, Megaphone
+  Search, TrendingUp, Megaphone, Trophy
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store.ts';
 import { useUIStore } from '@/store/ui.store.ts';
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { id: 'products', label: 'Products', icon: Package, path: '/products' },
   { id: 'proposals', label: 'Proposals', icon: FileText, path: '/proposals' },
   { id: 'reports', label: 'Intelligence', icon: TrendingUp, path: '/reports' },
+  { id: 'achievements', label: 'Achievements', icon: Trophy, path: '/achievements' },
 ];
 
 export function Sidebar() {

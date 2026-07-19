@@ -161,6 +161,7 @@ export interface Lead {
   convertedAt?: string;
   convertedToDealId?: string;
   score: number;
+  isFastTracked?: boolean;
   lastActivityAt: string;
   stage?: PipelineStage;
   contact?: Contact;

@@ -6,8 +6,9 @@ export const getSummary = async (req: Request, res: Response) => {
   try {
     const { tenantId } = req.user!;
     const period = (req.query.period as string) || '30d';
+    const funnelMode = req.query.funnel as string | undefined;
 
-    const summary = await analyticsService.getAnalyticsSummary(tenantId, period);
+    const summary = await analyticsService.getAnalyticsSummary(tenantId, period, funnelMode);
     return success(res, summary, 'Analytics summary retrieved successfully');
   } catch (err: any) {
     console.error('Analytics Error:', err);

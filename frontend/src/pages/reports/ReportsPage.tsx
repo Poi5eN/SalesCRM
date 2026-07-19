@@ -33,9 +33,11 @@ export default function ReportsPage() {
   const { tenant } = useAuth();
   const theme = useUIStore(state => state.theme);
 
+  const [funnelMode, setFunnelMode] = useState<'full' | 'verified'>('full');
+
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
-    queryKey: ['analytics', 'summary', period],
-    queryFn: () => analyticsApi.getAnalyticsSummary(period),
+    queryKey: ['analytics', 'summary', period, funnelMode],
+    queryFn: () => analyticsApi.getAnalyticsSummary(period, funnelMode),
   });
 
   const { data: heatmapData, isLoading: heatmapLoading } = useQuery({
@@ -45,6 +47,7 @@ export default function ReportsPage() {
 
   const summary = summaryData?.data?.data;
   const heatmap = heatmapData?.data?.data;
+  const isVerifiedFunnel = funnelMode === 'verified';
 
   const exportToCSV = (data: any[], filename: string) => {
     if (!data.length) return;
@@ -99,6 +102,45 @@ export default function ReportsPage() {
               {p.label.split(' ')[1] + ' ' + p.label.split(' ')[2]}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Funnel Mode Toggle */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600">
+            <Target className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">
+              {isVerifiedFunnel ? 'Verified Funnel' : 'Full Pipeline'}
+            </p>
+            <p className="text-xs text-slate-500">
+              {isVerifiedFunnel
+                ? 'Excluding stage-skipped leads for clean conversion data'
+                : 'All leads including skip-override transitions'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <button
+            onClick={() => setFunnelMode('full')}
+            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${funnelMode === 'full'
+              ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Full Pipeline
+          </button>
+          <button
+            onClick={() => setFunnelMode('verified')}
+            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${funnelMode === 'verified'
+              ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Verified Funnel
+          </button>
         </div>
       </div>
 
@@ -351,7 +393,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   return (
     <div className="bg-white dark:bg-slate-800 rounded-[32px] border border-slate-200 dark:border-slate-700 shadow-xl p-8 flex flex-col h-full group hover:border-indigo-200 dark:hover:border-indigo-800 transition-all">
       <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-8 group-hover:text-indigo-600 transition-colors">{title}</h3>
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center min-h-[300px]">
         {children}
       </div>
     </div>
