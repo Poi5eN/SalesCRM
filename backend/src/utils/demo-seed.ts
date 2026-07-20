@@ -28,10 +28,25 @@ export async function seedDemoData() {
   });
 
   if (tenant) {
+    // Concurrency / Race Condition Guard: Skip seeding if done in the last 15 minutes
+    const timeSinceLastUpdate = Date.now() - new Date(tenant.updatedAt).getTime();
+    if (timeSinceLastUpdate < 900000) {
+      console.log(`🌱 Demo tenant was seeded ${Math.round(timeSinceLastUpdate / 1000)}s ago. Skipping seed to prevent concurrent race conditions.`);
+      return;
+    }
+
+    // Immediately update tenant's updatedAt field to prevent concurrent seed runs
+    await prisma.tenant.update({
+      where: { id: tenant.id },
+      data: { updatedAt: new Date() }
+    });
+
     console.log('🌱 Demo tenant found. Cleaning existing demo tenant data to ensure a fresh, seamless seed...');
     
     // Deleting in dependency order to avoid foreign key violations
     await prisma.activityLog.deleteMany({ where: { tenantId: tenant.id } });
+    await prisma.stageTransition.deleteMany({ where: { tenantId: tenant.id } });
+    await prisma.notification.deleteMany({ where: { tenantId: tenant.id } });
     await prisma.stageMigration.deleteMany({ where: { tenantId: tenant.id } });
     await prisma.dealProduct.deleteMany({ where: { deal: { tenantId: tenant.id } } });
     await prisma.proposalItem.deleteMany({ where: { proposal: { tenantId: tenant.id } } });

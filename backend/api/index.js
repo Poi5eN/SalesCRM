@@ -85,7 +85,6 @@ var package_default = {
   name: "backend",
   version: "1.0.0",
   description: "",
-  main: "index.js",
   scripts: {
     dev: "tsx watch src/main.ts",
     build: "npm install && prisma generate && tsc && tsc-alias",
@@ -386,8 +385,19 @@ async function seedDemoData() {
     where: { slug: "demo" }
   });
   if (tenant) {
+    const timeSinceLastUpdate = Date.now() - new Date(tenant.updatedAt).getTime();
+    if (timeSinceLastUpdate < 9e5) {
+      console.log(`\u{1F331} Demo tenant was seeded ${Math.round(timeSinceLastUpdate / 1e3)}s ago. Skipping seed to prevent concurrent race conditions.`);
+      return;
+    }
+    await database_default.tenant.update({
+      where: { id: tenant.id },
+      data: { updatedAt: /* @__PURE__ */ new Date() }
+    });
     console.log("\u{1F331} Demo tenant found. Cleaning existing demo tenant data to ensure a fresh, seamless seed...");
     await database_default.activityLog.deleteMany({ where: { tenantId: tenant.id } });
+    await database_default.stageTransition.deleteMany({ where: { tenantId: tenant.id } });
+    await database_default.notification.deleteMany({ where: { tenantId: tenant.id } });
     await database_default.stageMigration.deleteMany({ where: { tenantId: tenant.id } });
     await database_default.dealProduct.deleteMany({ where: { deal: { tenantId: tenant.id } } });
     await database_default.proposalItem.deleteMany({ where: { proposal: { tenantId: tenant.id } } });
