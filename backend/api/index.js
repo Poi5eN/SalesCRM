@@ -1109,7 +1109,9 @@ var AuthService = class {
   static async login(data) {
     const { email, password } = data;
     if (email === "demo@PSG.com") {
-      await seedDemoData();
+      seedDemoData().catch((err) => {
+        console.error("\u274C Background demo seeding failed:", err);
+      });
     }
     const user = await database_default.user.findFirst({
       where: { email },
@@ -6777,7 +6779,14 @@ app.use(requestLogger_default);
 app.get("/health", (req, res) => {
   return success(res, { status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString() }, "System is healthy");
 });
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swagger_default));
+var swaggerOptions = {
+  customCssUrl: "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui.min.css",
+  customJs: [
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui-bundle.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.18.3/swagger-ui-standalone-preset.min.js"
+  ]
+};
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swagger_default, swaggerOptions));
 app.use("/api/auth", auth_routes_default);
 app.use("/auth", auth_routes_default);
 app.use("/api/rbac", rbac_routes_default);

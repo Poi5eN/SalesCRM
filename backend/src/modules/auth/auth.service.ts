@@ -92,7 +92,10 @@ export class AuthService {
     const { email, password } = data;
 
     if (email === 'demo@PSG.com') {
-      await seedDemoData();
+      // Run seed in the background so the login request returns instantly and doesn't time out Vercel
+      seedDemoData().catch(err => {
+        console.error('❌ Background demo seeding failed:', err);
+      });
     }
 
     const user = await prisma.user.findFirst({
